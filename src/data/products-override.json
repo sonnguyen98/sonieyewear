@@ -462,5 +462,8 @@
         "images": []
       }
     ]
+  },
+  "sp022": {
+    "hidden": true
   }
 }
