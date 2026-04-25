@@ -781,9 +781,10 @@ function StoresSection() {
       .then(r => r.json()).then(setStores)
   }, [])
 
-  async function save(item: Store) {
+  async function save(item: Record<string, any>) {
     setSaving(true)
-    const next = isNew ? [...stores, item] : stores.map(s => s.id === item.id ? item : s)
+    const storeItem = item as Store
+    const next = isNew ? [...stores, storeItem] : stores.map(s => s.id === storeItem.id ? storeItem : s)
     await fetch('/api/admin/content/stores', {
       method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
       body: JSON.stringify(next)
@@ -851,9 +852,10 @@ function PoliciesSection() {
       .then(r => r.json()).then(setPolicies)
   }, [])
 
-  async function save(item: Policy) {
+  async function save(item: Record<string, any>) {
     setSaving(true)
-    const next = isNew ? [...policies, item] : policies.map(p => p.id === item.id ? item : p)
+    const policyItem = item as Policy
+    const next = isNew ? [...policies, policyItem] : policies.map(p => p.id === policyItem.id ? policyItem : p)
     await fetch('/api/admin/content/policies', {
       method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
       body: JSON.stringify(next)
@@ -905,10 +907,10 @@ function PoliciesSection() {
 interface FieldDef { key: string; label: string; type: 'text' | 'number' | 'textarea'; isArray?: boolean }
 
 function SimpleItemModal({ item, saving, title, fields, onSave, onClose }: {
-  item: Record<string, unknown>; saving: boolean; title: string
-  fields: FieldDef[]; onSave: (item: Record<string, unknown>) => void; onClose: () => void
+  item: Record<string, any>; saving: boolean; title: string
+  fields: FieldDef[]; onSave: (item: Record<string, any>) => void; onClose: () => void
 }) {
-  const [form, setForm] = useState<Record<string, unknown>>({ ...item })
+  const [form, setForm] = useState<Record<string, any>>({ ...item })
 
   function getVal(key: string, isArray?: boolean) {
     const v = form[key]
@@ -946,7 +948,7 @@ function SimpleItemModal({ item, saving, title, fields, onSave, onClose }: {
         </div>
         <div className="px-5 py-4 border-t flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold">Huỷ</button>
-          <SaveBtn saving={saving} onClick={() => onSave(form as Record<string, unknown>)} />
+          <SaveBtn saving={saving} onClick={() => onSave(form)} />
         </div>
       </div>
     </div>

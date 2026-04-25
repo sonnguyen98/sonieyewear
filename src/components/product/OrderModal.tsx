@@ -34,7 +34,7 @@ interface CheckoutForm {
   phone: string
   address: string
   note: string
-  payment: 'cod' | 'bank' | 'momo' | ''
+  payment: string
   rxMode: 'form' | 'image'
   rxRight: EyeRx
   rxLeft: EyeRx
