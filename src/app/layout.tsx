@@ -21,15 +21,15 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'SONi Kính — Kính Mắt Thời Trang & Thử Kính Ảo',
-    template: '%s | SONi Kính',
+    default: 'Kính Mắt SONi — Kính Đẹp Đúng Mốt Nét Như SONi',
+    template: '%s | Kính Mắt SONi',
   },
   description:
-    'Mua kính mắt thời trang online. Thử kính ảo 3D với công nghệ AR MediaPipe. Đặt hàng qua Zalo, giảm ngay 20%. Giao hàng toàn quốc.',
-  keywords: ['kính mắt', 'gọng kính', 'kính cận', 'thử kính ảo', 'AR', 'Việt Nam'],
+    'Kính Mắt SONi — Gọng kính thời trang chính hãng. Tư vấn gọng phù hợp khuôn mặt bằng AI. Giảm 20% khi đặt hàng. Giao hàng toàn quốc.',
+  keywords: ['kính mắt', 'gọng kính', 'kính cận', 'kính mắt soni', 'kinhmatsoni', 'Việt Nam'],
   openGraph: {
-    title: 'SONi Kính — Kính Đẹp Đúng Mốt',
-    description: 'Thử kính ảo 3D ngay tại nhà. Đặt hàng qua Zalo — giảm 20%.',
+    title: 'Kính Mắt SONi — Kính Đẹp Đúng Mốt',
+    description: 'Tư vấn gọng kính phù hợp khuôn mặt bằng AI. Giảm 20% mọi đơn hàng.',
     locale: 'vi_VN',
     type: 'website',
   },
