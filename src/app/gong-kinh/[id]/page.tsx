@@ -24,7 +24,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const { id } = params
   const staticProduct = getProductBySlug(id)
   const [product, setProduct] = useState(staticProduct)
-  const [loading, setLoading] = useState(!staticProduct) // loading nếu không có trong static
+  const [fetchDone, setFetchDone] = useState(!!staticProduct)
 
   // Fetch từ KV — cần thiết cho sản phẩm mới thêm qua admin
   useEffect(() => {
@@ -35,13 +35,13 @@ export default function ProductDetailPage({ params }: PageProps) {
           const found = data.find((p: { slug: string }) => p.slug === id)
           if (found) setProduct(found)
         }
-        setLoading(false)
+        setFetchDone(true)
       })
-      .catch(() => setLoading(false))
+      .catch(() => setFetchDone(true))
   }, [id])
 
-  // Đang tải sản phẩm từ KV
-  if (loading) {
+  // Đang tải từ KV
+  if (!fetchDone) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 flex justify-center">
         <div className="text-center">
@@ -55,7 +55,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   if (!product) notFound()
 
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedColorId, setSelectedColorId] = useState(product.colorVariants[0].id)
+  const [selectedColorId, setSelectedColorId] = useState(product?.colorVariants?.[0]?.id ?? '')
   const selectedColor = product.colorVariants.find(c => c.id === selectedColorId) ?? product.colorVariants[0]
   const { isProductAvailable, getProductQuantity, getVariantStock } = useStock()
   const variantIds = product.colorVariants.map(v => v.id)
