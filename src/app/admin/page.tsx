@@ -412,7 +412,10 @@ function StockSection() {
     Promise.all([
       fetch('/api/admin/products', { headers: { 'x-admin-token': PASSWORD } }).then(r => r.json()),
       fetch('/api/admin/stock', { headers: { 'x-admin-token': PASSWORD } }).then(r => r.json()),
-    ]).then(([prods, stk]) => { setProducts(prods); setStock(stk) })
+    ]).then(([prods, stk]) => {
+      setProducts(Array.isArray(prods) ? prods : [])
+      setStock(stk && typeof stk === 'object' && !Array.isArray(stk) ? stk : {})
+    })
   }, [])
 
   function getStock(variantId: string, field: 'inStock' | 'quantity', defaultVal: boolean | number) {
