@@ -14,27 +14,38 @@ async function fetchStock(): Promise<StockMap> {
   return fetchPromise
 }
 
-// Xoá cache để force refresh sau khi đặt hàng
 export function invalidateStockCache() { cache = null; fetchPromise = null }
 
 export function useStock() {
   const [stock, setStock] = useState<StockMap>({})
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    fetchStock().then(setStock)
+    fetchStock().then(s => { setStock(s); setLoaded(true) })
   }, [])
 
   function getVariantStock(variantId: string, defaultInStock = true): { inStock: boolean; quantity: number } {
-    return stock[variantId] ?? { inStock: defaultInStock, quantity: 99 }
+    // Nếu chưa load xong KV → dùng default từ product data
+    if (!loaded) return { inStock: defaultInStock, quantity: 99 }
+    // Nếu không có entry trong KV → coi là còn hàng (chưa set tồn kho)
+    return stock[variantId] ?? { inStock: true, quantity: 99 }
   }
 
   function isProductAvailable(variantIds: string[], defaults: boolean[]): boolean {
-    return variantIds.some((id, i) => getVariantStock(id, defaults[i]).inStock)
+    // Chưa load → coi là available để tránh ẩn sản phẩm sai
+    if (!loaded) return true
+    // Có ít nhất 1 màu còn hàng
+    return variantIds.some((id) => {
+      const s = stock[id]
+      // Không có entry KV → còn hàng
+      return !s || s.inStock
+    })
   }
 
   function getProductQuantity(variantIds: string[]): number {
+    if (!loaded) return 99
     return variantIds.reduce((sum, id) => sum + (stock[id]?.quantity ?? 99), 0)
   }
 
-  return { stock, getVariantStock, isProductAvailable, getProductQuantity }
+  return { stock, loaded, getVariantStock, isProductAvailable, getProductQuantity }
 }
