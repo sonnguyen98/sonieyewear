@@ -1,11 +1,11 @@
 {
   "sp001-gold": {
-    "inStock": false,
-    "quantity": 0
+    "inStock": true,
+    "quantity": 1
   },
   "sp001-black": {
-    "inStock": false,
-    "quantity": 0
+    "inStock": true,
+    "quantity": 1
   },
   "sp002-gunmetal": {
     "inStock": false,
@@ -40,11 +40,15 @@
     "quantity": 1
   },
   "sp1777135724528-0": {
-    "inStock": false,
-    "quantity": 0
+    "inStock": true,
+    "quantity": 1
   },
   "sp1777135734624-0": {
-    "inStock": false,
-    "quantity": 0
+    "inStock": true,
+    "quantity": 1
+  },
+  "sp001-silver": {
+    "inStock": true,
+    "quantity": 2
   }
 }
