@@ -1,10 +1,28 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ProductCard from '@/components/catalog/ProductCard'
 import { VI } from '@/constants/vietnamese'
 import { getBestSellers } from '@/data/products'
+import type { Product } from '@/types/product'
 
 export default function FeaturedProducts() {
-  const products = getBestSellers(6)
+  const [products, setProducts] = useState<Product[]>(getBestSellers(6))
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const bestSellers = data
+            .filter((p: Product) => p.isBestSeller)
+            .slice(0, 6)
+          if (bestSellers.length > 0) setProducts(bestSellers)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <section className="py-12 px-4 max-w-7xl mx-auto">
@@ -18,7 +36,6 @@ export default function FeaturedProducts() {
         </Link>
       </div>
 
-      {/* Horizontal scroll on mobile, grid on desktop */}
       <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 gap-4 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory sm:snap-none">
         {products.map(product => (
           <div key={product.id} className="flex-shrink-0 w-[70vw] xs:w-[60vw] sm:w-auto snap-start">

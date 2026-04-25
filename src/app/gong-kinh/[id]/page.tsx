@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getProductBySlug, getRelatedProducts } from '@/data/products'
+import { getProductBySlug, getRelatedProducts, MERGED_PRODUCTS } from '@/data/products'
 import ImageGallery from '@/components/product/ImageGallery'
 import OrderModal from '@/components/product/OrderModal'
 import CountdownTimer from '@/components/product/CountdownTimer'
@@ -22,7 +22,21 @@ interface PageProps {
 
 export default function ProductDetailPage({ params }: PageProps) {
   const { id } = params
-  const product = getProductBySlug(id)
+  const staticProduct = getProductBySlug(id)
+  const [product, setProduct] = useState(staticProduct)
+
+  // Fetch sản phẩm mới nhất từ KV để đảm bảo stock/giá đồng bộ
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const found = data.find((p: { slug: string }) => p.slug === id)
+          if (found) setProduct(found)
+        }
+      })
+      .catch(() => {})
+  }, [id])
 
   if (!product) notFound()
 
