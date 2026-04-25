@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import type { Product } from '@/types/product'
 
-const PASSWORD = 'soni2025admin'
+const PASSWORD = 'Sonnguyen98'
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
 type Section = 'products' | 'stock' | 'lens' | 'blog' | 'stores' | 'policies'
@@ -116,8 +116,11 @@ function ProductsSection() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const r = await fetch('/api/admin/products', { headers: { 'x-admin-token': PASSWORD } })
-    setProducts(await r.json())
+    try {
+      const r = await fetch('/api/admin/products', { headers: { 'x-admin-token': PASSWORD } })
+      const data = await r.json()
+      setProducts(Array.isArray(data) ? data : [])
+    } catch { setProducts([]) }
     setLoading(false)
   }, [])
 
