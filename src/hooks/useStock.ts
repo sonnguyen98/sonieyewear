@@ -5,16 +5,23 @@ import { useState, useEffect } from 'react'
 type StockMap = Record<string, { inStock: boolean; quantity: number }>
 
 let cache: StockMap | null = null
+let cacheTime = 0
 let fetchPromise: Promise<StockMap> | null = null
+const TTL = 30_000 // 30 giây
 
 async function fetchStock(): Promise<StockMap> {
-  if (cache) return cache
+  const now = Date.now()
+  // Dùng cache nếu còn trong 30 giây
+  if (cache && now - cacheTime < TTL) return cache
   if (fetchPromise) return fetchPromise
-  fetchPromise = fetch('/api/stock').then(r => r.json()).then(d => { cache = d; return d })
+  fetchPromise = fetch('/api/stock')
+    .then(r => r.json())
+    .then(d => { cache = d; cacheTime = Date.now(); fetchPromise = null; return d })
+    .catch(() => { fetchPromise = null; return cache ?? {} })
   return fetchPromise
 }
 
-export function invalidateStockCache() { cache = null; fetchPromise = null }
+export function invalidateStockCache() { cache = null; cacheTime = 0; fetchPromise = null }
 
 export function useStock() {
   const [stock, setStock] = useState<StockMap>({})

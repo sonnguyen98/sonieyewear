@@ -20,12 +20,19 @@ export function useProductFilters() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
   const [products, setProducts] = useState<Product[]>(MERGED_PRODUCTS)
 
-  // Fetch sản phẩm mới nhất từ KV (luôn đồng bộ với admin)
-  useEffect(() => {
+  // Fetch sản phẩm từ KV
+  const loadProducts = () => {
     fetch('/api/products')
       .then(r => r.json())
       .then(data => { if (Array.isArray(data) && data.length > 0) setProducts(data) })
-      .catch(() => {}) // fallback về static data nếu lỗi
+      .catch(() => {})
+  }
+
+  useEffect(() => {
+    loadProducts()
+    // Tự động refetch khi người dùng quay lại tab
+    window.addEventListener('focus', loadProducts)
+    return () => window.removeEventListener('focus', loadProducts)
   }, [])
 
   const filteredProducts = useMemo(() => {
