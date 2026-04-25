@@ -180,9 +180,13 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
   const MOMO = process.env.NEXT_PUBLIC_MOMO_PHONE ?? '0363978798'
 
   const transferContent = orderCode
-  const vietQrUrl = `https://img.vietqr.io/image/${BANK}-${ACCOUNT}-compact2.png?amount=${payAmount}&addInfo=${transferContent}&accountName=${ACC_NAME}`
+  const accName = 'Nguyen Van Son'
+  // Dùng proxy API để tránh CORS trên desktop
+  const vietQrUrl = `/api/qr-proxy?bank=${BANK}&account=${ACCOUNT}&amount=${payAmount}&content=${transferContent}&name=${encodeURIComponent(accName)}`
   const momoDeeplink = `momo://app?action=transfer&phone=${MOMO}&amount=${payAmount}&comment=${transferContent}`
   const momoQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(momoDeeplink)}`
+  // VietQR deeplink - mở thẳng app ngân hàng trên mobile
+  const quickTransferUrl = `https://dl.vietqr.io/pay?app=mbbank&ba=${ACCOUNT}&bn=MB&amount=${payAmount}&cn=${encodeURIComponent(accName)}&ds=${transferContent}`
 
   // Poll trạng thái thanh toán mỗi 3 giây
   const [polling, setPolling] = useState(!isCOD && !paymentConfirmed)
@@ -286,17 +290,50 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
           )}
           <div className="flex justify-between border-t border-current/20 pt-2">
             <span className={isMomo ? 'text-pink-600' : 'text-blue-600'}>Số tiền</span>
-            <span className="font-black text-red-600 text-base">{formatVND(payAmount)}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-red-600 text-base">{formatVND(payAmount)}</span>
+              <button onClick={() => { navigator.clipboard.writeText(String(payAmount)); alert('Đã copy số tiền!') }}
+                className="text-[10px] bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 rounded transition-colors">
+                📋
+              </button>
+            </div>
           </div>
           <div className="flex justify-between">
             <span className={isMomo ? 'text-pink-600' : 'text-blue-600'}>Nội dung CK</span>
-            <span className="font-bold text-brand-black bg-yellow-100 px-2 py-0.5 rounded">{transferContent}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-brand-black bg-yellow-100 px-2 py-0.5 rounded">{transferContent}</span>
+              <button onClick={() => { navigator.clipboard.writeText(transferContent); alert('Đã copy nội dung!') }}
+                className="text-[10px] bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 rounded transition-colors">
+                📋
+              </button>
+            </div>
           </div>
+          {!isMomo && (
+            <div className="flex justify-between">
+              <span className="text-blue-600">Số TK</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-brand-black">{ACCOUNT}</span>
+                <button onClick={() => { navigator.clipboard.writeText(ACCOUNT); alert('Đã copy số tài khoản!') }}
+                  className="text-[10px] bg-gray-100 hover:bg-gray-200 px-1.5 py-0.5 rounded transition-colors">
+                  📋
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Chuyển khoản nhanh - mở app ngân hàng */}
+      {!isMomo && (
+        <a href={quickTransferUrl} target="_blank" rel="noopener noreferrer"
+          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl transition-colors text-sm">
+          <span>⚡</span>
+          Chuyển Khoản Nhanh — Mở App Ngân Hàng
+        </a>
+      )}
+
       {/* Trạng thái chờ */}
-      <div className="flex items-center justify-center gap-2 py-2">
+      <div className="flex items-center justify-center gap-2 py-1">
         <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
         <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
         <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
