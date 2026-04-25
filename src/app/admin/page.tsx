@@ -417,7 +417,10 @@ function StockSection() {
   }
 
   function updateVariant(variantId: string, field: 'inStock' | 'quantity', value: boolean | number) {
-    setStock(s => ({ ...s, [variantId]: { inStock: true, quantity: 0, ...(s[variantId] ?? {}), [field]: value } }))
+    setStock(s => {
+      const current = s[variantId] ?? { inStock: true, quantity: 0 }
+      return { ...s, [variantId]: { ...current, [field]: value } }
+    })
     setSaved(false)
   }
 
