@@ -552,7 +552,7 @@ function LensSection() {
 
   useEffect(() => {
     fetch('/api/admin/content/lens-products', { headers: { 'x-admin-token': PASSWORD } })
-      .then(r => r.json()).then(setItems)
+      .then(r => r.json()).then(d => setItems(Array.isArray(d) ? d : []))
   }, [])
 
   async function save(item: LensItem) {
@@ -697,7 +697,7 @@ function BlogSection() {
 
   useEffect(() => {
     fetch('/api/admin/content/blog-posts', { headers: { 'x-admin-token': PASSWORD } })
-      .then(r => r.json()).then(setPosts)
+      .then(r => r.json()).then(d => setPosts(Array.isArray(d) ? d : []))
   }, [])
 
   async function save(item: BlogPost) {
@@ -781,7 +781,7 @@ function StoresSection() {
 
   useEffect(() => {
     fetch('/api/admin/content/stores', { headers: { 'x-admin-token': PASSWORD } })
-      .then(r => r.json()).then(setStores)
+      .then(r => r.json()).then(d => setStores(Array.isArray(d) ? d : []))
   }, [])
 
   async function save(item: Record<string, any>) {
@@ -852,7 +852,7 @@ function PoliciesSection() {
 
   useEffect(() => {
     fetch('/api/admin/content/policies', { headers: { 'x-admin-token': PASSWORD } })
-      .then(r => r.json()).then(setPolicies)
+      .then(r => r.json()).then(d => setPolicies(Array.isArray(d) ? d : []))
   }, [])
 
   async function save(item: Record<string, any>) {
