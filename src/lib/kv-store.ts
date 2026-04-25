@@ -7,7 +7,8 @@
 import fs from 'fs'
 import path from 'path'
 
-const IS_PROD = process.env.NODE_ENV === 'production' && process.env.KV_REST_API_URL
+// Dùng KV nếu có credentials (cả production lẫn local khi đã cài .env.local)
+const IS_PROD = !!process.env.KV_REST_API_URL
 
 // ── Đọc dữ liệu ──────────────────────────────────────────────────────────────
 export async function kvGet<T>(key: string, fallbackFile: string): Promise<T | null> {
