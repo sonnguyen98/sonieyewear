@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
 
     // Lưu đơn vào store để SePay có thể match
     if (body.orderCode && body.payAmount) {
-      createOrder({
+      await createOrder({
         code: body.orderCode,
         amount: body.payAmount,
         name: body.name,

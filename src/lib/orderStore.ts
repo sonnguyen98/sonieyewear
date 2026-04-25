@@ -1,5 +1,5 @@
-// In-memory store cho đơn hàng chờ thanh toán
-// Production: thay bằng Redis/Upstash
+// Order store dùng Vercel KV (production) hoặc in-memory (development)
+import { kvGet, kvSet } from './kv-store'
 
 interface PendingOrder {
   code: string
@@ -11,31 +11,55 @@ interface PendingOrder {
   createdAt: number
 }
 
+const IS_PROD = process.env.NODE_ENV === 'production'
+
+// ── Dev: in-memory ────────────────────────────────────────────────────────────
 declare global {
   // eslint-disable-next-line no-var
   var __orderStore: Map<string, PendingOrder> | undefined
 }
-
-const store: Map<string, PendingOrder> =
+const memStore: Map<string, PendingOrder> =
   globalThis.__orderStore ?? (globalThis.__orderStore = new Map())
 
-export function createOrder(order: PendingOrder) {
-  store.set(order.code, order)
-  // Tự xoá sau 2 giờ
-  setTimeout(() => store.delete(order.code), 2 * 60 * 60 * 1000)
+// ── Helpers ───────────────────────────────────────────────────────────────────
+async function getAllOrders(): Promise<Record<string, PendingOrder>> {
+  if (!IS_PROD) {
+    const obj: Record<string, PendingOrder> = {}
+    memStore.forEach((v, k) => { obj[k] = v })
+    return obj
+  }
+  return (await kvGet<Record<string, PendingOrder>>('pending-orders', '')) ?? {}
 }
 
-export function getOrder(code: string) {
-  return store.get(code)
+async function saveAllOrders(orders: Record<string, PendingOrder>): Promise<void> {
+  if (!IS_PROD) {
+    Object.entries(orders).forEach(([k, v]) => memStore.set(k, v))
+    return
+  }
+  await kvSet('pending-orders', '', orders)
 }
 
-export function markPaid(code: string, transactionRef: string) {
-  const order = store.get(code)
+// ── Public API ────────────────────────────────────────────────────────────────
+export async function createOrder(order: PendingOrder) {
+  const orders = await getAllOrders()
+  orders[order.code] = order
+  await saveAllOrders(orders)
+}
+
+export async function getOrder(code: string): Promise<PendingOrder | undefined> {
+  const orders = await getAllOrders()
+  return orders[code]
+}
+
+export async function markPaid(code: string, transactionRef: string): Promise<boolean> {
+  const orders = await getAllOrders()
+  const order = orders[code]
   if (!order) return false
   order.paid = true
   order.paidAt = new Date().toLocaleString('vi-VN')
   order.transactionRef = transactionRef
-  store.set(code, order)
+  orders[code] = order
+  await saveAllOrders(orders)
   return true
 }
 

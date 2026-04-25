@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const orderCode = match[0].toUpperCase()
     const txRef = referenceCode || String(id)
 
-    const updated = markPaid(orderCode, txRef)
+    const updated = await markPaid(orderCode, txRef)
     console.log(`[SePay] ${orderCode} — ${updated ? '✓ Xác nhận thành công' : '⚠ Không tìm thấy đơn'} — ${transferAmount}đ`)
 
     // Thông báo lên Google Sheet

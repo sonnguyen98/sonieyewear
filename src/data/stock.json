@@ -40,11 +40,11 @@
     "quantity": 1
   },
   "sp1777135724528-0": {
-    "inStock": true,
+    "inStock": false,
     "quantity": 0
   },
   "sp1777135734624-0": {
-    "inStock": true,
+    "inStock": false,
     "quantity": 0
   }
 }
