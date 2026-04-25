@@ -23,24 +23,32 @@ interface PageProps {
 export default function ProductDetailPage({ params }: PageProps) {
   const { id } = params
   const staticProduct = getProductBySlug(id)
+
+  // ── Tất cả hooks phải ở đây, trước mọi conditional return ──
   const [product, setProduct] = useState(staticProduct)
   const [fetchDone, setFetchDone] = useState(!!staticProduct)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedColorId, setSelectedColorId] = useState(staticProduct?.colorVariants?.[0]?.id ?? '')
+  const { isProductAvailable, getProductQuantity, getVariantStock } = useStock()
 
-  // Fetch từ KV — cần thiết cho sản phẩm mới thêm qua admin
   useEffect(() => {
     fetch('/api/products')
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) {
           const found = data.find((p: { slug: string }) => p.slug === id)
-          if (found) setProduct(found)
+          if (found) {
+            setProduct(found)
+            // Cập nhật màu đang chọn nếu chưa có
+            if (!staticProduct) setSelectedColorId(found.colorVariants?.[0]?.id ?? '')
+          }
         }
         setFetchDone(true)
       })
       .catch(() => setFetchDone(true))
   }, [id])
 
-  // Đang tải từ KV
+  // ── Conditional returns sau hooks ──
   if (!fetchDone) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 flex justify-center">
@@ -54,21 +62,18 @@ export default function ProductDetailPage({ params }: PageProps) {
 
   if (!product) notFound()
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [selectedColorId, setSelectedColorId] = useState(product?.colorVariants?.[0]?.id ?? '')
-  const selectedColor = product.colorVariants.find(c => c.id === selectedColorId) ?? product.colorVariants[0]
-  const { isProductAvailable, getProductQuantity, getVariantStock } = useStock()
-  const variantIds = product.colorVariants.map(v => v.id)
-  const defaultStocks = product.colorVariants.map(v => v.inStock)
+  // ── Derived values ──
+  const selectedColor = product!.colorVariants.find(c => c.id === selectedColorId) ?? product!.colorVariants[0]
+  const variantIds = product!.colorVariants.map(v => v.id)
+  const defaultStocks = product!.colorVariants.map(v => v.inStock)
   const isAvailable = isProductAvailable(variantIds, defaultStocks)
   const totalQty = getProductQuantity(variantIds)
   const isLowStock = totalQty > 0 && totalQty <= 5
-  // Màu đang chọn có còn hàng không
   const selectedColorInStock = getVariantStock(selectedColor.id, selectedColor.inStock).inStock
 
-  const related = getRelatedProducts(product, 4)
-  const discountedPrice = product.basePrice
-  const originalPrice = product.originalPrice
+  const related = getRelatedProducts(product!, 4)
+  const discountedPrice = product!.basePrice
+  const originalPrice = product!.originalPrice
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
