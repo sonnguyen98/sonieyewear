@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 280" fill="none">
+  <!-- Left lens -->
+  <circle cx="205" cy="140" r="118" fill="rgba(0,0,0,0.08)" stroke="#111" stroke-width="14"/>
+  <circle cx="205" cy="140" r="118" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
+  <!-- Right lens -->
+  <circle cx="615" cy="140" r="118" fill="rgba(0,0,0,0.08)" stroke="#111" stroke-width="14"/>
+  <circle cx="615" cy="140" r="118" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
+  <!-- Bridge -->
+  <path d="M323 125 Q410 105 497 125" stroke="#111" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <!-- Left temple -->
+  <path d="M90 85 Q40 75 0 72" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+  <!-- Right temple -->
+  <path d="M730 85 Q780 75 820 72" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+  <!-- Nose pads -->
+  <ellipse cx="340" cy="158" rx="6" ry="9" fill="#333" opacity="0.6"/>
+  <ellipse cx="480" cy="158" rx="6" ry="9" fill="#333" opacity="0.6"/>
+</svg>

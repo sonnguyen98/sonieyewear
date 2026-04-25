@@ -1,0 +1,38 @@
+{
+  "sp001-gold": {
+    "inStock": false,
+    "quantity": 0
+  },
+  "sp001-black": {
+    "inStock": false,
+    "quantity": 0
+  },
+  "sp002-gunmetal": {
+    "inStock": false,
+    "quantity": 0
+  },
+  "sp1777081037927-0": {
+    "inStock": true,
+    "quantity": 9
+  },
+  "sp1777086752506-0": {
+    "inStock": true,
+    "quantity": 5
+  },
+  "sp1777086828930-0": {
+    "inStock": true,
+    "quantity": 10
+  },
+  "sp1777087189100-0": {
+    "inStock": true,
+    "quantity": 2
+  },
+  "sp1777087189100-1": {
+    "inStock": true,
+    "quantity": 1
+  },
+  "sp1777087189100-2": {
+    "inStock": true,
+    "quantity": 1
+  }
+}

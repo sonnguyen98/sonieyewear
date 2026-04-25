@@ -1,0 +1,518 @@
+{
+  "sp006": {
+    "name": "Gọng Phi Công Titanium Classic",
+    "brand": "SONi",
+    "basePrice": 990000,
+    "originalPrice": 1490000,
+    "description": "Kiểu dáng phi công cổ điển từ titanium siêu nhẹ. Mang lại vẻ nam tính, phong trần và cá tính.",
+    "features": [
+      "Titanium siêu nhẹ",
+      "Nửa viền semi-rimless",
+      "Gương lớn che nắng tốt",
+      "Icon thời trang"
+    ],
+    "type": "semi-rimless",
+    "shape": "aviator",
+    "material": "titanium",
+    "gender": "nam",
+    "isBestSeller": false,
+    "isNew": false,
+    "images": [
+      "/images/products/sp006-1777036693410.jpg",
+      "/images/products/sp006-1777036693415.jpg"
+    ],
+    "specs": {
+      "bridgeWidth": 14,
+      "lensWidth": 58,
+      "templeLength": 150,
+      "frameWidth": "Rộng",
+      "weight": 15
+    },
+    "hidden": true
+  },
+  "sp001": {
+    "name": "Gọng Tròn Kim Loại Vincent",
+    "brand": "SONi",
+    "basePrice": 590000,
+    "originalPrice": 890000,
+    "description": "Gọng kính tròn kim loại nhẹ, thiết kế tối giản phù hợp với mọi khuôn mặt. Chất liệu hợp kim cao cấp bền đẹp theo thời gian.",
+    "features": [
+      "Hợp kim thép không gỉ",
+      "Nhẹ chỉ 18g",
+      "Khớp bản lề lò xo",
+      "Phù hợp mặt trái xoan, oval, vuông"
+    ],
+    "type": "full-rim",
+    "shape": "round",
+    "material": "metal",
+    "gender": "unisex",
+    "isBestSeller": true,
+    "isNew": false,
+    "images": [
+      "/images/products/sp001-1777036871590.jpg"
+    ],
+    "specs": {
+      "bridgeWidth": 18,
+      "lensWidth": 48,
+      "templeLength": 145,
+      "frameWidth": "Vừa",
+      "weight": 18
+    },
+    "colorVariants": [
+      {
+        "id": "sp001-black",
+        "name": "Đen Bóng",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/sp001-sp001-black-1777079451026.webp",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": false,
+        "images": [
+          "/images/products/sp001-sp001-black-1777079451026.webp"
+        ]
+      },
+      {
+        "id": "sp001-gold",
+        "name": "Vàng Gold",
+        "hex": "#D4A853",
+        "imageUrl": "https://picsum.photos/seed/102/600/400",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": false,
+        "images": []
+      },
+      {
+        "id": "sp001-silver",
+        "name": "Bạc",
+        "hex": "#C0C0C0",
+        "imageUrl": "https://picsum.photos/seed/103/600/400",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": false,
+        "images": []
+      }
+    ],
+    "hidden": true
+  },
+  "sp002": {
+    "name": "Gọng Tròn Titanium Air",
+    "brand": "SONi",
+    "basePrice": 890000,
+    "originalPrice": 1290000,
+    "description": "Titanium nguyên chất, siêu nhẹ và cực kỳ bền. Lý tưởng cho người đeo kính cả ngày.",
+    "features": [
+      "Titanium nguyên chất",
+      "Siêu nhẹ 12g",
+      "Kháng oxy hóa",
+      "Bảo hành 2 năm"
+    ],
+    "type": "full-rim",
+    "shape": "round",
+    "material": "titanium",
+    "gender": "unisex",
+    "isBestSeller": true,
+    "isNew": false,
+    "images": [],
+    "specs": {
+      "bridgeWidth": 17,
+      "lensWidth": 46,
+      "templeLength": 143,
+      "frameWidth": "Hẹp",
+      "weight": 12
+    },
+    "colorVariants": [
+      {
+        "id": "sp002-gunmetal",
+        "name": "Xám Bạc",
+        "hex": "#5C5C5C",
+        "imageUrl": "/images/products/sp002-sp002-gunmetal-1777083334327.png",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp002-sp002-gunmetal-1777083334327.png"
+        ]
+      },
+      {
+        "id": "sp002-rose",
+        "name": "Hồng Vàng",
+        "hex": "#B76E79",
+        "imageUrl": "/images/products/sp002-sp002-rose-1777078066076.jpg",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp002-sp002-rose-1777078066076.jpg",
+          "/images/products/sp002-sp002-rose-1777078068274.jpg",
+          "/images/products/sp002-sp002-rose-1777078070559.jpg"
+        ]
+      }
+    ],
+    "hidden": true
+  },
+  "sp003": {
+    "name": "Gọng Vuông Kim Loại Sleek",
+    "basePrice": 590000,
+    "originalPrice": 890000,
+    "description": "Thiết kế góc cạnh nam tính, phù hợp với khuôn mặt tròn và oval. Tôn lên vẻ chuyên nghiệp và mạnh mẽ.",
+    "features": [
+      "Thép không gỉ cao cấp",
+      "Gọng vuông góc cạnh",
+      "Phù hợp mặt tròn",
+      "Bản lề 7 chốt bền bỉ"
+    ],
+    "type": "full-rim",
+    "shape": "square",
+    "material": "metal",
+    "gender": "nam",
+    "isBestSeller": true,
+    "isNew": false,
+    "images": [
+      "/images/products/sp003-1777047622303.jpg"
+    ],
+    "colorVariants": [
+      {
+        "id": "sp003-black",
+        "name": "Đen Mờ",
+        "hex": "#222222",
+        "imageUrl": "/images/products/sp003-sp003-black-1777079477202.webp",
+        "overlayImageUrl": "/images/overlays/square-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp003-sp003-black-1777079477202.webp"
+        ]
+      },
+      {
+        "id": "sp003-silver",
+        "name": "Bạc",
+        "hex": "#ADADAD",
+        "imageUrl": "https://picsum.photos/seed/122/600/400",
+        "overlayImageUrl": "/images/overlays/square-overlay.svg",
+        "inStock": true,
+        "images": []
+      },
+      {
+        "id": "sp003-bronze",
+        "name": "Đồng",
+        "hex": "#8C5523",
+        "imageUrl": "https://picsum.photos/seed/123/600/400",
+        "overlayImageUrl": "/images/overlays/square-overlay.svg",
+        "inStock": true,
+        "images": []
+      }
+    ],
+    "hidden": true
+  },
+  "sp004": {
+    "name": "Gọng Chữ Nhật Nhựa Pop",
+    "basePrice": 450000,
+    "originalPrice": 690000,
+    "description": "Gọng nhựa màu sắc trẻ trung, thiết kế chữ nhật thanh mảnh tôn lên vẻ năng động và cá tính.",
+    "features": [
+      "Nhựa acetate cao cấp",
+      "Màu sắc phong phú",
+      "Nhẹ và bền",
+      "Trend 2025"
+    ],
+    "type": "full-rim",
+    "shape": "rectangle",
+    "material": "plastic",
+    "gender": "nu",
+    "isBestSeller": false,
+    "isNew": true,
+    "images": [
+      "/images/products/sp004-1777047630440.jpg"
+    ],
+    "colorVariants": [
+      {
+        "id": "sp004-nude",
+        "name": "Nude Trong",
+        "hex": "#E8D5B7",
+        "imageUrl": "/images/products/sp004-sp004-nude-1777079484220.webp",
+        "overlayImageUrl": "/images/overlays/rectangle-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp004-sp004-nude-1777079484220.webp"
+        ]
+      },
+      {
+        "id": "sp004-tortoise",
+        "name": "Vân Đồi Mồi",
+        "hex": "#8B4513",
+        "imageUrl": "https://picsum.photos/seed/132/600/400",
+        "overlayImageUrl": "/images/overlays/rectangle-overlay.svg",
+        "inStock": true,
+        "images": []
+      },
+      {
+        "id": "sp004-blue",
+        "name": "Xanh Biển",
+        "hex": "#4169E1",
+        "imageUrl": "https://picsum.photos/seed/133/600/400",
+        "overlayImageUrl": "/images/overlays/rectangle-overlay.svg",
+        "inStock": true,
+        "images": []
+      }
+    ],
+    "hidden": true
+  },
+  "sp005": {
+    "name": "Gọng Mắt Mèo Blend Edit",
+    "basePrice": 690000,
+    "originalPrice": 990000,
+    "description": "Dáng mắt mèo quyến rũ kết hợp gọng kim loại mỏng và phần viền nhựa màu. Điểm nhấn thời trang không thể bỏ qua.",
+    "features": [
+      "Kết hợp kim loại & nhựa",
+      "Dáng mắt mèo nữ tính",
+      "Phù hợp mặt tròn & vuông",
+      "Bộ sưu tập giới hạn"
+    ],
+    "type": "full-rim",
+    "shape": "cat-eye",
+    "material": "combination",
+    "gender": "nu",
+    "isBestSeller": true,
+    "isNew": false,
+    "images": [
+      "/images/products/sp005-1777047654973.jpg"
+    ],
+    "colorVariants": [
+      {
+        "id": "sp005-black",
+        "name": "Đen Vàng",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/sp005-sp005-black-1777079490029.webp",
+        "overlayImageUrl": "/images/overlays/cat-eye-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp005-sp005-black-1777079490029.webp"
+        ]
+      },
+      {
+        "id": "sp005-tortoise",
+        "name": "Vân Đồi Mồi",
+        "hex": "#6B4226",
+        "imageUrl": "https://picsum.photos/seed/142/600/400",
+        "overlayImageUrl": "/images/overlays/cat-eye-overlay.svg",
+        "inStock": true,
+        "images": []
+      },
+      {
+        "id": "sp005-pink",
+        "name": "Hồng Phấn",
+        "hex": "#FFB6C1",
+        "imageUrl": "https://picsum.photos/seed/143/600/400",
+        "overlayImageUrl": "/images/overlays/cat-eye-overlay.svg",
+        "inStock": true,
+        "images": []
+      }
+    ],
+    "hidden": true
+  },
+  "sp007": {
+    "name": "Gọng Oval Nhựa Pastel",
+    "basePrice": 420000,
+    "originalPrice": 650000,
+    "description": "Gọng oval nhựa tông pastel dịu dàng, nhẹ nhàng. Hoàn hảo cho phong cách vintage và học đường.",
+    "features": [
+      "Nhựa acetate màu pastel",
+      "Dáng oval thanh tú",
+      "Siêu nhẹ",
+      "Hàng mới về"
+    ],
+    "type": "full-rim",
+    "shape": "oval",
+    "material": "plastic",
+    "gender": "nu",
+    "isBestSeller": false,
+    "isNew": true,
+    "images": [
+      "/images/products/sp007-1777047665574.jpg"
+    ],
+    "hidden": true
+  },
+  "sp022": {
+    "hidden": true
+  },
+  "sp021": {
+    "hidden": true
+  },
+  "sp009": {
+    "hidden": true
+  },
+  "sp018": {
+    "hidden": true
+  },
+  "sp019": {
+    "hidden": true
+  },
+  "sp020": {
+    "hidden": true
+  },
+  "sp014": {
+    "hidden": true
+  },
+  "sp015": {
+    "hidden": true
+  },
+  "sp016": {
+    "hidden": true
+  },
+  "sp010": {
+    "hidden": true
+  },
+  "sp011": {
+    "hidden": true
+  },
+  "sp012": {
+    "hidden": true
+  },
+  "sp013": {
+    "hidden": true
+  },
+  "sp017": {
+    "hidden": true
+  },
+  "sp008": {
+    "hidden": true
+  },
+  "sp1777081037927": {
+    "name": "ds",
+    "basePrice": 42,
+    "originalPrice": 5252,
+    "description": "a",
+    "features": [
+      "a"
+    ],
+    "type": "full-rim",
+    "shape": "oval",
+    "material": "metal",
+    "gender": "unisex",
+    "isBestSeller": false,
+    "isNew": true,
+    "images": [],
+    "colorVariants": [
+      {
+        "id": "sp1777081037927-0",
+        "name": "Đen",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/sp1777081037927-sp1777081037927-0-1777086641606.webp",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp1777081037927-sp1777081037927-0-1777086641606.webp",
+          "/images/products/sp1777081037927-sp1777081037927-0-1777086644404.webp"
+        ]
+      }
+    ]
+  },
+  "sp1777086752506": {
+    "name": "ád",
+    "basePrice": 555,
+    "originalPrice": 4445,
+    "description": "a",
+    "features": [
+      "a"
+    ],
+    "type": "full-rim",
+    "shape": "oval",
+    "material": "combination",
+    "gender": "unisex",
+    "isBestSeller": false,
+    "isNew": true,
+    "images": [
+      "/images/products/new-1777086746996-1777086747022.webp"
+    ],
+    "colorVariants": [
+      {
+        "id": "sp1777086752506-0",
+        "name": "Đen",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/new-1777086746995-1777086747020.webp",
+        "overlayImageUrl": "/images/overlays/oval-overlay.svg",
+        "inStock": true,
+        "images": []
+      }
+    ]
+  },
+  "sp1777086828930": {
+    "name": "sdfgsdfg",
+    "sku": "kb",
+    "basePrice": 222,
+    "originalPrice": 22222,
+    "description": "2",
+    "features": [
+      "1"
+    ],
+    "type": "full-rim",
+    "shape": "round",
+    "material": "metal",
+    "gender": "unisex",
+    "isBestSeller": false,
+    "isNew": true,
+    "images": [
+      "/images/products/new-1777086804902-1777086804916.webp"
+    ],
+    "colorVariants": [
+      {
+        "id": "sp1777086828930-0",
+        "name": "Đen",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/new-1777086804902-1777086804916.webp",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true,
+        "images": []
+      }
+    ]
+  },
+  "sp1777087189100": {
+    "name": "ádsad",
+    "sku": "001",
+    "basePrice": 2511,
+    "originalPrice": 25555,
+    "description": "sd",
+    "features": [
+      "ads"
+    ],
+    "type": "full-rim",
+    "shape": "round",
+    "material": "metal",
+    "gender": "unisex",
+    "isBestSeller": true,
+    "isNew": true,
+    "images": [
+      "/images/products/new-1777087137779-1777087138487.png"
+    ],
+    "colorVariants": [
+      {
+        "id": "sp1777087189100-0",
+        "name": "Đen",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/sp1777087189100-sp1777087189100-0-1777087923609.webp",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp1777087189100-sp1777087189100-0-1777087923609.webp"
+        ]
+      },
+      {
+        "id": "sp1777087189100-1",
+        "name": "Trắng",
+        "hex": "#fcfcfc",
+        "imageUrl": "/images/products/sp1777087189100-sp1777087189100-1-1777098441912.webp",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true,
+        "images": [
+          "/images/products/sp1777087189100-sp1777087189100-1-1777098441912.webp",
+          "/images/products/sp1777087189100-sp1777087189100-1-1777098441926.webp",
+          "/images/products/sp1777087189100-sp1777087189100-1-1777098441987.webp",
+          "/images/products/sp1777087189100-sp1777087189100-1-1777098442003.webp"
+        ]
+      },
+      {
+        "id": "sp1777087189100-2",
+        "name": "Ghi",
+        "hex": "#888888",
+        "imageUrl": "/images/products/new-1777087137779-1777087138487.png",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true,
+        "images": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+[
+  { "id": "trong-trang-cb", "name": "Tròng Trắng Cơ Bản", "desc": "Tròng nhựa CR-39 trong suốt, chống UV400, phủ chống trầy", "price": 300000, "badge": "", "image": "", "features": ["Chống UV400", "Phủ chống trầy", "Chỉ số 1.56", "Phù hợp 0–4 độ"] },
+  { "id": "trong-blue", "name": "Tròng Chống Ánh Sáng Xanh", "desc": "Bảo vệ mắt khi dùng màn hình máy tính, điện thoại nhiều giờ", "price": 550000, "badge": "Phổ biến", "image": "", "features": ["Lọc HEV Blue Light", "Chống UV400", "Giảm mỏi mắt", "Phủ chống trầy"] },
+  { "id": "trong-doi-mau", "name": "Tròng Đổi Màu", "desc": "Trong nhà trong suốt, tự tối khi ra nắng trong 30 giây", "price": 850000, "badge": "Độc đáo", "image": "", "features": ["Đổi màu tự động", "Chống UV400", "Bảo vệ 100% tia UV"] },
+  { "id": "trong-mong", "name": "Tròng Mỏng Hi-Index 1.67", "desc": "Siêu mỏng nhẹ, phù hợp độ cận cao từ -4 đến -8 độ", "price": 750000, "badge": "", "image": "", "features": ["Chỉ số 1.67", "Siêu mỏng", "Chống UV400", "Nhẹ hơn 30%"] },
+  { "id": "trong-phan-cuc", "name": "Tròng Phân Cực (Polarized)", "desc": "Chống chói tối ưu, lý tưởng khi lái xe và hoạt động ngoài trời", "price": 650000, "badge": "", "image": "", "features": ["Chống chói 100%", "Tăng độ tương phản", "Chống UV400"] },
+  { "id": "trong-da-trong", "name": "Tròng Đa Tròng (Progressive)", "desc": "Nhìn gần + trung + xa trong một tròng, không đường phân cách", "price": 1500000, "badge": "Cao cấp", "image": "", "features": ["3 vùng nhìn", "Không đường phân cách", "Chống UV400"] }
+]

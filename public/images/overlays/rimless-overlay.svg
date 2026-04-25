@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 240" fill="none">
+  <!-- Left lens rimless (just subtle tint, no frame) -->
+  <ellipse cx="200" cy="120" rx="155" ry="95" fill="rgba(180,210,255,0.18)"/>
+  <ellipse cx="200" cy="120" rx="155" ry="95" fill="none" stroke="rgba(100,150,200,0.35)" stroke-width="2"/>
+  <!-- Right lens rimless -->
+  <ellipse cx="640" cy="120" rx="155" ry="95" fill="rgba(180,210,255,0.18)"/>
+  <ellipse cx="640" cy="120" rx="155" ry="95" fill="none" stroke="rgba(100,150,200,0.35)" stroke-width="2"/>
+  <!-- Bridge (thin metallic) -->
+  <path d="M355 108 Q420 90 485 108" stroke="#888" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Temples (thin wire) -->
+  <path d="M45 75 Q0 68 -15 66" stroke="#888" stroke-width="5" stroke-linecap="round"/>
+  <path d="M795 75 Q840 68 855 66" stroke="#888" stroke-width="5" stroke-linecap="round"/>
+  <!-- Screws at lens attachment -->
+  <circle cx="355" cy="108" r="4" fill="#aaa"/>
+  <circle cx="485" cy="108" r="4" fill="#aaa"/>
+  <circle cx="45" cy="75" r="4" fill="#aaa"/>
+  <circle cx="795" cy="75" r="4" fill="#aaa"/>
+  <!-- Nose pads -->
+  <ellipse cx="368" cy="132" rx="4" ry="7" fill="#999" opacity="0.7"/>
+  <ellipse cx="472" cy="132" rx="4" ry="7" fill="#999" opacity="0.7"/>
+</svg>

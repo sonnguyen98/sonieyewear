@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 300" fill="none">
+  <!-- Left lens teardrop/aviator -->
+  <path d="M185 40 Q60 40 30 130 Q10 190 80 240 Q140 275 200 260 Q300 240 320 160 Q340 80 260 42 Q225 38 185 40Z"
+        fill="rgba(0,0,0,0.1)" stroke="#111" stroke-width="11"/>
+  <path d="M185 40 Q60 40 30 130 Q10 190 80 240 Q140 275 200 260 Q300 240 320 160 Q340 80 260 42 Q225 38 185 40Z"
+        fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
+  <!-- Right lens (mirrored) -->
+  <path d="M695 40 Q820 40 850 130 Q870 190 800 240 Q740 275 680 260 Q580 240 560 160 Q540 80 620 42 Q655 38 695 40Z"
+        fill="rgba(0,0,0,0.1)" stroke="#111" stroke-width="11"/>
+  <path d="M695 40 Q820 40 850 130 Q870 190 800 240 Q740 275 680 260 Q580 240 560 160 Q540 80 620 42 Q655 38 695 40Z"
+        fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/>
+  <!-- Bridge (thin bar at top) -->
+  <path d="M320 55 Q440 38 560 55" stroke="#111" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- Temples -->
+  <path d="M30 130 Q0 122 -15 120" stroke="#111" stroke-width="9" stroke-linecap="round"/>
+  <path d="M850 130 Q880 122 895 120" stroke="#111" stroke-width="9" stroke-linecap="round"/>
+  <!-- Nose pads -->
+  <ellipse cx="336" cy="80" rx="5" ry="8" fill="#333" opacity="0.6"/>
+  <ellipse cx="544" cy="80" rx="5" ry="8" fill="#333" opacity="0.6"/>
+</svg>

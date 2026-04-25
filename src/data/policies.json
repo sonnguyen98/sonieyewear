@@ -1,0 +1,26 @@
+[
+  {
+    "id": "bh-gong",
+    "title": "Bảo Hành Gọng Kính",
+    "icon": "🛡️",
+    "content": "Tất cả gọng kính tại SONi được bảo hành 12 tháng kể từ ngày mua. Bảo hành bao gồm lỗi kỹ thuật từ nhà sản xuất như gãy bản lề, bong tróc lớp mạ."
+  },
+  {
+    "id": "doi-tra",
+    "title": "Đổi Trả Sản Phẩm",
+    "icon": "🔄",
+    "content": "Chấp nhận đổi trả trong vòng 7 ngày nếu sản phẩm bị lỗi từ nhà sản xuất hoặc không đúng với mô tả. Sản phẩm cần còn nguyên vẹn, chưa qua sử dụng."
+  },
+  {
+    "id": "bh-trong",
+    "title": "Bảo Hành Tròng Kính",
+    "icon": "💎",
+    "content": "Tròng kính được bảo hành 6 tháng đối với lỗi bong tróc lớp phủ, trầy xước bất thường do chất lượng sản phẩm."
+  },
+  {
+    "id": "lien-he-bh",
+    "title": "Liên Hệ Bảo Hành",
+    "icon": "📞",
+    "content": "Để được hỗ trợ bảo hành, vui lòng liên hệ qua Zalo hoặc đến trực tiếp cửa hàng gần nhất. Vui lòng mang theo hóa đơn mua hàng."
+  }
+]
