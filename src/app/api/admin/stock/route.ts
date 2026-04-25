@@ -1,45 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-
-const FILE = path.join(process.cwd(), 'src', 'data', 'stock.json')
+import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
 
 function checkAuth(req: NextRequest) {
   return req.headers.get('x-admin-token') === (process.env.ADMIN_PASSWORD ?? 'admin123')
 }
 
-function read(): Record<string, { inStock: boolean; quantity: number }> {
-  try { return JSON.parse(fs.readFileSync(FILE, 'utf-8')) } catch { return {} }
-}
+type StockMap = Record<string, { inStock: boolean; quantity: number }>
 
 export async function GET(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  return NextResponse.json(read())
+  const stock = (await kvGet<StockMap>(KV_KEYS.stock, 'stock.json')) ?? {}
+  return NextResponse.json(stock)
 }
 
 export async function PUT(req: NextRequest) {
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const data = await req.json()
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2))
+  await kvSet(KV_KEYS.stock, 'stock.json', data)
   return NextResponse.json({ success: true })
 }
 
-// Trừ tồn kho khi có đơn hàng — không cần auth (gọi từ order API nội bộ)
 export async function PATCH(req: NextRequest) {
-  const { variantIds } = await req.json() // mảng color variant IDs cần trừ
-  const stock = read()
+  const { variantIds } = await req.json()
+  const stock = (await kvGet<StockMap>(KV_KEYS.stock, 'stock.json')) ?? {}
   let changed = false
-
   for (const vid of (variantIds as string[])) {
     if (stock[vid] && stock[vid].quantity > 0) {
       stock[vid].quantity -= 1
-      if (stock[vid].quantity === 0) {
-        stock[vid].inStock = false
-      }
+      if (stock[vid].quantity === 0) stock[vid].inStock = false
       changed = true
     }
   }
-
-  if (changed) fs.writeFileSync(FILE, JSON.stringify(stock, null, 2))
+  if (changed) await kvSet(KV_KEYS.stock, 'stock.json', stock)
   return NextResponse.json({ success: true, stock })
 }
