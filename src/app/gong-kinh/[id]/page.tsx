@@ -24,8 +24,9 @@ export default function ProductDetailPage({ params }: PageProps) {
   const { id } = params
   const staticProduct = getProductBySlug(id)
   const [product, setProduct] = useState(staticProduct)
+  const [loading, setLoading] = useState(!staticProduct) // loading nếu không có trong static
 
-  // Fetch sản phẩm mới nhất từ KV để đảm bảo stock/giá đồng bộ
+  // Fetch từ KV — cần thiết cho sản phẩm mới thêm qua admin
   useEffect(() => {
     fetch('/api/products')
       .then(r => r.json())
@@ -34,9 +35,22 @@ export default function ProductDetailPage({ params }: PageProps) {
           const found = data.find((p: { slug: string }) => p.slug === id)
           if (found) setProduct(found)
         }
+        setLoading(false)
       })
-      .catch(() => {})
+      .catch(() => setLoading(false))
   }, [id])
+
+  // Đang tải sản phẩm từ KV
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 flex justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-brand-black border-t-transparent rounded-full animate-spin mx-auto mb-3"/>
+          <p className="text-brand-muted text-sm">Đang tải sản phẩm...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!product) notFound()
 
