@@ -27,7 +27,8 @@
       "templeLength": 150,
       "frameWidth": "Rộng",
       "weight": 15
-    }
+    },
+    "hidden": true
   },
   "sp001": {
     "name": "Gọng Tròn Kim Loại Vincent",
@@ -140,7 +141,8 @@
           "/images/products/sp002-sp002-rose-1777078070559.jpg"
         ]
       }
-    ]
+    ],
+    "hidden": true
   },
   "sp003": {
     "name": "Gọng Vuông Kim Loại Sleek",
@@ -192,7 +194,8 @@
         "inStock": true,
         "images": []
       }
-    ]
+    ],
+    "hidden": true
   },
   "sp004": {
     "name": "Gọng Chữ Nhật Nhựa Pop",
@@ -244,7 +247,8 @@
         "inStock": true,
         "images": []
       }
-    ]
+    ],
+    "hidden": true
   },
   "sp005": {
     "name": "Gọng Mắt Mèo Blend Edit",
@@ -296,7 +300,8 @@
         "inStock": true,
         "images": []
       }
-    ]
+    ],
+    "hidden": true
   },
   "sp007": {
     "name": "Gọng Oval Nhựa Pastel",
@@ -317,7 +322,8 @@
     "isNew": true,
     "images": [
       "/images/products/sp007-1777047665574.jpg"
-    ]
+    ],
+    "hidden": true
   },
   "sp1777081037927": {
     "name": "ds",
@@ -464,6 +470,48 @@
     ]
   },
   "sp022": {
+    "hidden": true
+  },
+  "sp021": {
+    "hidden": true
+  },
+  "sp017": {
+    "hidden": true
+  },
+  "sp018": {
+    "hidden": true
+  },
+  "sp019": {
+    "hidden": true
+  },
+  "sp020": {
+    "hidden": true
+  },
+  "sp013": {
+    "hidden": true
+  },
+  "sp014": {
+    "hidden": true
+  },
+  "sp015": {
+    "hidden": true
+  },
+  "sp016": {
+    "hidden": true
+  },
+  "sp009": {
+    "hidden": true
+  },
+  "sp010": {
+    "hidden": true
+  },
+  "sp011": {
+    "hidden": true
+  },
+  "sp012": {
+    "hidden": true
+  },
+  "sp008": {
     "hidden": true
   }
 }

@@ -1,1 +1,137 @@
-[]
+[
+  {
+    "id": "sp1777135713610",
+    "slug": "ad",
+    "name": "ád",
+    "sku": "",
+    "brand": "SONi",
+    "basePrice": 22322,
+    "originalPrice": 2222,
+    "description": "",
+    "features": [],
+    "type": "full-rim",
+    "shape": "round",
+    "material": "metal",
+    "gender": "unisex",
+    "isBestSeller": true,
+    "isNew": true,
+    "rating": 4.5,
+    "reviewCount": 0,
+    "colorVariants": [
+      {
+        "id": "sp1777135713610-0",
+        "name": "Đen",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/new-1777135704764-1777135705045.jpg",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true
+      }
+    ],
+    "specs": {
+      "bridgeWidth": 18,
+      "lensWidth": 50,
+      "templeLength": 145,
+      "frameWidth": "Vừa",
+      "weight": 20
+    },
+    "images": [
+      "/images/products/new-1777135704764-1777135705045.jpg"
+    ],
+    "modelImages": [],
+    "tags": [
+      "round",
+      "metal",
+      "unisex"
+    ]
+  },
+  {
+    "id": "sp1777135724528",
+    "slug": "22",
+    "name": "22",
+    "sku": "",
+    "brand": "SONi",
+    "basePrice": 2222,
+    "originalPrice": 2222,
+    "description": "",
+    "features": [],
+    "type": "full-rim",
+    "shape": "round",
+    "material": "metal",
+    "gender": "unisex",
+    "isBestSeller": false,
+    "isNew": true,
+    "rating": 4.5,
+    "reviewCount": 0,
+    "colorVariants": [
+      {
+        "id": "sp1777135724528-0",
+        "name": "Đen",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/new-1777135718728-1777135718743.jpg",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true
+      }
+    ],
+    "specs": {
+      "bridgeWidth": 18,
+      "lensWidth": 50,
+      "templeLength": 145,
+      "frameWidth": "Vừa",
+      "weight": 20
+    },
+    "images": [
+      "/images/products/new-1777135718728-1777135718743.jpg"
+    ],
+    "modelImages": [],
+    "tags": [
+      "round",
+      "metal",
+      "unisex"
+    ]
+  },
+  {
+    "id": "sp1777135734624",
+    "slug": "223",
+    "name": "223",
+    "sku": "",
+    "brand": "SONi",
+    "basePrice": 2222,
+    "originalPrice": 3333,
+    "description": "",
+    "features": [],
+    "type": "full-rim",
+    "shape": "round",
+    "material": "metal",
+    "gender": "unisex",
+    "isBestSeller": false,
+    "isNew": true,
+    "rating": 4.5,
+    "reviewCount": 0,
+    "colorVariants": [
+      {
+        "id": "sp1777135734624-0",
+        "name": "Đen",
+        "hex": "#1A1A1A",
+        "imageUrl": "/images/products/new-1777135729126-1777135729144.jpg",
+        "overlayImageUrl": "/images/overlays/round-overlay.svg",
+        "inStock": true
+      }
+    ],
+    "specs": {
+      "bridgeWidth": 18,
+      "lensWidth": 50,
+      "templeLength": 145,
+      "frameWidth": "Vừa",
+      "weight": 20
+    },
+    "images": [
+      "/images/products/new-1777135729126-1777135729144.jpg"
+    ],
+    "modelImages": [],
+    "tags": [
+      "round",
+      "metal",
+      "unisex"
+    ]
+  }
+]
