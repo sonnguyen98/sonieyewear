@@ -185,8 +185,12 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
   const vietQrUrl = `/api/qr-proxy?bank=${BANK}&account=${ACCOUNT}&amount=${payAmount}&content=${transferContent}&name=${encodeURIComponent(accName)}`
   const momoDeeplink = `momo://app?action=transfer&phone=${MOMO}&amount=${payAmount}&comment=${transferContent}`
   const momoQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(momoDeeplink)}`
-  // VietQR deeplink - mở thẳng app ngân hàng trên mobile
-  const quickTransferUrl = `https://dl.vietqr.io/pay?app=mbbank&ba=${ACCOUNT}&bn=MB&amount=${payAmount}&cn=${encodeURIComponent(accName)}&ds=${transferContent}`
+  // Deeplink mở app ngân hàng — dùng scheme phổ thông hơn
+  // iOS: napas universal link | Android: intent scheme
+  const napasUrl = `https://nhaphanphat.napas.com.vn/deeplink?bank=MB&accountNo=${ACCOUNT}&amount=${payAmount}&description=${transferContent}`
+  const mbBankDeeplink = typeof window !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    ? `mbmb://transfer?toAccountNo=${ACCOUNT}&amount=${payAmount}&desc=${transferContent}`
+    : `intent://transfer?toAccountNo=${ACCOUNT}&amount=${payAmount}&desc=${transferContent}#Intent;scheme=mbmb;package=com.mbmobile;end`
 
   // Poll trạng thái thanh toán mỗi 3 giây
   const [polling, setPolling] = useState(!isCOD && !paymentConfirmed)
@@ -323,13 +327,31 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
         </div>
       </div>
 
-      {/* Chuyển khoản nhanh - mở app ngân hàng */}
+      {/* Copy tất cả + Chuyển khoản nhanh */}
       {!isMomo && (
-        <a href={quickTransferUrl} target="_blank" rel="noopener noreferrer"
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl transition-colors text-sm">
-          <span>⚡</span>
-          Chuyển Khoản Nhanh — Mở App Ngân Hàng
-        </a>
+        <div className="space-y-2">
+          {/* Copy tất cả */}
+          <button
+            onClick={() => {
+              const text = `MB Bank\nSTK: ${ACCOUNT}\nChủ TK: ${accName}\nSố tiền: ${formatVND(payAmount)}\nNội dung: ${transferContent}`
+              navigator.clipboard.writeText(text)
+              alert('Đã copy toàn bộ thông tin chuyển khoản!')
+            }}
+            className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2.5 rounded-xl transition-colors text-sm border border-gray-200"
+          >
+            📋 Copy Toàn Bộ Thông Tin CK
+          </button>
+
+          {/* Mở app MB Bank */}
+          <a href={mbBankDeeplink}
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl transition-colors text-sm">
+            ⚡ Mở App MB Bank Chuyển Khoản
+          </a>
+
+          <p className="text-center text-[11px] text-brand-muted">
+            Nếu không mở được app → quét mã QR ở trên hoặc dùng nút Copy
+          </p>
+        </div>
       )}
 
       {/* Trạng thái chờ */}
