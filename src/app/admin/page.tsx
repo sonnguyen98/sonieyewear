@@ -432,11 +432,19 @@ function StockSection() {
 
   async function saveAll() {
     setSaving(true)
+    // Tự động đặt inStock=false khi SL=0, inStock=true khi SL>0
+    const corrected = Object.fromEntries(
+      Object.entries(stock).map(([id, s]) => [
+        id,
+        { ...s, inStock: s.quantity > 0 }
+      ])
+    )
     await fetch('/api/admin/stock', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
-      body: JSON.stringify(stock),
+      body: JSON.stringify(corrected),
     })
+    setStock(corrected)
     setSaving(false); setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
