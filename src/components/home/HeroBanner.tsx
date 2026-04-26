@@ -8,7 +8,7 @@ const SLIDES = [
   {
     id: 1,
     image: '/images/hero/hero-1.png',
-    overlay: 'from-white/90 via-white/70 to-white/10',
+    overlay: 'from-white/85 via-white/50 to-transparent',
     accent: 'text-amber-600',
     pill: 'bg-amber-100/90 text-amber-800 border-amber-200',
     dot: 'bg-amber-400',
@@ -29,7 +29,7 @@ const SLIDES = [
   {
     id: 2,
     image: '/images/hero/hero-2.png',
-    overlay: 'from-white/90 via-white/70 to-white/10',
+    overlay: 'from-white/85 via-white/50 to-transparent',
     accent: 'text-sky-600',
     pill: 'bg-sky-100/90 text-sky-800 border-sky-200',
     dot: 'bg-sky-400',
@@ -50,7 +50,7 @@ const SLIDES = [
   {
     id: 3,
     image: '/images/hero/hero-3.png',
-    overlay: 'from-white/90 via-white/70 to-white/10',
+    overlay: 'from-white/85 via-white/50 to-transparent',
     accent: 'text-rose-600',
     pill: 'bg-rose-100/90 text-rose-800 border-rose-200',
     dot: 'bg-rose-400',
@@ -71,7 +71,7 @@ const SLIDES = [
   {
     id: 4,
     image: '/images/hero/hero-4.png',
-    overlay: 'from-white/90 via-white/70 to-white/10',
+    overlay: 'from-white/85 via-white/50 to-transparent',
     accent: 'text-teal-700',
     pill: 'bg-teal-100/90 text-teal-800 border-teal-200',
     dot: 'bg-teal-500',
@@ -142,7 +142,7 @@ export default function HeroBanner() {
           </div>
 
           {/* Heading */}
-          <h1 className="font-black tracking-tight mb-5">
+          <h1 className="font-black tracking-tight mb-5 drop-shadow-sm">
             {slide.heading.map((line, i) => (
               <span key={i} className={`block leading-tight ${i === 0 ? 'text-3xl sm:text-4xl md:text-5xl' : i === 1 ? 'text-3xl sm:text-4xl md:text-5xl mt-1' : 'text-2xl sm:text-3xl md:text-4xl mt-1'} ${slide.headingColors[i]}`}>
                 {line}
@@ -150,7 +150,7 @@ export default function HeroBanner() {
             ))}
           </h1>
 
-          <p className="text-gray-600 text-base mb-7 leading-relaxed max-w-md">
+          <p className="text-gray-700 text-base mb-7 leading-relaxed max-w-md drop-shadow-sm">
             {slide.sub}
           </p>
 
