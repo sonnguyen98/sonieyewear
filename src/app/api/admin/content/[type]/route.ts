@@ -12,19 +12,21 @@ function checkAuth(req: NextRequest) {
   return req.headers.get('x-admin-token') === (process.env.ADMIN_PASSWORD ?? 'admin123')
 }
 
-export async function GET(req: NextRequest, { params }: { params: { type: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ type: string }> }) {
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const kvKey = ALLOWED[params.type]
+  const { type } = await params
+  const kvKey = ALLOWED[type]
   if (!kvKey) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  const data = await kvGet(kvKey, `${params.type}.json`)
+  const data = await kvGet(kvKey, `${type}.json`)
   return NextResponse.json(data ?? [])
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { type: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ type: string }> }) {
   if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const kvKey = ALLOWED[params.type]
+  const { type } = await params
+  const kvKey = ALLOWED[type]
   if (!kvKey) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   const data = await req.json()
-  await kvSet(kvKey, `${params.type}.json`, data)
+  await kvSet(kvKey, `${type}.json`, data)
   return NextResponse.json({ success: true })
 }

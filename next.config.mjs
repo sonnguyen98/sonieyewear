@@ -19,14 +19,6 @@ const nextConfig = {
       { protocol: 'https', hostname: 'api.qrserver.com' },
     ],
   },
-  webpack(config) {
-    // Allow importing .glb and .gltf 3D model files
-    config.module.rules.push({
-      test: /\.(glb|gltf)$/,
-      use: { loader: 'file-loader' },
-    })
-    return config
-  },
 }
 
 export default nextConfig
