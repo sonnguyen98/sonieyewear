@@ -40,8 +40,10 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
   function handleZaloCTA(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    const defaultLens = product.lensPackages[0]
-    const msg = buildZaloOrderMessage(product, selectedColor, defaultLens)
+    const defaultLens = product.lensPackages?.[0]
+    const msg = defaultLens
+      ? buildZaloOrderMessage(product, selectedColor, defaultLens)
+      : `Xin chào SONi Kính! Tôi muốn đặt hàng:\n- Gọng: ${product.name}\n- Màu: ${selectedColor.name}\nVui lòng tư vấn thêm ạ.`
     openZalo(msg)
   }
 
