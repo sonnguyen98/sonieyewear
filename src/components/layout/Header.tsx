@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { VI } from '@/constants/vietnamese'
@@ -25,15 +24,16 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
 
         {/* Logo */}
-        <Link href="/" className="flex-shrink-0 select-none">
-          <Image
-            src="/logo.png"
-            alt="SONi Eyewear"
-            width={160}
-            height={64}
-            className="h-12 sm:h-14 w-auto object-contain"
-            priority
-          />
+        <Link href="/" className="flex items-baseline gap-1 sm:gap-1.5 flex-shrink-0 select-none">
+          <span className="text-2xl sm:text-3xl font-black tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
+            <span style={{ color: '#5A5A5A' }}>S</span>
+            <span style={{ color: '#C9A84C' }}>O</span>
+            <span style={{ color: '#5A5A5A' }}>N</span>
+            <span style={{ color: '#1E4D78' }}>i</span>
+          </span>
+          <span className="text-xs sm:text-sm font-semibold tracking-[0.15em] uppercase hidden xs:block" style={{ color: '#7A7A7A' }}>
+            eyewear
+          </span>
         </Link>
 
         {/* Desktop Nav — chỉ các mục thông thường */}
