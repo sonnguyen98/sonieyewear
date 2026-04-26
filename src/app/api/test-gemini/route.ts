@@ -1,25 +1,40 @@
 import { NextResponse } from 'next/server'
 
+async function testModel(key: string, model: string) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Trả lời "OK"' }] }],
+        generationConfig: { maxOutputTokens: 10 },
+      }),
+    }
+  )
+  const data = await res.json()
+  return {
+    model,
+    httpStatus: res.status,
+    ok: res.ok,
+    response: data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null,
+    error: res.ok ? undefined : (data?.error?.message ?? 'unknown error'),
+  }
+}
+
 export async function GET() {
   const key = process.env.GEMINI_API_KEY
   if (!key) {
     return NextResponse.json({ status: 'NO_KEY', message: 'GEMINI_API_KEY chưa được cấu hình' })
   }
 
-  // Lấy danh sách models khả dụng
-  const listRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`
-  ).catch(() => null)
-
-  const listData = listRes ? await listRes.json().catch(() => ({})) : {}
-  const availableModels: string[] = (listData?.models ?? [])
-    .filter((m: { supportedGenerationMethods?: string[] }) =>
-      m.supportedGenerationMethods?.includes('generateContent')
-    )
-    .map((m: { name: string }) => m.name.replace('models/', ''))
+  const [r1, r2] = await Promise.allSettled([
+    testModel(key, 'gemini-2.0-flash'),
+    testModel(key, 'gemini-2.5-flash'),
+  ])
 
   return NextResponse.json({
-    availableModels,
-    tip: 'Dùng tên model ở trên để cập nhật code',
+    'gemini-2.0-flash': r1.status === 'fulfilled' ? r1.value : { error: String((r1 as PromiseRejectedResult).reason) },
+    'gemini-2.5-flash': r2.status === 'fulfilled' ? r2.value : { error: String((r2 as PromiseRejectedResult).reason) },
   })
 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent'
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 const PROMPT = `Hãy phân tích khuôn mặt trong ảnh như một chuyên gia tư vấn kính mắt của SONi Eyewear và trả lời 3 câu hỏi sau:
 
@@ -45,61 +44,60 @@ export async function POST(req: NextRequest) {
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
 
   try {
-    const geminiRes = await fetch(`${GEMINI_API_URL}?key=${GEMINI_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: 'image/jpeg',
-                  data: base64Data,
-                },
-              },
-              {
-                text: PROMPT,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 512,
-        },
-      }),
-    })
+    const callGemini = async (model: string) => {
+      const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { inlineData: { mimeType: 'image/jpeg', data: base64Data } },
+                { text: PROMPT },
+              ],
+            },
+          ],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 512 },
+        }),
+      })
 
-    if (!geminiRes.ok) {
-      const errBody = await geminiRes.json().catch(() => ({}))
-      const errMsg = errBody?.error?.message ?? geminiRes.statusText
-      console.error(`Gemini HTTP ${geminiRes.status}:`, errMsg)
-      return NextResponse.json(
-        { error: 'Gemini API lỗi', detail: errMsg, geminiStatus: geminiRes.status },
-        { status: 502 }
-      )
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        const errMsg = errBody?.error?.message ?? res.statusText
+        console.error(`Gemini ${model} HTTP ${res.status}:`, errMsg)
+        throw Object.assign(new Error(errMsg), { httpStatus: res.status })
+      }
+
+      const data = await res.json()
+      const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        console.error(`Gemini ${model} không trả về JSON:`, text.slice(0, 300))
+        throw new Error('Gemini không trả về JSON hợp lệ')
+      }
+      return JSON.parse(jsonMatch[0])
     }
 
-    const data = await geminiRes.json()
-    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      console.error('Gemini không trả về JSON hợp lệ, raw text:', text.slice(0, 300))
-      return NextResponse.json(
-        { error: 'Gemini không trả về JSON hợp lệ', raw: text.slice(0, 300) },
-        { status: 502 }
-      )
+    // Thử gemini-2.0-flash trước, fallback gemini-2.5-flash nếu 429/503
+    let result: unknown
+    try {
+      result = await callGemini('gemini-2.0-flash')
+    } catch (err: unknown) {
+      const status = (err as { httpStatus?: number }).httpStatus
+      if (status === 429 || status === 503) {
+        console.warn('gemini-2.0-flash rate limited, fallback gemini-2.5-flash...')
+        result = await callGemini('gemini-2.5-flash')
+      } else {
+        throw err
+      }
     }
 
-    const result = JSON.parse(jsonMatch[0])
     return NextResponse.json({ success: true, result })
 
   } catch (err) {
     console.error('Lỗi khi gọi Gemini:', err)
     return NextResponse.json(
-      { error: 'Lỗi kết nối đến Gemini API', detail: String(err) },
+      { error: 'Phân tích thất bại', detail: String(err) },
       { status: 500 }
     )
   }
