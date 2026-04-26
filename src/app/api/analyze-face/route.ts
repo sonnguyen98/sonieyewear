@@ -11,29 +11,25 @@ export async function POST(req: NextRequest) {
     // Bỏ prefix "data:image/jpeg;base64,"
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
 
-    const prompt = `Bạn là chuyên gia tư vấn kính mắt hàng đầu tại Việt Nam với 20 năm kinh nghiệm.
+    const prompt = `Hãy phân tích khuôn mặt trong ảnh như một chuyên gia tư vấn kính mắt của SONi Eyewear và trả lời 3 câu hỏi sau:
 
-Nhìn kỹ ảnh khuôn mặt này và phân tích THẬT SỰ dựa trên đặc điểm khuôn mặt CỤ THỂ trong ảnh:
-- Đo chiều rộng trán, gò má, hàm
-- Xác định chiều dài so với chiều rộng mặt
-- Nhận xét cằm nhọn hay vuông
-- Phân biệt chính xác hình dạng (KHÔNG mặc định oval nếu không phải)
+1. Khuôn mặt này thuộc hình dạng khuôn mặt nào?
+2. Đặc điểm ngắn gọn của hình dạng khuôn mặt này là gì?
+3. Lời khuyên từ SONi: nên dùng kiểu gọng nào cho phù hợp?
 
 Trả về JSON (không có text nào khác ngoài JSON):
 {
   "shape": "oval|round|square|heart|rectangle|diamond",
-  "shapeName": "Tên tiếng Việt",
+  "shapeName": "Tên tiếng Việt (Trái Xoan / Tròn / Vuông / Trái Tim / Chữ Nhật / Kim Cương)",
   "confidence": số từ 0.72 đến 0.96,
-  "description": "Mô tả CỤ THỂ đặc điểm nhìn thấy trong ảnh này (2-3 câu, đề cập đặc điểm riêng)",
-  "features": ["đặc điểm cụ thể 1", "đặc điểm cụ thể 2", "đặc điểm cụ thể 3"],
-  "recommendedShapes": ["shape1", "shape2", "shape3"],
-  "tip": "Lời khuyên cá nhân hoá dựa trên khuôn mặt này (1-2 câu)"
+  "description": "Đặc điểm ngắn gọn của hình dạng khuôn mặt này (1-2 câu súc tích)",
+  "features": ["đặc điểm 1", "đặc điểm 2", "đặc điểm 3"],
+  "recommendedShapes": ["shape1", "shape2"],
+  "tip": "Lời khuyên từ SONi: nên dùng kiểu gọng nào và tại sao (1-2 câu cụ thể)"
 }
 
 shape hợp lệ: oval, round, square, heart, rectangle, diamond
-recommendedShapes hợp lệ: round, square, rectangle, cat-eye, oval, aviator, geometric
-
-Quan trọng: Phân tích THẬT SỰ khuôn mặt trong ảnh, không dùng kết quả chung chung.`
+recommendedShapes chọn 2-3 từ: round, square, rectangle, cat-eye, oval, aviator, geometric`
 
     const callGemini = async (model: string) => {
       const res = await fetch(
