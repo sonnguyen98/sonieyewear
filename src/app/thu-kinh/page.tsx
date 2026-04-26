@@ -27,35 +27,55 @@ function ThuKinhContent() {
     setStep('analyzing')
 
     try {
-      const img = new window.Image()
-      img.src = dataUrl
-      await new Promise(r => { img.onload = r })
+      // Gọi Gemini AI để phân tích khuôn mặt
+      const res = await fetch('/api/analyze-face', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: dataUrl }),
+      })
 
-      const lm = await getFaceLandmarkerForImage()
-      const results = lm.detect(img)
+      if (!res.ok) throw new Error('API error')
+      const data = await res.json()
 
-      if (!results.faceLandmarks?.[0]) {
-        setStep('capture')
-        alert('Không nhận diện được khuôn mặt. Vui lòng chụp lại ảnh rõ hơn, đủ ánh sáng.')
-        return
+      if (!data.success || !data.result) {
+        throw new Error(data.error || 'Không phân tích được')
       }
 
-      const landmarks = results.faceLandmarks[0] as FaceLandmarkPoint[]
-      const result = analyzeFaceShape(landmarks, img.naturalWidth, img.naturalHeight)
+      const geminiResult = data.result
+
+      // Map kết quả Gemini sang FaceAnalysisResult
+      const result: import('@/lib/faceShapeAnalysis').FaceAnalysisResult = {
+        shape: geminiResult.shape as import('@/lib/faceShapeAnalysis').FaceShape,
+        shapeName: geminiResult.shapeName || geminiResult.shape,
+        confidence: geminiResult.confidence || 0.85,
+        description: geminiResult.description || '',
+        features: geminiResult.features || [],
+        recommendedShapes: geminiResult.recommendedShapes || [],
+        avoidShapes: [],
+        tip: geminiResult.tip || '',
+      }
+
       setAnalysis(result)
 
-      // Lọc sản phẩm phù hợp
-      const recommendedShapes = getRecommendedFrameShapes(result.shape)
-      const products = MERGED_PRODUCTS
-        .filter(p => recommendedShapes.includes(p.shape))
-        .slice(0, 5)
-      setRecommended(products.length >= 3 ? products : MERGED_PRODUCTS.slice(0, 5))
+      // Fetch sản phẩm phù hợp từ KV
+      const productsRes = await fetch('/api/products')
+      const allProducts = await productsRes.json()
+      const rShapes = result.recommendedShapes
+
+      const filtered = Array.isArray(allProducts)
+        ? allProducts.filter((p: { shape: string }) => rShapes.includes(p.shape)).slice(0, 5)
+        : []
+
+      setRecommended(
+        filtered.length >= 2 ? filtered :
+        Array.isArray(allProducts) ? allProducts.slice(0, 5) : MERGED_PRODUCTS.slice(0, 5)
+      )
 
       setStep('result')
     } catch (e) {
       console.error(e)
       setStep('capture')
-      alert('Có lỗi xảy ra. Vui lòng thử lại.')
+      alert('Không thể phân tích ảnh. Vui lòng thử lại hoặc kiểm tra kết nối mạng.')
     }
   }
 
