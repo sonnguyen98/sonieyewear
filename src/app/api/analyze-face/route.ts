@@ -35,38 +35,66 @@ recommendedShapes hợp lệ: round, square, rectangle, cat-eye, oval, aviator, 
 
 Quan trọng: Phân tích THẬT SỰ khuôn mặt trong ảnh, không dùng kết quả chung chung.`
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { inline_data: { mime_type: 'image/jpeg', data: base64Data } },
-              { text: prompt }
-            ]
-          }],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 512,
-          }
-        })
+    const callGemini = async (model: string) => {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { inline_data: { mime_type: 'image/jpeg', data: base64Data } },
+                { text: prompt }
+              ]
+            }],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 512,
+            }
+          })
+        }
+      )
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}))
+        const errMsg = errBody?.error?.message ?? res.statusText
+        console.error(`Gemini ${model} HTTP ${res.status}:`, errMsg)
+        throw Object.assign(new Error(errMsg), { status: res.status })
       }
-    )
 
-    const data = await res.json()
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+      const data = await res.json()
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        console.error(`Gemini ${model} trả về text không có JSON:`, text.slice(0, 200))
+        throw new Error('Gemini không trả về JSON hợp lệ')
+      }
+      return { result: JSON.parse(jsonMatch[0]), model }
+    }
 
-    // Parse JSON từ response Gemini
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('Gemini không trả về JSON hợp lệ')
+    // Thử gemini-2.5-flash trước, fallback gemini-2.0-flash nếu 429
+    let outcome: { result: unknown; model: string }
+    try {
+      outcome = await callGemini('gemini-2.5-flash')
+    } catch (err: unknown) {
+      const status = (err as { status?: number }).status
+      if (status === 429 || status === 503) {
+        console.warn('gemini-2.5-flash rate limited, thử gemini-2.0-flash...')
+        outcome = await callGemini('gemini-2.0-flash')
+      } else {
+        throw err
+      }
+    }
 
-    const result = JSON.parse(jsonMatch[0])
-    return NextResponse.json({ success: true, result })
+    return NextResponse.json({ success: true, result: outcome.result, model: outcome.model })
 
   } catch (err) {
-    console.error('Gemini error:', err)
-    return NextResponse.json({ error: 'Phân tích thất bại', detail: String(err) }, { status: 500 })
+    const status = (err as { status?: number }).status
+    console.error('Gemini analyze-face lỗi:', err)
+    return NextResponse.json(
+      { error: 'Phân tích thất bại', detail: String(err), geminiStatus: status },
+      { status: 500 }
+    )
   }
 }
