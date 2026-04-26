@@ -30,10 +30,10 @@ function getInitialProducts(): Product[] {
   return MERGED_PRODUCTS
 }
 
-export function useProductFilters() {
+export function useProductFilters(initialProducts: Product[] = MERGED_PRODUCTS) {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
-  // Khởi tạo từ localStorage nếu có → tránh hiển thị data cũ
-  const [products, setProducts] = useState<Product[]>(MERGED_PRODUCTS)
+  // Dùng initialProducts (từ server) làm initial state — không có flash data cũ
+  const [products, setProducts] = useState<Product[]>(initialProducts)
 
   const loadProducts = () => {
     fetch('/api/products')
@@ -48,9 +48,7 @@ export function useProductFilters() {
   }
 
   useEffect(() => {
-    // Hiện cache ngay lập tức (nếu có), sau đó fetch mới trong nền
-    const cached = getInitialProducts()
-    if (cached !== MERGED_PRODUCTS) setProducts(cached)
+    // Fetch mới trong nền để cập nhật nếu có thay đổi kể từ khi server render
     loadProducts()
     window.addEventListener('focus', loadProducts)
     return () => window.removeEventListener('focus', loadProducts)
