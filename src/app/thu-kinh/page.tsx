@@ -21,6 +21,7 @@ function ThuKinhContent() {
   const [analysis, setAnalysis] = useState<FaceAnalysisResult | null>(null)
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [recommended, setRecommended] = useState<typeof MERGED_PRODUCTS>([])
+  const [aiSource, setAiSource] = useState<'gemini' | 'mediapipe'>('mediapipe')
 
   async function handleCapture(dataUrl: string) {
     setPhotoUrl(dataUrl)
@@ -50,6 +51,8 @@ function ThuKinhContent() {
               avoidShapes: [],
               tip: g.tip || '',
             }
+            setAiSource('gemini')
+            console.log('✅ Gemini phân tích thành công:', g.shape)
           }
         }
       } catch (geminiErr) {
@@ -199,7 +202,12 @@ function ThuKinhContent() {
           {/* Kết quả phân tích */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-6">
             <div className="bg-gradient-to-r from-brand-zalo to-blue-500 px-6 py-5 text-white">
-              <p className="text-xs font-semibold opacity-80 mb-1">Kết quả phân tích của bạn</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-xs font-semibold opacity-80">Kết quả phân tích của bạn</p>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${aiSource === 'gemini' ? 'bg-green-400/30 text-green-100' : 'bg-white/20 text-white/70'}`}>
+                  {aiSource === 'gemini' ? '✨ Gemini AI' : '🔬 MediaPipe'}
+                </span>
+              </div>
               <h2 className="text-2xl font-black">{analysis.shapeName}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <div className="h-1.5 bg-white/30 rounded-full flex-1">

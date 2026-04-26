@@ -11,21 +11,29 @@ export async function POST(req: NextRequest) {
     // Bỏ prefix "data:image/jpeg;base64,"
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
 
-    const prompt = `Bạn là chuyên gia tư vấn kính mắt tại Việt Nam. Hãy phân tích hình dạng khuôn mặt trong ảnh này.
+    const prompt = `Bạn là chuyên gia tư vấn kính mắt hàng đầu tại Việt Nam với 20 năm kinh nghiệm.
 
-Trả về JSON theo đúng format sau (không có text nào khác):
+Nhìn kỹ ảnh khuôn mặt này và phân tích THẬT SỰ dựa trên đặc điểm khuôn mặt CỤ THỂ trong ảnh:
+- Đo chiều rộng trán, gò má, hàm
+- Xác định chiều dài so với chiều rộng mặt
+- Nhận xét cằm nhọn hay vuông
+- Phân biệt chính xác hình dạng (KHÔNG mặc định oval nếu không phải)
+
+Trả về JSON (không có text nào khác ngoài JSON):
 {
   "shape": "oval|round|square|heart|rectangle|diamond",
-  "shapeName": "Tên hình dạng bằng tiếng Việt",
-  "confidence": số từ 0.7 đến 0.97,
-  "description": "Mô tả đặc điểm khuôn mặt (2-3 câu)",
-  "features": ["đặc điểm 1", "đặc điểm 2", "đặc điểm 3"],
-  "recommendedShapes": ["tên shape gọng phù hợp 1", "tên shape 2", "tên shape 3"],
-  "tip": "Lời khuyên chọn gọng kính phù hợp (1-2 câu)"
+  "shapeName": "Tên tiếng Việt",
+  "confidence": số từ 0.72 đến 0.96,
+  "description": "Mô tả CỤ THỂ đặc điểm nhìn thấy trong ảnh này (2-3 câu, đề cập đặc điểm riêng)",
+  "features": ["đặc điểm cụ thể 1", "đặc điểm cụ thể 2", "đặc điểm cụ thể 3"],
+  "recommendedShapes": ["shape1", "shape2", "shape3"],
+  "tip": "Lời khuyên cá nhân hoá dựa trên khuôn mặt này (1-2 câu)"
 }
 
-Các giá trị shape hợp lệ: oval, round, square, heart, rectangle, diamond
-Các giá trị recommendedShapes hợp lệ: round, square, rectangle, cat-eye, oval, aviator, geometric`
+shape hợp lệ: oval, round, square, heart, rectangle, diamond
+recommendedShapes hợp lệ: round, square, rectangle, cat-eye, oval, aviator, geometric
+
+Quan trọng: Phân tích THẬT SỰ khuôn mặt trong ảnh, không dùng kết quả chung chung.`
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
