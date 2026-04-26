@@ -166,16 +166,26 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
 
           {showZaloCTA && (
             isAvailable ? (
-              <Button variant="zalo" size="sm" fullWidth onClick={handleZaloCTA} className="text-xs">
-                <svg className="mr-1.5 w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                {VI.productCard.buyOnZalo}
-              </Button>
+              <div className="flex gap-1.5">
+                {/* Đặt Hàng Ngay — để link cha điều hướng sang trang sản phẩm */}
+                <div className="flex-1 bg-brand-zalo hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl text-center transition-colors leading-5">
+                  Đặt Hàng Ngay
+                </div>
+                {/* Icon Zalo — mở Zalo tư vấn, chặn điều hướng */}
+                <button
+                  onClick={e => { e.preventDefault(); e.stopPropagation(); handleZaloCTA(e) }}
+                  title="Tư vấn qua Zalo"
+                  className="w-9 flex-shrink-0 bg-blue-50 hover:bg-blue-100 text-brand-zalo rounded-xl flex items-center justify-center border border-blue-200 transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 50 50" fill="none">
+                    <text x="50%" y="68%" textAnchor="middle" fill="#0068FF" fontSize="30" fontWeight="bold" fontFamily="Arial">Z</text>
+                  </svg>
+                </button>
+              </div>
             ) : (
-              <Button variant="outline" size="sm" fullWidth disabled className="text-xs opacity-50 cursor-not-allowed">
+              <div className="w-full bg-gray-100 text-gray-400 text-xs font-bold py-2 rounded-xl text-center">
                 Hết Hàng
-              </Button>
+              </div>
             )
           )}
         </div>
