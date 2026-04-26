@@ -7,18 +7,36 @@ import { VI } from '@/constants/vietnamese'
 import { getBestSellers } from '@/data/products'
 import type { Product } from '@/types/product'
 
+const CACHE_KEY = 'soni_featured_cache'
+
+function pickFeatured(data: Product[]): Product[] {
+  return [...data]
+    .sort((a, b) => (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0) || b.reviewCount - a.reviewCount)
+    .slice(0, 6)
+}
+
 export default function FeaturedProducts() {
-  const [products, setProducts] = useState<Product[]>(getBestSellers(6))
+  const [products, setProducts] = useState<Product[]>(() => {
+    // Dùng cache localStorage nếu có, không thì dùng static data
+    try {
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        const { data, ts } = JSON.parse(cached)
+        if (Array.isArray(data) && data.length > 0 && Date.now() - ts < 600_000)
+          return data
+      }
+    } catch {}
+    return getBestSellers(6)
+  })
 
   useEffect(() => {
     fetch('/api/products')
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          const bestSellers = data
-            .filter((p: Product) => p.isBestSeller)
-            .slice(0, 6)
-          if (bestSellers.length > 0) setProducts(bestSellers)
+          const featured = pickFeatured(data)
+          setProducts(featured)
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: featured, ts: Date.now() })) } catch {}
         }
       })
       .catch(() => {})
