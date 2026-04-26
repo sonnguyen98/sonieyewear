@@ -71,8 +71,8 @@ export default function Header() {
           {/* Zalo */}
           <button onClick={openZaloDefault}
             className="hidden sm:flex items-center gap-1.5 bg-brand-zalo text-white text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-blue-700 transition-colors">
-            <svg width="14" height="14" viewBox="0 0 50 50" fill="none">
-              <text x="50%" y="68%" textAnchor="middle" fill="white" fontSize="28" fontWeight="bold" fontFamily="Arial">Z</text>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 110 16A8 8 0 0112 4zm-3 5a1 1 0 100 2h6a1 1 0 100-2H9zm0 4a1 1 0 100 2h4a1 1 0 100-2H9z"/>
             </svg>
             Zalo
           </button>

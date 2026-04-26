@@ -166,21 +166,12 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
 
           {showZaloCTA && (
             isAvailable ? (
-              <div className="flex gap-1.5">
-                {/* Đặt Hàng Ngay — để link cha điều hướng sang trang sản phẩm */}
-                <div className="flex-1 bg-brand-zalo hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl text-center transition-colors leading-5">
+              <div className="relative">
+                {/* Hiệu ứng pulse phía sau button */}
+                <div className="absolute inset-0 rounded-xl bg-brand-zalo opacity-40 animate-ping" style={{ animationDuration: '1.8s' }}/>
+                <div className="relative bg-brand-zalo hover:bg-blue-700 active:scale-95 text-white text-xs font-bold py-2 rounded-xl text-center transition-all shadow-md hover:shadow-blue-300/60 hover:shadow-lg">
                   Đặt Hàng Ngay
                 </div>
-                {/* Icon Zalo — mở Zalo tư vấn, chặn điều hướng */}
-                <button
-                  onClick={e => { e.preventDefault(); e.stopPropagation(); handleZaloCTA(e) }}
-                  title="Tư vấn qua Zalo"
-                  className="w-9 flex-shrink-0 bg-blue-50 hover:bg-blue-100 text-brand-zalo rounded-xl flex items-center justify-center border border-blue-200 transition-colors"
-                >
-                  <svg width="16" height="16" viewBox="0 0 50 50" fill="none">
-                    <text x="50%" y="68%" textAnchor="middle" fill="#0068FF" fontSize="30" fontWeight="bold" fontFamily="Arial">Z</text>
-                  </svg>
-                </button>
               </div>
             ) : (
               <div className="w-full bg-gray-100 text-gray-400 text-xs font-bold py-2 rounded-xl text-center">

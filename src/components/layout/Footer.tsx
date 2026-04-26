@@ -47,7 +47,9 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-gray-500">
               <li>
                 <button onClick={openZaloDefault} className="flex items-center gap-2 hover:text-gray-900 transition-colors">
-                  <span className="bg-brand-zalo text-white text-xs px-1.5 py-0.5 rounded font-bold">Z</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#0068FF">
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm-3 7h6a1 1 0 110 2H9a1 1 0 110-2zm0 4h4a1 1 0 110 2H9a1 1 0 110-2z"/>
+                  </svg>
                   Nhắn Zalo ngay
                 </button>
               </li>
