@@ -1,21 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const SLIDES = [
   {
     id: 1,
-    bg: 'bg-amber-50',
-    accent: 'text-amber-700',
-    badge: 'bg-amber-100 text-amber-800',
+    image: '/images/hero/hero-1.png',
+    overlay: 'from-white/90 via-white/70 to-white/10',
+    accent: 'text-amber-600',
+    pill: 'bg-amber-100/90 text-amber-800 border-amber-200',
+    dot: 'bg-amber-400',
     btnPrimary: 'bg-amber-500 hover:bg-amber-600 text-white',
     btnSecond: 'border-2 border-amber-400 text-amber-700 hover:bg-amber-100',
-    pill: 'bg-amber-100 text-amber-700 border-amber-200',
-    dot: 'bg-amber-400',
     tag: '🎉 Ưu đãi hôm nay',
     heading: ['Kính Đẹp', 'Đúng Mốt', 'Nét Như SONi'],
-    headingColors: ['text-gray-900', 'text-amber-600', 'text-gray-600'],
+    headingColors: ['text-gray-900', 'text-amber-600', 'text-gray-700'],
     sub: 'Thử kính ảo ngay trên khuôn mặt bạn — không cần ra cửa hàng.',
     cta: 'Thử Kính Ngay',
     ctaHref: '/thu-kinh',
@@ -27,13 +28,13 @@ const SLIDES = [
   },
   {
     id: 2,
-    bg: 'bg-sky-50',
-    accent: 'text-sky-700',
-    badge: 'bg-sky-100 text-sky-800',
+    image: '/images/hero/hero-2.png',
+    overlay: 'from-white/90 via-white/70 to-white/10',
+    accent: 'text-sky-600',
+    pill: 'bg-sky-100/90 text-sky-800 border-sky-200',
+    dot: 'bg-sky-400',
     btnPrimary: 'bg-sky-500 hover:bg-sky-600 text-white',
     btnSecond: 'border-2 border-sky-400 text-sky-700 hover:bg-sky-100',
-    pill: 'bg-sky-100 text-sky-700 border-sky-200',
-    dot: 'bg-sky-400',
     tag: '✨ Tư vấn thông minh bằng AI',
     heading: ['Phân Tích', 'Khuôn Mặt', 'Đề Xuất Gọng'],
     headingColors: ['text-gray-900', 'text-sky-600', 'text-gray-500'],
@@ -48,13 +49,13 @@ const SLIDES = [
   },
   {
     id: 3,
-    bg: 'bg-rose-50',
+    image: '/images/hero/hero-3.png',
+    overlay: 'from-white/90 via-white/70 to-white/10',
     accent: 'text-rose-600',
-    badge: 'bg-rose-100 text-rose-800',
+    pill: 'bg-rose-100/90 text-rose-800 border-rose-200',
+    dot: 'bg-rose-400',
     btnPrimary: 'bg-rose-500 hover:bg-rose-600 text-white',
     btnSecond: 'border-2 border-rose-400 text-rose-600 hover:bg-rose-100',
-    pill: 'bg-rose-100 text-rose-700 border-rose-200',
-    dot: 'bg-rose-400',
     tag: '🔥 Ưu đãi đặc biệt',
     heading: ['Giảm Thêm', '20% Mọi', 'Đơn Hàng'],
     headingColors: ['text-gray-900', 'text-rose-600', 'text-gray-600'],
@@ -69,13 +70,13 @@ const SLIDES = [
   },
   {
     id: 4,
-    bg: 'bg-teal-50',
+    image: '/images/hero/hero-4.png',
+    overlay: 'from-white/90 via-white/70 to-white/10',
     accent: 'text-teal-700',
-    badge: 'bg-teal-100 text-teal-800',
+    pill: 'bg-teal-100/90 text-teal-800 border-teal-200',
+    dot: 'bg-teal-500',
     btnPrimary: 'bg-teal-600 hover:bg-teal-700 text-white',
     btnSecond: 'border-2 border-teal-400 text-teal-700 hover:bg-teal-100',
-    pill: 'bg-teal-100 text-teal-700 border-teal-200',
-    dot: 'bg-teal-500',
     tag: '✅ Cam kết chất lượng',
     heading: ['Minh Bạch', 'Rõ Ràng —', 'Đúng Chất Lượng'],
     headingColors: ['text-gray-900', 'text-teal-600', 'text-gray-700'],
@@ -106,21 +107,36 @@ export default function HeroBanner() {
 
   return (
     <section
-      className={`relative overflow-hidden transition-colors duration-700 ${slide.bg}`}
+      className="relative overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Decorative circles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full opacity-20 bg-current blur-3xl" style={{ color: 'inherit' }}/>
-        <div className="absolute -bottom-16 -left-16 w-96 h-96 rounded-full opacity-10 bg-current blur-3xl"/>
+      {/* Ảnh nền */}
+      <div className="absolute inset-0">
+        {SLIDES.map((s, i) => (
+          <div
+            key={s.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <Image
+              src={s.image}
+              alt=""
+              fill
+              className="object-cover object-center"
+              priority={i === 0}
+              sizes="100vw"
+            />
+          </div>
+        ))}
+        {/* Overlay gradient — giúp text luôn đọc được */}
+        <div className={`absolute inset-0 bg-gradient-to-r ${slide.overlay} transition-all duration-700`} />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-16">
+      <div className="relative max-w-7xl mx-auto px-4 py-14 md:py-20">
         <div className="max-w-2xl">
 
           {/* Badge */}
-          <div className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border ${slide.pill}`}>
+          <div className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full mb-5 border backdrop-blur-sm ${slide.pill}`}>
             <span className={`w-2 h-2 rounded-full animate-pulse ${slide.dot}`}/>
             {slide.tag}
           </div>
@@ -134,7 +150,7 @@ export default function HeroBanner() {
             ))}
           </h1>
 
-          <p className="text-gray-500 text-base mb-7 leading-relaxed max-w-md">
+          <p className="text-gray-600 text-base mb-7 leading-relaxed max-w-md">
             {slide.sub}
           </p>
 
@@ -145,17 +161,17 @@ export default function HeroBanner() {
               {slide.cta}
             </Link>
             <Link href={slide.cta2Href}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-all active:scale-95 ${slide.btnSecond}`}>
+              className={`inline-flex items-center gap-2 px-5 py-3 rounded-full font-bold text-sm transition-all active:scale-95 bg-white/80 backdrop-blur-sm ${slide.btnSecond}`}>
               {slide.cta2}
             </Link>
           </div>
 
           {/* Stats */}
-          <div className="flex gap-8 pt-5 border-t border-gray-200">
+          <div className="flex gap-8 pt-5 border-t border-gray-200/60">
             {[slide.stat1, slide.stat2, slide.stat3].map(s => (
               <div key={s.label}>
                 <div className={`text-2xl font-black ${slide.accent}`}>{s.value}</div>
-                <div className="text-xs text-gray-400 mt-0.5">{s.label}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
               </div>
             ))}
           </div>
@@ -168,7 +184,7 @@ export default function HeroBanner() {
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`transition-all duration-300 rounded-full ${i === current ? `w-6 h-2 ${slide.dot}` : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'}`}
+            className={`transition-all duration-300 rounded-full ${i === current ? `w-6 h-2 ${slide.dot}` : 'w-2 h-2 bg-white/60 hover:bg-white/80'}`}
           />
         ))}
       </div>
@@ -176,7 +192,7 @@ export default function HeroBanner() {
       {/* Prev / Next arrows */}
       <button
         onClick={() => setCurrent(c => (c - 1 + SLIDES.length) % SLIDES.length)}
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 hover:bg-white shadow flex items-center justify-center transition-all"
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow-md flex items-center justify-center transition-all backdrop-blur-sm"
       >
         <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
@@ -184,7 +200,7 @@ export default function HeroBanner() {
       </button>
       <button
         onClick={() => setCurrent(c => (c + 1) % SLIDES.length)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 hover:bg-white shadow flex items-center justify-center transition-all"
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow-md flex items-center justify-center transition-all backdrop-blur-sm"
       >
         <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
