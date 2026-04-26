@@ -30,34 +30,43 @@ function ThuKinhContent() {
     try {
       let result: import('@/lib/faceShapeAnalysis').FaceAnalysisResult | null = null
 
-      // Thử Gemini AI trước
+      // Thử Gemini AI trước — log chi tiết để debug
       try {
         const res = await fetch('/api/analyze-face', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ imageBase64: dataUrl }),
         })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.success && data.result) {
-            const g = data.result
-            result = {
-              shape: g.shape,
-              shapeName: g.shapeName || g.shape,
-              confidence: g.confidence || 0.85,
-              description: g.description || '',
-              features: g.features || [],
-              recommendedShapes: g.recommendedShapes || [],
-              avoidShapes: [],
-              tip: g.tip || '',
-            }
-            setAiSource('gemini')
-            console.log('✅ Gemini phân tích thành công:', g.shape)
+        const data = await res.json().catch(() => ({}))
+        if (res.ok && data.success && data.result) {
+          const g = data.result
+          result = {
+            shape: g.shape,
+            shapeName: g.shapeName || g.shape,
+            confidence: g.confidence || 0.85,
+            description: g.description || '',
+            features: g.features || [],
+            recommendedShapes: g.recommendedShapes || [],
+            avoidShapes: [],
+            tip: g.tip || '',
           }
+          setAiSource('gemini')
+          console.log('✅ Gemini phân tích thành công:', g.shape)
+        } else {
+          // KHÔNG silent — log rõ để user biết Gemini fail vì lý do gì
+          console.error('❌ Gemini API fail:', {
+            status: res.status,
+            code: data?.code,
+            error: data?.error,
+            detail: data?.detail,
+          })
         }
       } catch (geminiErr) {
-        console.warn('Gemini không khả dụng, dùng MediaPipe fallback:', geminiErr)
+        console.error('❌ Network error khi gọi /api/analyze-face:', geminiErr)
       }
+
+      // Reset badge nếu Gemini fail (tránh hiển thị "Gemini" từ lần trước)
+      if (!result) setAiSource('mediapipe')
 
       // Fallback: MediaPipe nếu Gemini lỗi
       if (!result) {
