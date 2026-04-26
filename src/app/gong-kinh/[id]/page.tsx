@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getProductBySlug, getRelatedProducts, MERGED_PRODUCTS } from '@/data/products'
@@ -17,11 +17,11 @@ import { formatVND } from '@/lib/utils'
 import { useStock } from '@/hooks/useStock'
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function ProductDetailPage({ params }: PageProps) {
-  const { id } = params
+  const { id } = use(params)
   const staticProduct = getProductBySlug(id)
 
   // ── Tất cả hooks phải ở đây, trước mọi conditional return ──

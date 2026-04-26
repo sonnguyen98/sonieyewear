@@ -16,21 +16,42 @@ const DEFAULT_FILTERS: FilterState = {
   sortBy: 'ban-chay',
 }
 
+const CACHE_KEY = 'soni_products_cache'
+
+function getInitialProducts(): Product[] {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY)
+    if (cached) {
+      const { data, ts } = JSON.parse(cached)
+      // Dùng cache nếu còn trong 10 phút
+      if (Array.isArray(data) && data.length > 0 && Date.now() - ts < 600_000) return data
+    }
+  } catch {}
+  return MERGED_PRODUCTS
+}
+
 export function useProductFilters() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
+  // Khởi tạo từ localStorage nếu có → tránh hiển thị data cũ
   const [products, setProducts] = useState<Product[]>(MERGED_PRODUCTS)
 
-  // Fetch sản phẩm từ KV
   const loadProducts = () => {
     fetch('/api/products')
       .then(r => r.json())
-      .then(data => { if (Array.isArray(data) && data.length > 0) setProducts(data) })
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data)
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })) } catch {}
+        }
+      })
       .catch(() => {})
   }
 
   useEffect(() => {
+    // Hiện cache ngay lập tức (nếu có), sau đó fetch mới trong nền
+    const cached = getInitialProducts()
+    if (cached !== MERGED_PRODUCTS) setProducts(cached)
     loadProducts()
-    // Tự động refetch khi người dùng quay lại tab
     window.addEventListener('focus', loadProducts)
     return () => window.removeEventListener('focus', loadProducts)
   }, [])
