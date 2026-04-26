@@ -126,7 +126,11 @@ function ProductsSection() {
 
   useEffect(() => { load() }, [load])
 
-  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.id.includes(search))
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.id.includes(search) ||
+    ((p as { sku?: string }).sku?.toLowerCase().includes(search.toLowerCase()) ?? false)
+  )
 
   return (
     <div>
@@ -1024,13 +1028,28 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
 function ProductEditModal({ product, onClose, onSaved }: { product: Product; onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = useState({ name: product.name, sku: (product as { sku?: string }).sku ?? '', basePrice: product.basePrice, originalPrice: product.originalPrice ?? '', description: product.description, features: product.features.join('\n'), type: product.type, shape: product.shape, material: product.material, gender: product.gender, isBestSeller: product.isBestSeller ?? false, isNew: product.isNew ?? false })
   const [images, setImages] = useState<string[]>(product.images ?? [])
-  // Ảnh theo màu: { variantId: string[] }
+  const [colors, setColors] = useState(
+    product.colorVariants.map(v => ({ id: v.id, name: v.name, hex: v.hex, isNew: false }))
+  )
+  const [specs, setSpecs] = useState({
+    bridgeWidth: (product.specs as { bridgeWidth?: number })?.bridgeWidth ?? 18,
+    lensWidth: (product.specs as { lensWidth?: number })?.lensWidth ?? 50,
+    templeLength: (product.specs as { templeLength?: number })?.templeLength ?? 145,
+    frameWidth: (product.specs as { frameWidth?: string })?.frameWidth ?? 'Vừa',
+    weight: (product.specs as { weight?: number })?.weight ?? 20,
+  })
   const [colorImages, setColorImages] = useState<Record<string, string[]>>(
     Object.fromEntries(product.colorVariants.map(v => [v.id, v.images ?? []]))
   )
   const [uploadingColor, setUploadingColor] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  function addColor() {
+    const newId = `${product.id}-c${Date.now()}`
+    setColors(c => [...c, { id: newId, name: '', hex: '#888888', isNew: true }])
+    setColorImages(prev => ({ ...prev, [newId]: [] }))
+  }
 
   async function handleUpload(file: File) {
     setUploading(true)
@@ -1052,11 +1071,36 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
   async function handleSave() {
     setSaving(true)
     try {
-      const updatedVariants = product.colorVariants.map(v => ({
-        ...v,
-        images: colorImages[v.id]?.length ? colorImages[v.id] : (v.images ?? []),
-        imageUrl: colorImages[v.id]?.[0] ?? v.imageUrl,
-      }))
+      const updatedVariants = colors.map(c => {
+        const original = product.colorVariants.find(v => v.id === c.id)
+        const imgs = colorImages[c.id] ?? []
+        if (c.isNew || !original) {
+          return {
+            id: c.id, name: c.name, hex: c.hex,
+            imageUrl: imgs[0] ?? images[0] ?? '',
+            images: imgs, inStock: true,
+            overlayImageUrl: `/images/overlays/${form.shape}-overlay.svg`,
+          }
+        }
+        return {
+          ...original, name: c.name, hex: c.hex,
+          images: imgs.length ? imgs : (original.images ?? []),
+          imageUrl: imgs[0] ?? original.imageUrl,
+        }
+      })
+
+      // Cập nhật stock cho màu mới
+      const newColors = colors.filter(c => c.isNew)
+      if (newColors.length > 0) {
+        const stockRes = await fetch('/api/admin/stock', { headers: { 'x-admin-token': PASSWORD } })
+        const currentStock = await stockRes.json()
+        newColors.forEach(c => { currentStock[c.id] = { inStock: true, quantity: 10 } })
+        await fetch('/api/admin/stock', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+          body: JSON.stringify(currentStock),
+        })
+      }
 
       const res = await fetch('/api/admin/products', {
         method: 'PUT',
@@ -1068,15 +1112,13 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
             basePrice: Number(form.basePrice),
             originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
             features: form.features.split('\n').filter(Boolean),
-            images,
-            colorVariants: updatedVariants,
+            images, colorVariants: updatedVariants, specs,
           }
         }),
       })
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setSaving(false)
-      onSaved()
+      setSaving(false); onSaved()
     } catch (err) {
       setSaving(false)
       alert(`Lỗi khi lưu: ${err}. Vui lòng thử lại.`)
@@ -1127,6 +1169,60 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isBestSeller} onChange={e => setForm(f => ({ ...f, isBestSeller: e.target.checked }))} /><span className="text-sm">🏆 Bán Chạy</span></label>
             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isNew} onChange={e => setForm(f => ({ ...f, isNew: e.target.checked }))} /><span className="text-sm">✨ Hàng Mới</span></label>
           </div>
+
+          {/* Thông số kỹ thuật */}
+          <div className="border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+              <p className="text-xs font-bold text-gray-700">📐 Thông Số Kỹ Thuật</p>
+            </div>
+            <div className="p-4 grid grid-cols-2 gap-3">
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Rộng mắt kính (mm)</label>
+                <input type="number" value={specs.lensWidth} onChange={e => setSpecs(s => ({ ...s, lensWidth: +e.target.value }))} className={inp()} /></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Rộng cầu mũi (mm)</label>
+                <input type="number" value={specs.bridgeWidth} onChange={e => setSpecs(s => ({ ...s, bridgeWidth: +e.target.value }))} className={inp()} /></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Dài gọng (mm)</label>
+                <input type="number" value={specs.templeLength} onChange={e => setSpecs(s => ({ ...s, templeLength: +e.target.value }))} className={inp()} /></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Trọng lượng (g)</label>
+                <input type="number" value={specs.weight} onChange={e => setSpecs(s => ({ ...s, weight: +e.target.value }))} className={inp()} /></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Độ rộng gọng</label>
+                <select value={specs.frameWidth} onChange={e => setSpecs(s => ({ ...s, frameWidth: e.target.value }))} className={inp()}>
+                  <option value="Hẹp">Hẹp</option>
+                  <option value="Vừa">Vừa</option>
+                  <option value="Rộng">Rộng</option>
+                </select></div>
+            </div>
+          </div>
+
+          {/* Màu sắc — chỉnh sửa & thêm mới */}
+          <div className="border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-gray-700">🎨 Màu Sắc</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">Chỉnh sửa tên, mã màu hoặc thêm màu mới</p>
+              </div>
+              <button onClick={addColor} className="text-xs text-blue-600 font-bold hover:underline">+ Thêm màu</button>
+            </div>
+            <div className="p-4 space-y-2">
+              {colors.map((c, i) => (
+                <div key={c.id} className="flex items-center gap-2">
+                  <input type="color" value={c.hex}
+                    onChange={e => setColors(prev => prev.map((x, j) => j === i ? { ...x, hex: e.target.value } : x))}
+                    className="w-9 h-9 rounded-lg cursor-pointer border border-gray-300 p-0.5 flex-shrink-0" />
+                  <input value={c.name} placeholder="Tên màu (VD: Đen Bóng)"
+                    onChange={e => setColors(prev => prev.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                    className={inp('flex-1')} />
+                  {c.isNew && <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded flex-shrink-0">Mới</span>}
+                  {colors.length > 1 && (
+                    <button onClick={() => {
+                      setColors(prev => prev.filter((_, j) => j !== i))
+                      setColorImages(prev => { const n = { ...prev }; delete n[c.id]; return n })
+                    }} className="text-red-400 hover:text-red-600 flex-shrink-0">✕</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Ảnh chung (ảnh đại diện) */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-2">Ảnh đại diện sản phẩm</label>
@@ -1152,12 +1248,11 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
               <p className="text-[11px] text-gray-400 mt-0.5">Khách chọn màu nào → gallery hiển thị ảnh của màu đó</p>
             </div>
             <div className="p-4 space-y-5">
-              {product.colorVariants.map(v => (
+              {colors.map(v => (
                 <div key={v.id}>
-                  {/* Header màu */}
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0" style={{ backgroundColor: v.hex }}/>
-                    <span className="text-sm font-semibold text-gray-800">{v.name}</span>
+                    <span className="text-sm font-semibold text-gray-800">{v.name || <span className="text-gray-400 italic">Chưa đặt tên</span>}</span>
                     <span className="text-xs text-gray-400">({(colorImages[v.id] ?? []).length} ảnh)</span>
                   </div>
 
