@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+  'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent'
 
 const PROMPT = `Hãy phân tích khuôn mặt trong ảnh như một chuyên gia tư vấn kính mắt của SONi Eyewear và trả lời 3 câu hỏi sau:
 
