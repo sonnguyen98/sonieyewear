@@ -29,6 +29,9 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [fetchDone, setFetchDone] = useState(!!staticProduct)
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedColorId, setSelectedColorId] = useState(staticProduct?.colorVariants?.[0]?.id ?? '')
+  const [related, setRelated] = useState<typeof MERGED_PRODUCTS>(
+    staticProduct ? getRelatedProducts(staticProduct, 4) : []
+  )
   const { isProductAvailable, getProductQuantity, getVariantStock } = useStock()
 
   useEffect(() => {
@@ -39,8 +42,14 @@ export default function ProductDetailPage({ params }: PageProps) {
           const found = data.find((p: { slug: string }) => p.slug === id)
           if (found) {
             setProduct(found)
-            // Cập nhật màu đang chọn nếu chưa có
             if (!staticProduct) setSelectedColorId(found.colorVariants?.[0]?.id ?? '')
+            // Tính related từ toàn bộ data API (bao gồm sản phẩm mới từ admin)
+            const rel = data
+              .filter((p: { id: string; shape: string; material: string }) =>
+                p.id !== found.id && (p.shape === found.shape || p.material === found.material)
+              )
+              .slice(0, 4)
+            setRelated(rel)
           }
         }
         setFetchDone(true)
@@ -71,7 +80,6 @@ export default function ProductDetailPage({ params }: PageProps) {
   const isLowStock = totalQty > 0 && totalQty <= 5
   const selectedColorInStock = getVariantStock(selectedColor.id, selectedColor.inStock).inStock
 
-  const related = getRelatedProducts(product!, 4)
   const discountedPrice = product!.basePrice
   const originalPrice = product!.originalPrice
 

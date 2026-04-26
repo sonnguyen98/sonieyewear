@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" className={beVietnam.variable}>
-      <body className="font-sans antialiased bg-brand-white text-brand-black">
+      <body className="font-sans antialiased bg-brand-white text-brand-black" suppressHydrationWarning>
         <Header />
         <main className="pb-16 md:pb-0">
           {children}
