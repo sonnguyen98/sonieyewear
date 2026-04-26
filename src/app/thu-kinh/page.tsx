@@ -27,55 +27,70 @@ function ThuKinhContent() {
     setStep('analyzing')
 
     try {
-      // Gọi Gemini AI để phân tích khuôn mặt
-      const res = await fetch('/api/analyze-face', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: dataUrl }),
-      })
+      let result: import('@/lib/faceShapeAnalysis').FaceAnalysisResult | null = null
 
-      if (!res.ok) throw new Error('API error')
-      const data = await res.json()
-
-      if (!data.success || !data.result) {
-        throw new Error(data.error || 'Không phân tích được')
+      // Thử Gemini AI trước
+      try {
+        const res = await fetch('/api/analyze-face', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: dataUrl }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.result) {
+            const g = data.result
+            result = {
+              shape: g.shape,
+              shapeName: g.shapeName || g.shape,
+              confidence: g.confidence || 0.85,
+              description: g.description || '',
+              features: g.features || [],
+              recommendedShapes: g.recommendedShapes || [],
+              avoidShapes: [],
+              tip: g.tip || '',
+            }
+          }
+        }
+      } catch (geminiErr) {
+        console.warn('Gemini không khả dụng, dùng MediaPipe fallback:', geminiErr)
       }
 
-      const geminiResult = data.result
-
-      // Map kết quả Gemini sang FaceAnalysisResult
-      const result: import('@/lib/faceShapeAnalysis').FaceAnalysisResult = {
-        shape: geminiResult.shape as import('@/lib/faceShapeAnalysis').FaceShape,
-        shapeName: geminiResult.shapeName || geminiResult.shape,
-        confidence: geminiResult.confidence || 0.85,
-        description: geminiResult.description || '',
-        features: geminiResult.features || [],
-        recommendedShapes: geminiResult.recommendedShapes || [],
-        avoidShapes: [],
-        tip: geminiResult.tip || '',
+      // Fallback: MediaPipe nếu Gemini lỗi
+      if (!result) {
+        const img = new window.Image()
+        img.src = dataUrl
+        await new Promise(r => { img.onload = r })
+        const lm = await getFaceLandmarkerForImage()
+        const results = lm.detect(img)
+        if (!results.faceLandmarks?.[0]) {
+          setStep('capture')
+          alert('Không nhận diện được khuôn mặt. Vui lòng chụp lại ảnh rõ hơn, đủ ánh sáng.')
+          return
+        }
+        const landmarks = results.faceLandmarks[0] as FaceLandmarkPoint[]
+        result = analyzeFaceShape(landmarks, img.naturalWidth, img.naturalHeight)
       }
 
       setAnalysis(result)
 
-      // Fetch sản phẩm phù hợp từ KV
-      const productsRes = await fetch('/api/products')
-      const allProducts = await productsRes.json()
+      // Fetch sản phẩm phù hợp
+      let allProducts = MERGED_PRODUCTS
+      try {
+        const pr = await fetch('/api/products')
+        const d = await pr.json()
+        if (Array.isArray(d) && d.length > 0) allProducts = d
+      } catch {}
+
       const rShapes = result.recommendedShapes
-
-      const filtered = Array.isArray(allProducts)
-        ? allProducts.filter((p: { shape: string }) => rShapes.includes(p.shape)).slice(0, 5)
-        : []
-
-      setRecommended(
-        filtered.length >= 2 ? filtered :
-        Array.isArray(allProducts) ? allProducts.slice(0, 5) : MERGED_PRODUCTS.slice(0, 5)
-      )
-
+      const filtered = allProducts.filter(p => rShapes.includes(p.shape)).slice(0, 5)
+      setRecommended(filtered.length >= 2 ? filtered : allProducts.slice(0, 5))
       setStep('result')
+
     } catch (e) {
       console.error(e)
       setStep('capture')
-      alert('Không thể phân tích ảnh. Vui lòng thử lại hoặc kiểm tra kết nối mạng.')
+      alert('Có lỗi xảy ra. Vui lòng thử lại.')
     }
   }
 
