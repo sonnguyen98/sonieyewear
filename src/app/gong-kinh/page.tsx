@@ -85,7 +85,7 @@ function CatalogContent() {
               </button>
               <h1 className="text-lg font-black text-brand-black">{VI.catalog.title}</h1>
               <span className="text-xs text-brand-muted hidden sm:block">
-                ({filteredProducts.length}/{PRODUCTS.length})
+                ({filteredProducts.length} sản phẩm)
               </span>
             </div>
 

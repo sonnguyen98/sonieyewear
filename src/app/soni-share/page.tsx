@@ -1,5 +1,8 @@
 import Link from 'next/link'
-import postsData from '@/data/blog-posts.json'
+import { kvGet, KV_KEYS } from '@/lib/kv-store'
+import postsFallback from '@/data/blog-posts.json'
+
+interface BlogPost { id: string; slug: string; title: string; excerpt: string; date: string; category: string; image: string; published: boolean }
 
 const categoryColors: Record<string, string> = {
   'Kiến Thức': 'bg-blue-50 text-blue-700',
@@ -9,8 +12,11 @@ const categoryColors: Record<string, string> = {
   'Tin Tức': 'bg-purple-50 text-purple-700',
 }
 
-export default function SoniSharePage() {
-  const posts = postsData.filter((p: { published: boolean }) => p.published)
+export default async function SoniSharePage() {
+  const allPosts: BlogPost[] =
+    (await kvGet<BlogPost[]>(KV_KEYS.blogPosts, 'blog-posts.json')) ?? postsFallback
+  const posts = allPosts.filter(p => p.published)
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="mb-8">
@@ -24,7 +30,7 @@ export default function SoniSharePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {posts.map((post: { id: string; slug: string; title: string; excerpt: string; date: string; category: string; image: string }) => (
+          {posts.map(post => (
             <Link key={post.id} href={`/soni-share/${post.slug}`}
               className="group bg-white rounded-2xl border border-brand-border overflow-hidden hover:shadow-md transition-all">
               <div className="h-40 bg-gradient-to-br from-brand-light to-gray-200 flex items-center justify-center overflow-hidden">
