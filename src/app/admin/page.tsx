@@ -1005,9 +1005,22 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
 }) {
   const [form, setForm] = useState({ ...post, scheduledAt: post.scheduledAt ?? '' })
   const [uploadingImg, setUploadingImg] = useState(false)
+  const [uploadingThumb, setUploadingThumb] = useState(false)
   const [imgQueue, setImgQueue] = useState<string[]>([]) // hàng đợi ảnh đã upload
   const contentRef = useRef<HTMLTextAreaElement>(null)
   const f = (k: keyof typeof form) => (v: string | boolean) => setForm(x => ({ ...x, [k]: v }))
+
+  // Upload ảnh đại diện (thumbnail)
+  async function handleUploadThumbnail(file: File) {
+    setUploadingThumb(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('folder', 'blog')
+    const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const { url } = await r.json()
+    setForm(x => ({ ...x, image: url }))
+    setUploadingThumb(false)
+  }
 
   // Upload ảnh → vào hàng đợi (chưa chèn vào nội dung)
   async function handleUploadToQueue(files: FileList) {
@@ -1022,6 +1035,8 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
       urls.push(url)
     }
     setImgQueue(prev => [...prev, ...urls])
+    // Tự đặt thumbnail nếu chưa có
+    setForm(x => x.image ? x : { ...x, image: urls[0] ?? x.image })
     setUploadingImg(false)
   }
 
@@ -1109,8 +1124,23 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
             <p className="text-[10px] text-gray-400 mt-1">Nhấn "Chèn ảnh vào bài" để upload ảnh — ảnh sẽ tự chèn tại vị trí con trỏ</p>
           </div>
 
-          <div><label className="block text-xs font-semibold text-gray-600 mb-1">URL ảnh đại diện (thumbnail)</label>
-            <input value={form.image} onChange={e => f('image')(e.target.value)} className={inp()} placeholder="https://..." /></div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Ảnh đại diện (thumbnail)</label>
+            <div className="flex gap-2 items-start">
+              {form.image && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.image} alt="thumbnail" className="w-16 h-16 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
+              )}
+              <div className="flex-1 space-y-1.5">
+                <input value={form.image} onChange={e => f('image')(e.target.value)} className={inp()} placeholder="/images/blog/..." />
+                <label className={`flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors w-full ${uploadingThumb ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                  <input type="file" accept="image/*" className="hidden"
+                    onChange={e => e.target.files?.[0] && handleUploadThumbnail(e.target.files[0])} />
+                  {uploadingThumb ? '⏳ Đang tải...' : '📸 Tải ảnh đại diện lên'}
+                </label>
+              </div>
+            </div>
+          </div>
           {/* Trạng thái đăng bài */}
           <div className="border border-gray-200 rounded-2xl overflow-hidden">
             <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-100">
