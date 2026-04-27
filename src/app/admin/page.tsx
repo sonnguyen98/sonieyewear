@@ -980,17 +980,12 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
 }) {
   const [form, setForm] = useState({ ...post })
   const [uploadingImg, setUploadingImg] = useState(false)
-  const [imgLibrary, setImgLibrary] = useState<string[]>([])
+  const [imgQueue, setImgQueue] = useState<string[]>([]) // hàng đợi ảnh đã upload
   const contentRef = useRef<HTMLTextAreaElement>(null)
-  const savedCursorRef = useRef<number>(0)
   const f = (k: keyof typeof form) => (v: string | boolean) => setForm(x => ({ ...x, [k]: v }))
 
-  function saveCursor() {
-    if (contentRef.current) savedCursorRef.current = contentRef.current.selectionStart ?? 0
-  }
-
-  // Upload ảnh → vào thư viện, chưa chèn vào nội dung
-  async function handleUploadToLibrary(files: FileList) {
+  // Upload ảnh → vào hàng đợi (chưa chèn vào nội dung)
+  async function handleUploadToQueue(files: FileList) {
     setUploadingImg(true)
     const urls: string[] = []
     for (const file of Array.from(files)) {
@@ -1001,24 +996,21 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
       const { url } = await r.json()
       urls.push(url)
     }
-    setImgLibrary(prev => [...prev, ...urls])
+    setImgQueue(prev => [...prev, ...urls])
     setUploadingImg(false)
   }
 
-  // Click ảnh trong thư viện → chèn tại vị trí con trỏ đã lưu
-  function insertImageAtCursor(url: string) {
-    const insertAt = savedCursorRef.current
-    const markdown = `![Mô tả ảnh](${url})\n`
-    setForm(x => {
-      const before = x.content.slice(0, insertAt)
-      const after = x.content.slice(insertAt)
-      return { ...x, content: before + markdown + after }
-    })
-    savedCursorRef.current = insertAt + markdown.length
-    setTimeout(() => {
-      const ta = contentRef.current
-      if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = savedCursorRef.current }
-    }, 30)
+  // Khi Lưu: thay thế ![Mô tả] (không có URL) bằng ![Mô tả](url) theo thứ tự hàng đợi
+  function handleSaveWithImages() {
+    let queueIdx = 0
+    const processedContent = form.content.replace(
+      /!\[([^\]]*)\](?!\()/g,
+      (_, alt) => {
+        if (queueIdx < imgQueue.length) return `![${alt}](${imgQueue[queueIdx++]})`
+        return `![${alt}]`
+      }
+    )
+    onSave({ ...form, content: processedContent })
   }
 
   return (
@@ -1047,51 +1039,49 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tóm tắt</label>
             <textarea rows={2} value={form.excerpt} onChange={e => f('excerpt')(e.target.value)} className={inp('resize-none')} /></div>
 
-          {/* Nội dung + thư viện ảnh */}
+          {/* Nội dung + hàng đợi ảnh */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-gray-600">Nội dung bài viết</label>
               <label className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${uploadingImg ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
                 <input type="file" accept="image/*" multiple className="hidden"
-                  onChange={e => e.target.files && e.target.files.length > 0 && handleUploadToLibrary(e.target.files)} />
-                {uploadingImg ? '⏳ Đang tải ảnh...' : '📤 Tải ảnh lên thư viện'}
+                  onChange={e => e.target.files && e.target.files.length > 0 && handleUploadToQueue(e.target.files)} />
+                {uploadingImg ? `⏳ Đang tải... (${imgQueue.length} ảnh)` : `📤 Tải ảnh lên${imgQueue.length > 0 ? ` (${imgQueue.length} ảnh)` : ''}`}
               </label>
             </div>
+
+            {/* Hướng dẫn + hàng đợi ảnh */}
+            {imgQueue.length > 0 && (
+              <div className="mb-2 border border-blue-200 rounded-xl p-3 bg-blue-50">
+                <p className="text-[11px] font-semibold text-blue-700 mb-2">
+                  💡 Trong nội dung, gõ <code className="bg-blue-100 px-1 rounded">![Mô tả]</code> (không có URL) tại vị trí muốn chèn — ảnh sẽ được ghép theo thứ tự khi Lưu
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {imgQueue.map((url, i) => (
+                    <div key={url + i} className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-blue-200" />
+                      <span className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-blue-600 text-white text-[10px] font-black rounded-full flex items-center justify-center">
+                        {i + 1}
+                      </span>
+                      <button onClick={() => setImgQueue(q => q.filter((_, j) => j !== i))}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center hover:bg-red-600">
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <textarea
               ref={contentRef}
               rows={10}
               value={form.content}
               onChange={e => f('content')(e.target.value)}
-              onKeyUp={saveCursor}
-              onClick={saveCursor}
               className={inp('resize-y font-mono text-xs')}
-              placeholder={'Viết nội dung bài viết...\n\nĐặt con trỏ tại vị trí muốn chèn ảnh, rồi click ảnh trong thư viện bên dưới.\n\nĐịnh dạng hỗ trợ:\n# Tiêu đề lớn  ## Tiêu đề vừa  **chữ đậm**  - Danh sách'}
+              placeholder={'Viết nội dung...\n\nVí dụ:\n# Mẹo 1: Làm sạch kính\n![Ảnh minh hoạ mẹo 1]\nNội dung mẹo 1...\n\n# Mẹo 2: Điều chỉnh gọng\n![Ảnh minh hoạ mẹo 2]\nNội dung mẹo 2...\n\n→ Khi Lưu, ảnh 1 chèn vào chỗ ![Ảnh minh hoạ mẹo 1], ảnh 2 chèn vào chỗ ![Ảnh minh hoạ mẹo 2]'}
             />
-            {/* Thư viện ảnh đã upload */}
-            {imgLibrary.length > 0 && (
-              <div className="mt-2 border border-gray-200 rounded-xl p-3 bg-gray-50">
-                <p className="text-[11px] font-semibold text-gray-500 mb-2">
-                  🖼️ Thư viện ảnh — đặt con trỏ vào đúng vị trí trong nội dung rồi click ảnh để chèn
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {imgLibrary.map((url, i) => (
-                    <button
-                      key={url + i}
-                      type="button"
-                      onClick={() => insertImageAtCursor(url)}
-                      title="Click để chèn ảnh vào vị trí con trỏ"
-                      className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-500 hover:shadow-md transition-all group"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/20 flex items-center justify-center transition-all">
-                        <span className="text-white text-lg opacity-0 group-hover:opacity-100 drop-shadow">+</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
             <p className="text-[10px] text-gray-400 mt-1">Nhấn "Chèn ảnh vào bài" để upload ảnh — ảnh sẽ tự chèn tại vị trí con trỏ</p>
           </div>
 
@@ -1104,7 +1094,7 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
         </div>
         <div className="px-5 py-4 border-t flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold">Huỷ</button>
-          <SaveBtn saving={saving} onClick={() => onSave(form)} />
+          <SaveBtn saving={saving} onClick={handleSaveWithImages} />
         </div>
       </div>
     </div>
