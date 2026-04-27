@@ -661,4 +661,4 @@ export function getRelatedProducts(product: Product, limit = 4): Product[] {
   ).slice(0, limit)
 }
 
-// cache-bust: 1777209428137
+// cache-bust: 1777293580936
