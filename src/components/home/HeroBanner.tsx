@@ -68,14 +68,14 @@ const SLIDES = [
   {
     id: 4,
     image: '/images/hero/hero-4.png',
-    accent: 'text-teal-700',
-    pill: 'bg-teal-100/90 text-teal-800 border-teal-200',
-    dot: 'bg-teal-500',
-    btnPrimary: 'bg-teal-600 hover:bg-teal-700 text-white',
-    btnSecond: 'border-2 border-teal-400 text-teal-700 hover:bg-teal-50 bg-white/80',
+    accent: 'text-white',
+    pill: 'bg-black/40 text-white border-white/30',
+    dot: 'bg-teal-400',
+    btnPrimary: 'bg-teal-500 hover:bg-teal-600 text-white',
+    btnSecond: 'border-2 border-white text-white hover:bg-white/20 backdrop-blur-sm',
     tag: '✅ Cam kết chất lượng',
     heading: ['Minh Bạch', 'Rõ Ràng —', 'Đúng Chất Lượng'],
-    headingColors: ['text-gray-900', 'text-teal-600', 'text-gray-700'],
+    headingColors: ['text-white drop-shadow-md', 'text-teal-300 drop-shadow-md', 'text-white/90 drop-shadow-md'],
     sub: 'Kính của bạn sẽ được làm và quay video gửi qua Zalo — đảm bảo đúng gọng, đúng loại tròng, đúng số độ trước khi giao hàng.',
     cta: 'Tìm Hiểu Thêm',
     ctaHref: '/chinh-sach',
@@ -84,6 +84,9 @@ const SLIDES = [
     stat1: { value: '100%', label: 'Minh bạch' },
     stat2: { value: '📹', label: 'Video xác nhận' },
     stat3: { value: '0', label: 'Rủi ro cho KH' },
+    subColor: 'text-white/90',
+    statLabelColor: 'text-white/60',
+    borderColor: 'border-white/30',
   },
 ]
 
@@ -132,7 +135,7 @@ export default function HeroBanner() {
             ))}
           </h1>
 
-          <p className="text-gray-600 text-base mb-7 leading-relaxed">
+          <p className={`text-base mb-7 leading-relaxed ${'subColor' in slide ? (slide as {subColor: string}).subColor : 'text-gray-600'}`}>
             {slide.sub}
           </p>
 
@@ -149,11 +152,11 @@ export default function HeroBanner() {
           </div>
 
           {/* Stats */}
-          <div className="flex gap-8 pt-5 border-t border-gray-200/80">
+          <div className={`flex gap-8 pt-5 border-t ${'borderColor' in slide ? (slide as {borderColor: string}).borderColor : 'border-gray-200/80'}`}>
             {[slide.stat1, slide.stat2, slide.stat3].map(s => (
               <div key={s.label}>
                 <div className={`text-2xl font-black ${slide.accent}`}>{s.value}</div>
-                <div className="text-xs text-gray-400 mt-0.5">{s.label}</div>
+                <div className={`text-xs mt-0.5 ${'statLabelColor' in slide ? (slide as {statLabelColor: string}).statLabelColor : 'text-gray-400'}`}>{s.label}</div>
               </div>
             ))}
           </div>
