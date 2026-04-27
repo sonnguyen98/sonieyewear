@@ -17,9 +17,6 @@ export default function PromoSection() {
             sizes="(max-width: 1280px) 100vw, 1280px"
           />
 
-          {/* Overlay gradient trắng bên trái → trong suốt bên phải */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
-
           {/* Nội dung */}
           <div className="relative p-8 md:p-12 max-w-lg">
             {/* Badge */}
