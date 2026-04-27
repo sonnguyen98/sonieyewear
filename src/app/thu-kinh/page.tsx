@@ -10,6 +10,7 @@ import { analyzeFaceShape, getRecommendedFrameShapes } from '@/lib/faceShapeAnal
 import type { FaceAnalysisResult } from '@/lib/faceShapeAnalysis'
 import type { FaceLandmarkPoint } from '@/types/ar'
 import { MERGED_PRODUCTS } from '@/data/products'
+import { openZaloDefault } from '@/lib/zalo'
 
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
@@ -208,108 +209,105 @@ function ThuKinhContent() {
       {step === 'result' && analysis && (
         <div className="max-w-2xl mx-auto px-4 py-6">
 
-          {/* Kết quả phân tích */}
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-            <div className="bg-gradient-to-r from-brand-zalo to-blue-500 px-6 py-5 text-white">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-xs font-semibold opacity-80">Kết quả phân tích của bạn</p>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${aiSource === 'gemini' ? 'bg-green-400/30 text-green-100' : 'bg-white/20 text-white/70'}`}>
-                  {aiSource === 'gemini' ? '✨ Gemini AI' : '🔬 MediaPipe'}
-                </span>
-              </div>
-              <h2 className="text-2xl font-black">{analysis.shapeName}</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="h-1.5 bg-white/30 rounded-full flex-1">
-                  <div className="h-full bg-white rounded-full" style={{ width: `${analysis.confidence * 100}%` }}/>
-                </div>
-                <span className="text-xs font-bold">{Math.round(analysis.confidence * 100)}% phù hợp</span>
-              </div>
+          {/* Kết quả phân tích — compact, không có confidence bar */}
+          <div className="bg-gradient-to-r from-brand-zalo to-blue-500 rounded-2xl px-5 py-4 text-white mb-2 flex items-center gap-4">
+            <div className="flex-1">
+              <p className="text-xs font-semibold opacity-80 mb-0.5">Khuôn mặt của bạn</p>
+              <h2 className="text-2xl font-black leading-tight">{analysis.shapeName}</h2>
+              <p className="text-xs opacity-80 mt-1 line-clamp-2">{analysis.description}</p>
             </div>
-
-            <div className="px-6 py-5">
-              <p className="text-sm text-brand-muted leading-relaxed mb-4">{analysis.description}</p>
-
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {analysis.features.map(f => (
-                  <span key={f} className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full border border-blue-100">
-                    ✓ {f}
-                  </span>
-                ))}
+            <div className="flex-shrink-0 text-right">
+              <div className="text-3xl mb-1">
+                {analysis.shape === 'oval' ? '🥚' : analysis.shape === 'round' ? '🔵' : analysis.shape === 'square' ? '⬛' : analysis.shape === 'heart' ? '🩷' : analysis.shape === 'rectangle' ? '▬' : '💎'}
               </div>
-
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-                <p className="text-xs font-bold text-amber-800 mb-0.5">💡 Lời khuyên từ SONi</p>
-                <p className="text-sm text-amber-700 leading-relaxed">{analysis.tip}</p>
-              </div>
+              <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">
+                {aiSource === 'gemini' ? '✨ Gemini AI' : '🔬 AI'}
+              </span>
             </div>
           </div>
 
-          {/* Sản phẩm đề xuất */}
-          <div className="mb-4 flex items-center justify-between">
+          {/* Đặc điểm + lời khuyên — ẩn mặc định, nhỏ gọn */}
+          <div className="flex flex-wrap gap-1.5 mb-1">
+            {analysis.features.slice(0, 3).map(f => (
+              <span key={f} className="text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-100">
+                ✓ {f}
+              </span>
+            ))}
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-5">
+            <p className="text-xs text-amber-800 leading-relaxed"><strong>💡 SONi gợi ý:</strong> {analysis.tip}</p>
+          </div>
+
+          {/* === SẢN PHẨM PHÙ HỢP — PHẦN QUAN TRỌNG NHẤT === */}
+          <div className="mb-3 flex items-center justify-between">
             <div>
-              <h3 className="font-black text-brand-black text-lg">Gọng Kính Phù Hợp Nhất</h3>
-              <p className="text-xs text-brand-muted">{recommended.length} mẫu được chọn lọc cho bạn</p>
+              <h3 className="font-black text-brand-black text-lg">🎯 Gọng Kính Dành Cho Bạn</h3>
+              <p className="text-xs text-brand-muted">AI chọn lọc {recommended.length} mẫu phù hợp nhất với khuôn mặt {analysis.shapeName}</p>
             </div>
             <button onClick={() => setStep('capture')}
-              className="text-xs text-brand-zalo font-semibold border border-brand-zalo px-3 py-1.5 rounded-full">
-              📸 Chụp lại
+              className="text-xs text-gray-500 hover:text-brand-black flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Chụp lại
             </button>
           </div>
 
-          <div className="space-y-3 mb-6">
+          {/* Grid 2 cột — ảnh to, CTA ngay dưới */}
+          <div className="grid grid-cols-2 gap-3 mb-5">
             {recommended.map((product, idx) => {
               const thumb = product.images?.[0] ?? product.colorVariants[0]?.imageUrl
               const discounted = Math.round(product.basePrice * 0.8)
               return (
-                <Link key={product.id} href={`/gong-kinh/${product.slug}`}
-                  className="group bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 p-3 hover:shadow-md hover:border-brand-zalo transition-all">
-                  {/* Rank */}
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${idx === 0 ? 'bg-yellow-400 text-yellow-900' : 'bg-gray-100 text-gray-500'}`}>
-                    {idx === 0 ? '⭐' : idx + 1}
-                  </div>
-
-                  {/* Ảnh */}
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0">
-                    <Image src={thumb} alt={product.name} fill className="object-contain" unoptimized sizes="64px"/>
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm text-brand-black line-clamp-1">{product.name}</p>
-                    <p className="text-xs text-brand-muted mt-0.5">
-                      {product.material === 'metal' ? 'Kim Loại' : product.material === 'plastic' ? 'Nhựa' : product.material === 'titanium' ? 'Titanium' : 'Kết Hợp'}
-                      {' · '}
-                      {product.shape === 'round' ? 'Mắt Tròn' : product.shape === 'square' ? 'Mắt Vuông' : product.shape === 'rectangle' ? 'Chữ Nhật' : product.shape === 'cat-eye' ? 'Mắt Mèo' : product.shape === 'oval' ? 'Oval' : 'Đa Giác'}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-black text-brand-black">{fmt(discounted)}</span>
-                      {product.originalPrice && <span className="text-xs text-gray-400 line-through">{fmt(product.basePrice)}</span>}
-                      <span className="text-xs text-green-600 font-semibold">-20%</span>
+                <div key={product.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                  {/* Badge top */}
+                  {idx === 0 && (
+                    <div className="bg-amber-400 text-amber-900 text-[10px] font-black text-center py-1">
+                      ⭐ PHÙ HỢP NHẤT
                     </div>
+                  )}
+                  {/* Ảnh lớn */}
+                  <Link href={`/gong-kinh/${product.slug}`} className="block">
+                    <div className="relative aspect-square bg-gray-50">
+                      <Image src={thumb} alt={product.name} fill className="object-contain p-3" unoptimized sizes="(max-width: 640px) 50vw, 300px"/>
+                    </div>
+                  </Link>
+                  {/* Info */}
+                  <div className="p-3 flex flex-col flex-1">
+                    <p className="font-bold text-xs text-brand-black line-clamp-2 mb-1 leading-tight">{product.name}</p>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="text-sm font-black text-brand-black">{fmt(discounted)}</span>
+                      <span className="text-[10px] text-red-500 font-bold">-20%</span>
+                    </div>
+                    {/* CTA mua hàng ngay */}
+                    <Link href={`/gong-kinh/${product.slug}`}
+                      className="mt-auto w-full bg-brand-zalo hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl text-center transition-all active:scale-95 block">
+                      Đặt Hàng Ngay
+                    </Link>
                   </div>
-
-                  <svg className="w-4 h-4 text-gray-300 group-hover:text-brand-zalo flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
-                  </svg>
-                </Link>
+                </div>
               )
             })}
           </div>
 
-          {/* CTA */}
-          <div className="space-y-3">
+          {/* CTA chính + Zalo */}
+          <div className="space-y-2.5">
             <Link href={`/gong-kinh?shape=${analysis.recommendedShapes[0]}`}
               className="w-full bg-brand-zalo hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-base shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
-              Xem Tất Cả Gọng Phù Hợp →
+              Xem Thêm Gọng Phù Hợp →
             </Link>
-            <Link href="/gong-kinh"
-              className="w-full bg-white border-2 border-gray-200 text-brand-black font-semibold py-3 rounded-2xl text-sm text-center block hover:border-gray-400 transition-colors">
-              Xem Toàn Bộ Bộ Sưu Tập
-            </Link>
+            <button onClick={openZaloDefault}
+              className="w-full bg-white border-2 border-brand-zalo text-brand-zalo font-bold py-3 rounded-2xl text-sm flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors active:scale-95">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm-3 7h6a1 1 0 110 2H9a1 1 0 110-2zm0 4h4a1 1 0 110 2H9a1 1 0 110-2z"/>
+              </svg>
+              Nhắn Zalo — Tư Vấn Miễn Phí
+            </button>
           </div>
 
-          <p className="text-center text-xs text-brand-muted mt-6">
-            Cần tư vấn thêm? <button onClick={() => {}} className="text-brand-zalo font-semibold underline">Nhắn Zalo ngay</button>
+          <p className="text-center text-[11px] text-brand-muted mt-4">
+            🛡️ Tư vấn miễn phí · Đổi trả 7 ngày · Giao toàn quốc
           </p>
         </div>
       )}
