@@ -891,13 +891,32 @@ function PoliciesSection() {
     setPolicies(next)
   }
 
+  async function move(idx: number, dir: -1 | 1) {
+    const next = [...policies]
+    const target = idx + dir
+    if (target < 0 || target >= next.length) return
+    ;[next[idx], next[target]] = [next[target], next[idx]]
+    setPolicies(next)
+    await fetch('/api/admin/content/policies', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      body: JSON.stringify(next)
+    })
+  }
+
   return (
     <div>
       <SectionHeader title="🛡️ Chính Sách Bảo Hành" subtitle={`${policies.length} mục chính sách`}
         onAdd={() => { setEditing({ id: `policy-${Date.now()}`, title: '', icon: '📋', content: '' }); setIsNew(true) }} />
       <div className="space-y-3">
-        {policies.map(p => (
+        {policies.map((p, idx) => (
           <div key={p.id} className="bg-white rounded-2xl border border-gray-200 p-4 flex gap-4">
+            {/* Nút di chuyển thứ tự */}
+            <div className="flex flex-col gap-1 justify-center flex-shrink-0">
+              <button onClick={() => move(idx, -1)} disabled={idx === 0}
+                className="w-6 h-6 flex items-center justify-center rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-30 text-xs">↑</button>
+              <button onClick={() => move(idx, 1)} disabled={idx === policies.length - 1}
+                className="w-6 h-6 flex items-center justify-center rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-30 text-xs">↓</button>
+            </div>
             <span className="text-2xl flex-shrink-0">{p.icon}</span>
             <div className="flex-1">
               <p className="font-bold text-sm text-gray-900">{p.title}</p>
