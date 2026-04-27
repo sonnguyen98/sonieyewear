@@ -6,32 +6,49 @@ export const runtime = 'nodejs'
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
-const PROMPT = `Bạn là chuyên gia tư vấn kính mắt của SONi Eyewear. Phân tích hình dạng khuôn mặt trong ảnh (chỉ phân tích hình dạng, KHÔNG nhận diện danh tính).
+const PROMPT = `Bạn là chuyên gia tư vấn kính mắt cao cấp của SONi Eyewear với 20 năm kinh nghiệm.
 
-Trả về CHỈ JSON đúng schema (không markdown, không text khác):
+Hãy phân tích THẬT SỰ và CÁ NHÂN HOÁ khuôn mặt trong ảnh theo 5 chiều sau. KHÔNG nhận diện danh tính — chỉ phân tích đặc điểm ngoại hình.
+
+1. HÌNH DẠNG tổng thể: đo tỉ lệ trán/gò má/hàm, xác định dáng mặt
+2. ĐỐI XỨNG: khuôn mặt cân xứng, hơi lệch trái, hay hơi lệch phải?
+3. TỈ LỆ ĐẶC TRƯNG: trán rộng/hẹp, gò má cao/thấp, hàm vuông/tròn, cằm nhọn/vuông/tròn
+4. MÀU DA: tông ấm (vàng/nâu/đỏ) hay tông lạnh (hồng/xanh/trắng bạch)?
+5. ĐẶC ĐIỂM RIÊNG: điều gì khiến khuôn mặt này khác biệt/nổi bật?
+
+Dựa trên TẤT CẢ 5 chiều trên, đưa ra tư vấn gọng kính CỤ THỂ và CÁ NHÂN HOÁ cho người này.
+
+Trả về CHỈ JSON (không markdown, không text khác):
 {
   "shape": "oval" | "round" | "square" | "heart" | "rectangle" | "diamond",
   "shapeName": "Trái Xoan" | "Tròn" | "Vuông" | "Trái Tim" | "Chữ Nhật" | "Kim Cương",
-  "confidence": <số 0.72-0.96>,
-  "description": "1-2 câu mô tả đặc điểm hình dạng",
-  "features": ["đặc điểm 1", "đặc điểm 2", "đặc điểm 3"],
+  "description": "2-3 câu mô tả đặc điểm riêng của khuôn mặt NÀY — cụ thể, không chung chung",
+  "features": ["đặc điểm riêng 1", "đặc điểm riêng 2", "đặc điểm riêng 3"],
+  "symmetry": "cân xứng" | "hơi lệch trái" | "hơi lệch phải",
+  "skinTone": "ấm" | "lạnh" | "trung tính",
+  "skinToneNote": "mô tả ngắn về tông da và ảnh hưởng đến màu gọng",
+  "proportionNote": "1 câu về tỉ lệ đặc trưng nhất của khuôn mặt này",
   "recommendedShapes": ["chọn 2-3 từ: round, square, rectangle, cat-eye, oval, aviator, geometric"],
-  "tip": "1-2 câu lời khuyên gọng kính phù hợp"
+  "frameColorTip": "gợi ý màu gọng phù hợp với tông da của người này (cụ thể: vàng gold, bạc, đen, nâu tortoise...)",
+  "tip": "2-3 câu lời khuyên tổng hợp CÁ NHÂN HOÁ dựa trên hình dạng + màu da + đặc điểm riêng"
 }`
 
-// Schema bắt Gemini trả JSON hợp lệ tuyệt đối
 const RESPONSE_SCHEMA = {
   type: 'OBJECT',
   properties: {
     shape: { type: 'STRING', enum: ['oval', 'round', 'square', 'heart', 'rectangle', 'diamond'] },
     shapeName: { type: 'STRING' },
-    confidence: { type: 'NUMBER' },
     description: { type: 'STRING' },
     features: { type: 'ARRAY', items: { type: 'STRING' } },
+    symmetry: { type: 'STRING' },
+    skinTone: { type: 'STRING', enum: ['ấm', 'lạnh', 'trung tính'] },
+    skinToneNote: { type: 'STRING' },
+    proportionNote: { type: 'STRING' },
     recommendedShapes: { type: 'ARRAY', items: { type: 'STRING' } },
+    frameColorTip: { type: 'STRING' },
     tip: { type: 'STRING' },
   },
-  required: ['shape', 'shapeName', 'confidence', 'description', 'features', 'recommendedShapes', 'tip'],
+  required: ['shape', 'shapeName', 'description', 'features', 'symmetry', 'skinTone', 'skinToneNote', 'proportionNote', 'recommendedShapes', 'frameColorTip', 'tip'],
 }
 
 // Tắt safety filter — phân tích hình dạng khuôn mặt KHÔNG phải nội dung nhạy cảm,
@@ -92,7 +109,7 @@ export async function POST(req: NextRequest) {
         safetySettings: SAFETY_SETTINGS,
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
           responseMimeType: 'application/json',
           responseSchema: RESPONSE_SCHEMA,
           // Tắt thinking để response nhanh hơn (tránh hết 30s timeout của Vercel)

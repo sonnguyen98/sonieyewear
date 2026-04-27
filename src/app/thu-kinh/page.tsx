@@ -226,14 +226,47 @@ function ThuKinhContent() {
             </div>
           </div>
 
-          {/* Đặc điểm + lời khuyên — ẩn mặc định, nhỏ gọn */}
-          <div className="flex flex-wrap gap-1.5 mb-1">
+          {/* Phân tích cá nhân hoá — màu da + đối xứng + tỉ lệ */}
+          {((analysis as {skinTone?: string}).skinTone || (analysis as {symmetry?: string}).symmetry) && (
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {(analysis as {skinTone?: string}).skinTone && (
+                <div className="bg-white rounded-xl p-2.5 text-center border border-gray-100">
+                  <p className="text-[10px] text-gray-400 mb-0.5">Tông da</p>
+                  <p className="text-xs font-bold text-gray-800">
+                    {(analysis as {skinTone?: string}).skinTone === 'ấm' ? '🟡 Tông Ấm' : (analysis as {skinTone?: string}).skinTone === 'lạnh' ? '🔵 Tông Lạnh' : '⚪ Trung Tính'}
+                  </p>
+                </div>
+              )}
+              {(analysis as {symmetry?: string}).symmetry && (
+                <div className="bg-white rounded-xl p-2.5 text-center border border-gray-100">
+                  <p className="text-[10px] text-gray-400 mb-0.5">Cân xứng</p>
+                  <p className="text-xs font-bold text-gray-800">
+                    {(analysis as {symmetry?: string}).symmetry === 'cân xứng' ? '✅ Cân xứng' : (analysis as {symmetry?: string}).symmetry === 'hơi lệch trái' ? '↙ Hơi lệch trái' : '↘ Hơi lệch phải'}
+                  </p>
+                </div>
+              )}
+              <div className="bg-white rounded-xl p-2.5 text-center border border-gray-100">
+                <p className="text-[10px] text-gray-400 mb-0.5">Hình dạng</p>
+                <p className="text-xs font-bold text-gray-800">{analysis.shapeName}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-1.5 mb-2">
             {analysis.features.slice(0, 3).map(f => (
               <span key={f} className="text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-100">
                 ✓ {f}
               </span>
             ))}
           </div>
+
+          {/* Màu gọng phù hợp tông da */}
+          {(analysis as {frameColorTip?: string}).frameColorTip && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5 mb-2">
+              <p className="text-xs text-purple-900 leading-relaxed"><strong>🎨 Màu gọng phù hợp:</strong> {(analysis as {frameColorTip?: string}).frameColorTip}</p>
+            </div>
+          )}
+
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-5">
             <p className="text-xs text-amber-800 leading-relaxed"><strong>💡 SONi gợi ý:</strong> {analysis.tip}</p>
           </div>
