@@ -115,7 +115,7 @@ export const VI = {
   product: {
     buyNow: 'Đặt Hàng Ngay',
     discount: 'Giảm 20%',
-    tryOnAR: 'Thử Kính Ảo',
+    tryOnAR: 'AI Tư Vấn Gọng Kính Phù Hợp',
     addToWishlist: 'Thêm vào yêu thích',
     lensSelectTitle: 'Chọn Loại Tròng',
     lensSelectSub: 'Thêm tròng kính phù hợp nhu cầu của bạn',
