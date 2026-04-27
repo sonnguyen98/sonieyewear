@@ -980,50 +980,45 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
 }) {
   const [form, setForm] = useState({ ...post })
   const [uploadingImg, setUploadingImg] = useState(false)
+  const [imgLibrary, setImgLibrary] = useState<string[]>([])
   const contentRef = useRef<HTMLTextAreaElement>(null)
-  // Lưu vị trí con trỏ trước khi mở file dialog (vì click file input làm mất focus)
   const savedCursorRef = useRef<number>(0)
   const f = (k: keyof typeof form) => (v: string | boolean) => setForm(x => ({ ...x, [k]: v }))
 
   function saveCursor() {
-    if (contentRef.current) {
-      savedCursorRef.current = contentRef.current.selectionStart ?? 0
-    }
+    if (contentRef.current) savedCursorRef.current = contentRef.current.selectionStart ?? 0
   }
 
-  async function handleContentImageUpload(files: FileList) {
+  // Upload ảnh → vào thư viện, chưa chèn vào nội dung
+  async function handleUploadToLibrary(files: FileList) {
     setUploadingImg(true)
-    const insertAt = savedCursorRef.current
-
-    // Upload tuần tự từng ảnh và gom markdown lại
-    let markdownBlock = ''
+    const urls: string[] = []
     for (const file of Array.from(files)) {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('folder', 'blog')
       const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
       const { url } = await r.json()
-      markdownBlock += `\n![Mô tả ảnh](${url})\n`
+      urls.push(url)
     }
+    setImgLibrary(prev => [...prev, ...urls])
+    setUploadingImg(false)
+  }
 
-    // Chèn tất cả ảnh đúng vị trí đã lưu
+  // Click ảnh trong thư viện → chèn tại vị trí con trỏ đã lưu
+  function insertImageAtCursor(url: string) {
+    const insertAt = savedCursorRef.current
+    const markdown = `![Mô tả ảnh](${url})\n`
     setForm(x => {
       const before = x.content.slice(0, insertAt)
       const after = x.content.slice(insertAt)
-      return { ...x, content: before + markdownBlock + after }
+      return { ...x, content: before + markdown + after }
     })
-
-    // Khôi phục focus + đặt con trỏ sau đoạn markdown vừa chèn
+    savedCursorRef.current = insertAt + markdown.length
     setTimeout(() => {
       const ta = contentRef.current
-      if (ta) {
-        ta.focus()
-        const pos = insertAt + markdownBlock.length
-        ta.selectionStart = ta.selectionEnd = pos
-      }
-    }, 50)
-
-    setUploadingImg(false)
+      if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = savedCursorRef.current }
+    }, 30)
   }
 
   return (
@@ -1052,17 +1047,14 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tóm tắt</label>
             <textarea rows={2} value={form.excerpt} onChange={e => f('excerpt')(e.target.value)} className={inp('resize-none')} /></div>
 
-          {/* Nội dung + nút chèn ảnh */}
+          {/* Nội dung + thư viện ảnh */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-gray-600">Nội dung bài viết</label>
-              <label
-                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${uploadingImg ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
-                onClick={saveCursor}
-              >
+              <label className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${uploadingImg ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
                 <input type="file" accept="image/*" multiple className="hidden"
-                  onChange={e => e.target.files && e.target.files.length > 0 && handleContentImageUpload(e.target.files)} />
-                {uploadingImg ? '⏳ Đang tải...' : '🖼️ Chèn ảnh vào bài (chọn nhiều ảnh)'}
+                  onChange={e => e.target.files && e.target.files.length > 0 && handleUploadToLibrary(e.target.files)} />
+                {uploadingImg ? '⏳ Đang tải ảnh...' : '📤 Tải ảnh lên thư viện'}
               </label>
             </div>
             <textarea
@@ -1073,8 +1065,33 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
               onKeyUp={saveCursor}
               onClick={saveCursor}
               className={inp('resize-y font-mono text-xs')}
-              placeholder={'Viết nội dung bài viết...\n\nHỗ trợ định dạng:\n# Tiêu đề lớn\n## Tiêu đề vừa\n**chữ đậm**\n- Danh sách\n![Mô tả](url-ảnh) ← ảnh minh hoạ'}
+              placeholder={'Viết nội dung bài viết...\n\nĐặt con trỏ tại vị trí muốn chèn ảnh, rồi click ảnh trong thư viện bên dưới.\n\nĐịnh dạng hỗ trợ:\n# Tiêu đề lớn  ## Tiêu đề vừa  **chữ đậm**  - Danh sách'}
             />
+            {/* Thư viện ảnh đã upload */}
+            {imgLibrary.length > 0 && (
+              <div className="mt-2 border border-gray-200 rounded-xl p-3 bg-gray-50">
+                <p className="text-[11px] font-semibold text-gray-500 mb-2">
+                  🖼️ Thư viện ảnh — đặt con trỏ vào đúng vị trí trong nội dung rồi click ảnh để chèn
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {imgLibrary.map((url, i) => (
+                    <button
+                      key={url + i}
+                      type="button"
+                      onClick={() => insertImageAtCursor(url)}
+                      title="Click để chèn ảnh vào vị trí con trỏ"
+                      className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-500 hover:shadow-md transition-all group"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-blue-500/0 group-hover:bg-blue-500/20 flex items-center justify-center transition-all">
+                        <span className="text-white text-lg opacity-0 group-hover:opacity-100 drop-shadow">+</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <p className="text-[10px] text-gray-400 mt-1">Nhấn "Chèn ảnh vào bài" để upload ảnh — ảnh sẽ tự chèn tại vị trí con trỏ</p>
           </div>
 
