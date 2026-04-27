@@ -27,11 +27,11 @@ export default function PromoSection() {
               ✨ Tư vấn AI miễn phí
             </div>
 
-            <h2 className="text-display-lg font-black mb-3 leading-tight text-gray-900">
+            <h2 className="text-display-lg font-black mb-3 leading-tight text-white drop-shadow-md">
               Tìm Gọng Kính
-              <span className="block text-brand-zalo">Phù Hợp Nhất</span>
+              <span className="block text-amber-300">Phù Hợp Nhất</span>
             </h2>
-            <p className="text-gray-600 text-sm leading-relaxed mb-6">
+            <p className="text-white/90 text-sm leading-relaxed mb-6">
               Chụp ảnh khuôn mặt — AI phân tích hình dạng và đề xuất 3–5 mẫu gọng phù hợp nhất. Nhanh chóng, chính xác, hoàn toàn miễn phí.
             </p>
 
