@@ -702,7 +702,7 @@ function LensEditModal({ item, saving, onSave, onClose }: {
 }
 
 // ── BLOG ─────────────────────────────────────────────────────────────────────
-interface BlogPost { id: string; slug: string; title: string; excerpt: string; content: string; date: string; category: string; image: string; published: boolean }
+interface BlogPost { id: string; slug: string; title: string; excerpt: string; content: string; date: string; category: string; image: string; published: boolean; scheduledAt?: string }
 
 function BlogSection() {
   const [posts, setPosts] = useState<BlogPost[]>([])
@@ -747,7 +747,7 @@ function BlogSection() {
 
   const newPost = (): BlogPost => ({
     id: `post-${Date.now()}`, slug: '', title: '', excerpt: '', content: '',
-    date: new Date().toLocaleDateString('vi-VN'), category: 'Kiến Thức', image: '', published: false
+    date: new Date().toLocaleDateString('vi-VN'), category: 'Kiến Thức', image: '', published: false, scheduledAt: ''
   })
 
   return (
@@ -760,9 +760,15 @@ function BlogSection() {
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-bold text-sm text-gray-900">{post.title || <span className="text-gray-400 italic">Chưa có tiêu đề</span>}</p>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${post.published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                  {post.published ? '✓ Đã đăng' : '● Nháp'}
-                </span>
+                {post.scheduledAt && !post.published ? (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    🕐 {new Date(post.scheduledAt).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}
+                  </span>
+                ) : (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${post.published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {post.published ? '✓ Đã đăng' : '● Nháp'}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{post.excerpt}</p>
               <div className="flex gap-3 text-xs text-gray-400 mt-1">
@@ -994,10 +1000,10 @@ function SimpleItemModal({ item, saving, title, fields, onSave, onClose }: {
 
 // ── BLOG EDIT MODAL ───────────────────────────────────────────────────────────
 function BlogEditModal({ post, saving, onSave, onClose }: {
-  post: { id: string; slug: string; title: string; excerpt: string; content: string; date: string; category: string; image: string; published: boolean }
+  post: { id: string; slug: string; title: string; excerpt: string; content: string; date: string; category: string; image: string; published: boolean; scheduledAt?: string }
   saving: boolean; onSave: (p: typeof post) => void; onClose: () => void
 }) {
-  const [form, setForm] = useState({ ...post })
+  const [form, setForm] = useState({ ...post, scheduledAt: post.scheduledAt ?? '' })
   const [uploadingImg, setUploadingImg] = useState(false)
   const [imgQueue, setImgQueue] = useState<string[]>([]) // hàng đợi ảnh đã upload
   const contentRef = useRef<HTMLTextAreaElement>(null)
@@ -1105,10 +1111,48 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
 
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">URL ảnh đại diện (thumbnail)</label>
             <input value={form.image} onChange={e => f('image')(e.target.value)} className={inp()} placeholder="https://..." /></div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.published} onChange={e => f('published')(e.target.checked)} className="w-4 h-4" />
-            <span className="text-sm font-semibold text-gray-700">Đăng công khai</span>
-          </label>
+          {/* Trạng thái đăng bài */}
+          <div className="border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-100">
+              <p className="text-xs font-bold text-gray-700">📅 Trạng thái đăng bài</p>
+            </div>
+            <div className="p-4 space-y-2">
+              {[
+                { value: 'draft', label: '● Nháp', sub: 'Chỉ admin thấy, chưa hiển thị website', color: 'border-gray-400 bg-gray-50' },
+                { value: 'publish', label: '✓ Đăng ngay', sub: 'Hiển thị lên website ngay lập tức', color: 'border-green-500 bg-green-50' },
+                { value: 'schedule', label: '🕐 Lên lịch', sub: 'Tự động đăng vào ngày giờ đã chọn', color: 'border-amber-500 bg-amber-50' },
+              ].map(opt => {
+                const current = form.published ? 'publish' : (form as { scheduledAt?: string }).scheduledAt ? 'schedule' : 'draft'
+                const isActive = current === opt.value
+                return (
+                  <button key={opt.value} type="button"
+                    onClick={() => {
+                      if (opt.value === 'publish') setForm(x => ({ ...x, published: true, scheduledAt: '' }))
+                      else if (opt.value === 'draft') setForm(x => ({ ...x, published: false, scheduledAt: '' }))
+                      else setForm(x => ({ ...x, published: false, scheduledAt: x.scheduledAt || new Date(Date.now() + 3600000).toISOString().slice(0, 16) }))
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border-2 transition-all ${isActive ? opt.color + ' border-2' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <p className="text-sm font-semibold text-gray-900">{opt.label}</p>
+                    <p className="text-xs text-gray-500">{opt.sub}</p>
+                  </button>
+                )
+              })}
+
+              {/* Datetime picker khi chọn Lên lịch */}
+              {!form.published && (form as { scheduledAt?: string }).scheduledAt && (
+                <div className="pt-1">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Ngày giờ đăng</label>
+                  <input
+                    type="datetime-local"
+                    value={(form as { scheduledAt?: string }).scheduledAt?.slice(0, 16) ?? ''}
+                    onChange={e => setForm(x => ({ ...x, scheduledAt: e.target.value }))}
+                    className={inp()}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         <div className="px-5 py-4 border-t flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold">Huỷ</button>

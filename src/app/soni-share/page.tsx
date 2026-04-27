@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
 import postsFallback from '@/data/blog-posts.json'
 
-interface BlogPost { id: string; slug: string; title: string; excerpt: string; date: string; category: string; image: string; published: boolean }
+interface BlogPost { id: string; slug: string; title: string; excerpt: string; date: string; category: string; image: string; published: boolean; scheduledAt?: string }
 
 const CATEGORIES = ['Tất Cả', 'Kiến Thức', 'Thời Trang', 'Mẹo Hay', 'Sức Khỏe', 'Tin Tức']
 
@@ -25,7 +25,13 @@ export default async function SoniSharePage({ searchParams }: PageProps) {
   const allPosts: BlogPost[] =
     (await kvGet<BlogPost[]>(KV_KEYS.blogPosts, 'blog-posts.json')) ?? postsFallback
 
-  const published = allPosts.filter(p => p.published)
+  const now = new Date()
+  const published = allPosts.filter(p => {
+    if (p.published) return true
+    // Bài lên lịch: published=false nhưng scheduledAt đã đến giờ → tự hiện
+    if (p.scheduledAt && new Date(p.scheduledAt) <= now) return true
+    return false
+  })
   const posts = activeCategory === 'Tất Cả'
     ? published
     : published.filter(p => p.category === activeCategory)

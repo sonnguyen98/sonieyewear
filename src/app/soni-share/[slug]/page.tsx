@@ -5,7 +5,7 @@ import postsFallback from '@/data/blog-posts.json'
 
 interface BlogPost {
   id: string; slug: string; title: string; excerpt: string
-  content: string; date: string; category: string; image: string; published: boolean
+  content: string; date: string; category: string; image: string; published: boolean; scheduledAt?: string
 }
 
 const categoryColors: Record<string, string> = {
@@ -54,7 +54,10 @@ export default async function BlogPostPage({ params }: PageProps) {
   const allPosts: BlogPost[] =
     (await kvGet<BlogPost[]>(KV_KEYS.blogPosts, 'blog-posts.json')) ?? postsFallback
 
-  const post = allPosts.find(p => p.slug === slug && p.published)
+  const now = new Date()
+  const post = allPosts.find(p =>
+    p.slug === slug && (p.published || (p.scheduledAt && new Date(p.scheduledAt) <= now))
+  )
   if (!post) notFound()
 
   const related = allPosts
