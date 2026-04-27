@@ -981,30 +981,48 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
   const [form, setForm] = useState({ ...post })
   const [uploadingImg, setUploadingImg] = useState(false)
   const contentRef = useRef<HTMLTextAreaElement>(null)
+  // Lưu vị trí con trỏ trước khi mở file dialog (vì click file input làm mất focus)
+  const savedCursorRef = useRef<number>(0)
   const f = (k: keyof typeof form) => (v: string | boolean) => setForm(x => ({ ...x, [k]: v }))
 
-  async function handleContentImageUpload(file: File) {
-    setUploadingImg(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('folder', 'blog')
-    const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
-    const { url } = await r.json()
-    // Chèn markdown ảnh tại vị trí con trỏ
-    const ta = contentRef.current
-    if (ta) {
-      const start = ta.selectionStart
-      const end = ta.selectionEnd
-      const before = form.content.slice(0, start)
-      const after = form.content.slice(end)
-      const markdown = `\n![Mô tả ảnh](${url})\n`
-      const newContent = before + markdown + after
-      setForm(x => ({ ...x, content: newContent }))
-      setTimeout(() => {
-        ta.focus()
-        ta.selectionStart = ta.selectionEnd = start + markdown.length
-      }, 50)
+  function saveCursor() {
+    if (contentRef.current) {
+      savedCursorRef.current = contentRef.current.selectionStart ?? 0
     }
+  }
+
+  async function handleContentImageUpload(files: FileList) {
+    setUploadingImg(true)
+    const insertAt = savedCursorRef.current
+
+    // Upload tuần tự từng ảnh và gom markdown lại
+    let markdownBlock = ''
+    for (const file of Array.from(files)) {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'blog')
+      const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+      const { url } = await r.json()
+      markdownBlock += `\n![Mô tả ảnh](${url})\n`
+    }
+
+    // Chèn tất cả ảnh đúng vị trí đã lưu
+    setForm(x => {
+      const before = x.content.slice(0, insertAt)
+      const after = x.content.slice(insertAt)
+      return { ...x, content: before + markdownBlock + after }
+    })
+
+    // Khôi phục focus + đặt con trỏ sau đoạn markdown vừa chèn
+    setTimeout(() => {
+      const ta = contentRef.current
+      if (ta) {
+        ta.focus()
+        const pos = insertAt + markdownBlock.length
+        ta.selectionStart = ta.selectionEnd = pos
+      }
+    }, 50)
+
     setUploadingImg(false)
   }
 
@@ -1038,10 +1056,13 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-gray-600">Nội dung bài viết</label>
-              <label className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${uploadingImg ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
-                <input type="file" accept="image/*" className="hidden"
-                  onChange={e => e.target.files?.[0] && handleContentImageUpload(e.target.files[0])} />
-                {uploadingImg ? '⏳ Đang tải...' : '🖼️ Chèn ảnh vào bài'}
+              <label
+                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${uploadingImg ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                onClick={saveCursor}
+              >
+                <input type="file" accept="image/*" multiple className="hidden"
+                  onChange={e => e.target.files && e.target.files.length > 0 && handleContentImageUpload(e.target.files)} />
+                {uploadingImg ? '⏳ Đang tải...' : '🖼️ Chèn ảnh vào bài (chọn nhiều ảnh)'}
               </label>
             </div>
             <textarea
@@ -1049,6 +1070,8 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
               rows={10}
               value={form.content}
               onChange={e => f('content')(e.target.value)}
+              onKeyUp={saveCursor}
+              onClick={saveCursor}
               className={inp('resize-y font-mono text-xs')}
               placeholder={'Viết nội dung bài viết...\n\nHỗ trợ định dạng:\n# Tiêu đề lớn\n## Tiêu đề vừa\n**chữ đậm**\n- Danh sách\n![Mô tả](url-ảnh) ← ảnh minh hoạ'}
             />
