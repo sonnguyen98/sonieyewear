@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import type { Product } from '@/types/product'
 
@@ -979,7 +979,34 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
   saving: boolean; onSave: (p: typeof post) => void; onClose: () => void
 }) {
   const [form, setForm] = useState({ ...post })
+  const [uploadingImg, setUploadingImg] = useState(false)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
   const f = (k: keyof typeof form) => (v: string | boolean) => setForm(x => ({ ...x, [k]: v }))
+
+  async function handleContentImageUpload(file: File) {
+    setUploadingImg(true)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('folder', 'blog')
+    const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const { url } = await r.json()
+    // Chèn markdown ảnh tại vị trí con trỏ
+    const ta = contentRef.current
+    if (ta) {
+      const start = ta.selectionStart
+      const end = ta.selectionEnd
+      const before = form.content.slice(0, start)
+      const after = form.content.slice(end)
+      const markdown = `\n![Mô tả ảnh](${url})\n`
+      const newContent = before + markdown + after
+      setForm(x => ({ ...x, content: newContent }))
+      setTimeout(() => {
+        ta.focus()
+        ta.selectionStart = ta.selectionEnd = start + markdown.length
+      }, 50)
+    }
+    setUploadingImg(false)
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1006,9 +1033,29 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
             </select></div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tóm tắt</label>
             <textarea rows={2} value={form.excerpt} onChange={e => f('excerpt')(e.target.value)} className={inp('resize-none')} /></div>
-          <div><label className="block text-xs font-semibold text-gray-600 mb-1">Nội dung bài viết</label>
-            <textarea rows={8} value={form.content} onChange={e => f('content')(e.target.value)} className={inp('resize-none')} placeholder="Viết nội dung bài viết đầy đủ tại đây..." /></div>
-          <div><label className="block text-xs font-semibold text-gray-600 mb-1">URL ảnh đại diện</label>
+
+          {/* Nội dung + nút chèn ảnh */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-gray-600">Nội dung bài viết</label>
+              <label className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${uploadingImg ? 'bg-blue-100 text-blue-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={e => e.target.files?.[0] && handleContentImageUpload(e.target.files[0])} />
+                {uploadingImg ? '⏳ Đang tải...' : '🖼️ Chèn ảnh vào bài'}
+              </label>
+            </div>
+            <textarea
+              ref={contentRef}
+              rows={10}
+              value={form.content}
+              onChange={e => f('content')(e.target.value)}
+              className={inp('resize-y font-mono text-xs')}
+              placeholder={'Viết nội dung bài viết...\n\nHỗ trợ định dạng:\n# Tiêu đề lớn\n## Tiêu đề vừa\n**chữ đậm**\n- Danh sách\n![Mô tả](url-ảnh) ← ảnh minh hoạ'}
+            />
+            <p className="text-[10px] text-gray-400 mt-1">Nhấn "Chèn ảnh vào bài" để upload ảnh — ảnh sẽ tự chèn tại vị trí con trỏ</p>
+          </div>
+
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">URL ảnh đại diện (thumbnail)</label>
             <input value={form.image} onChange={e => f('image')(e.target.value)} className={inp()} placeholder="https://..." /></div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.published} onChange={e => f('published')(e.target.checked)} className="w-4 h-4" />
