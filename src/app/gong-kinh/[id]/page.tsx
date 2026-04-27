@@ -94,7 +94,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         <span className="text-brand-black font-medium line-clamp-1">{product.name}</span>
       </nav>
 
-      <div className="grid md:grid-cols-2 gap-4 md:gap-8 lg:gap-12">
+      <div className="grid md:grid-cols-[55%_45%] gap-4 md:gap-8 lg:gap-10">
         {/* Left: Image Gallery */}
         <div>
           <ImageGallery product={product} selectedColor={selectedColor} />
