@@ -1000,14 +1000,13 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
     setUploadingImg(false)
   }
 
-  // Khi Lưu: thay thế ![Mô tả] (không có URL) bằng ![Mô tả](url) theo thứ tự hàng đợi
+  // Khi Lưu: thay ![1] → ảnh số 1, ![2] → ảnh số 2, v.v.
   function handleSaveWithImages() {
-    let queueIdx = 0
     const processedContent = form.content.replace(
-      /!\[([^\]]*)\](?!\()/g,
-      (_, alt) => {
-        if (queueIdx < imgQueue.length) return `![${alt}](${imgQueue[queueIdx++]})`
-        return `![${alt}]`
+      /!\[(\d+)\](?!\()/g,
+      (_, num) => {
+        const url = imgQueue[Number(num) - 1]
+        return url ? `![Ảnh ${num}](${url})` : `![${num}]`
       }
     )
     onSave({ ...form, content: processedContent })
@@ -1054,7 +1053,7 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
             {imgQueue.length > 0 && (
               <div className="mb-2 border border-blue-200 rounded-xl p-3 bg-blue-50">
                 <p className="text-[11px] font-semibold text-blue-700 mb-2">
-                  💡 Trong nội dung, gõ <code className="bg-blue-100 px-1 rounded">![Mô tả]</code> (không có URL) tại vị trí muốn chèn — ảnh sẽ được ghép theo thứ tự khi Lưu
+                  💡 Trong nội dung, gõ <code className="bg-blue-100 px-1 rounded">![1]</code> <code className="bg-blue-100 px-1 rounded">![2]</code>... tại vị trí muốn chèn ảnh — khi Lưu sẽ tự ghép đúng ảnh theo số
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {imgQueue.map((url, i) => (
@@ -1080,7 +1079,7 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
               value={form.content}
               onChange={e => f('content')(e.target.value)}
               className={inp('resize-y font-mono text-xs')}
-              placeholder={'Viết nội dung...\n\nVí dụ:\n# Mẹo 1: Làm sạch kính\n![Ảnh minh hoạ mẹo 1]\nNội dung mẹo 1...\n\n# Mẹo 2: Điều chỉnh gọng\n![Ảnh minh hoạ mẹo 2]\nNội dung mẹo 2...\n\n→ Khi Lưu, ảnh 1 chèn vào chỗ ![Ảnh minh hoạ mẹo 1], ảnh 2 chèn vào chỗ ![Ảnh minh hoạ mẹo 2]'}
+              placeholder={'Viết nội dung...\n\nVí dụ:\n# Mẹo 1: Làm sạch kính\n![1]\nNội dung mẹo 1...\n\n# Mẹo 2: Điều chỉnh gọng\n![2]\nNội dung mẹo 2...\n\n→ Khi Lưu, ![1] → ảnh số 1, ![2] → ảnh số 2'}
             />
             <p className="text-[10px] text-gray-400 mt-1">Nhấn "Chèn ảnh vào bài" để upload ảnh — ảnh sẽ tự chèn tại vị trí con trỏ</p>
           </div>
