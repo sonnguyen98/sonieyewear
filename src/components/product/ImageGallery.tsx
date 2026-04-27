@@ -21,7 +21,6 @@ export default function ImageGallery({ product, selectedColor }: ImageGalleryPro
   const [images, setImages] = useState<string[]>(() => getColorImages(selectedColor))
   const [activeIdx, setActiveIdx] = useState(0)
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null)
-  const [panelRect, setPanelRect] = useState<DOMRect | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -36,53 +35,43 @@ export default function ImageGallery({ product, selectedColor }: ImageGalleryPro
     const el = containerRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
-    setPanelRect(rect)
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
     setMouse({ x, y })
   }
-
-  // Kích thước lens trên ảnh (px)
-  const LENS = 140
 
   return (
     <div className="flex flex-col gap-3">
       {/* Ảnh chính */}
       <div
         ref={containerRef}
-        className="relative aspect-square w-full rounded-2xl overflow-hidden bg-brand-light border border-brand-border cursor-crosshair select-none"
+        className="relative aspect-square w-full rounded-2xl overflow-hidden bg-brand-light border border-brand-border cursor-zoom-in select-none"
         onMouseMove={handleMouseMove}
-        onMouseLeave={() => { setMouse(null); setPanelRect(null) }}
+        onMouseLeave={() => setMouse(null)}
       >
         <Image
           src={currentSrc}
           alt={`${product.name} - ${selectedColor.name}`}
           fill
-          className="object-contain p-4"
+          className="object-contain p-4 transition-transform duration-100"
+          style={mouse ? {
+            transform: `scale(${ZOOM_FACTOR})`,
+            transformOrigin: `${mouse.x * 100}% ${mouse.y * 100}%`,
+          } : {
+            transform: 'scale(1)',
+            transformOrigin: 'center center',
+          }}
           sizes="(max-width: 768px) 100vw, 55vw"
           unoptimized
           priority
         />
 
-        {/* Lens hình vuông theo chuột */}
-        {mouse && containerRef.current && (
-          <div
-            className="absolute pointer-events-none border-2 border-brand-black/60 bg-white/20"
-            style={{
-              width: LENS,
-              height: LENS,
-              left: mouse.x * containerRef.current.clientWidth - LENS / 2,
-              top: mouse.y * containerRef.current.clientHeight - LENS / 2,
-            }}
-          />
-        )}
-
-        {/* Arrows */}
-        {unique.length > 1 && (
+        {/* Arrows — ẩn khi đang zoom */}
+        {unique.length > 1 && !mouse && (
           <>
             <button
               onClick={() => setActiveIdx(i => (i - 1 + unique.length) % unique.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-all"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
@@ -90,7 +79,7 @@ export default function ImageGallery({ product, selectedColor }: ImageGalleryPro
             </button>
             <button
               onClick={() => setActiveIdx(i => (i + 1) % unique.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-all"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
@@ -118,23 +107,6 @@ export default function ImageGallery({ product, selectedColor }: ImageGalleryPro
         </div>
       )}
 
-      {/* Zoom panel — hiện bên phải ảnh khi hover */}
-      {mouse && panelRect && (
-        <div
-          className="fixed z-50 rounded-2xl overflow-hidden shadow-2xl border-2 border-brand-border pointer-events-none"
-          style={{
-            width: panelRect.width * 0.9,
-            height: panelRect.height * 0.9,
-            top: panelRect.top + (panelRect.height - panelRect.height * 0.9) / 2,
-            left: panelRect.right + 12,
-            backgroundImage: `url(${currentSrc})`,
-            backgroundSize: `${ZOOM_FACTOR * 100}%`,
-            backgroundPosition: `${mouse.x * 100}% ${mouse.y * 100}%`,
-            backgroundRepeat: 'no-repeat',
-            backgroundColor: 'white',
-          }}
-        />
-      )}
     </div>
   )
 }
