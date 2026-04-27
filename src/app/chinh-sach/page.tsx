@@ -17,7 +17,18 @@ export default async function ChinhSachPage() {
             <h2 className="text-xl font-bold mb-3 flex items-center gap-2">
               <span>{p.icon}</span> {p.title}
             </h2>
-            <p className="text-brand-muted leading-relaxed">{p.content}</p>
+            <div className="text-brand-muted leading-relaxed space-y-2">
+              {p.content.split('\n\n').map((para, i) => (
+                <p key={i}>
+                  {para.split('\n').map((line, j) => (
+                    <span key={j}>
+                      {line}
+                      {j < para.split('\n').length - 1 && <br />}
+                    </span>
+                  ))}
+                </p>
+              ))}
+            </div>
           </div>
         ))}
       </div>
