@@ -16,42 +16,33 @@ const DEFAULT_FILTERS: FilterState = {
   sortBy: 'ban-chay',
 }
 
-const CACHE_KEY = 'soni_products_cache'
-
-function getInitialProducts(): Product[] {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (cached) {
-      const { data, ts } = JSON.parse(cached)
-      // Dùng cache nếu còn trong 10 phút
-      if (Array.isArray(data) && data.length > 0 && Date.now() - ts < 600_000) return data
-    }
-  } catch {}
-  return MERGED_PRODUCTS
-}
-
 export function useProductFilters(initialProducts: Product[] = MERGED_PRODUCTS) {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
-  // Dùng initialProducts (từ server) làm initial state — không có flash data cũ
   const [products, setProducts] = useState<Product[]>(initialProducts)
 
   const loadProducts = () => {
     fetch('/api/products')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProducts(data)
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })) } catch {}
-        }
+        if (Array.isArray(data) && data.length > 0) setProducts(data)
       })
       .catch(() => {})
   }
 
   useEffect(() => {
-    // Fetch mới trong nền để cập nhật nếu có thay đổi kể từ khi server render
-    loadProducts()
+    // Focus: người dùng quay lại tab
     window.addEventListener('focus', loadProducts)
-    return () => window.removeEventListener('focus', loadProducts)
+
+    // Pageshow với persisted=true: mobile bfcache khôi phục trang → fetch lại
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) loadProducts()
+    }
+    window.addEventListener('pageshow', onPageShow)
+
+    return () => {
+      window.removeEventListener('focus', loadProducts)
+      window.removeEventListener('pageshow', onPageShow)
+    }
   }, [])
 
   const filteredProducts = useMemo(() => {
