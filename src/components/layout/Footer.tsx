@@ -55,6 +55,7 @@ export default function Footer() {
               </li>
               <li><Link href="/he-thong" className="hover:text-gray-900 transition-colors">Hệ Thống Cửa Hàng</Link></li>
               <li><Link href="/soni-share" className="hover:text-gray-900 transition-colors">SONi Share</Link></li>
+              <li><Link href="/affiliate" className="hover:text-amber-600 text-amber-500 font-semibold transition-colors">💰 Kiếm Tiền Affiliate</Link></li>
             </ul>
           </div>
         </div>
