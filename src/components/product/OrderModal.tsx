@@ -11,7 +11,7 @@ interface OrderModalProps {
   onClose: () => void
 }
 
-type Step = 'main' | 'don-trong' | 'da-trong' | 'checkout' | 'success'
+type Step = 'main' | 'don-trong' | 'don-trong-detail' | 'da-trong' | 'checkout' | 'success'
 
 interface LensOption {
   id: string
@@ -21,6 +21,25 @@ interface LensOption {
   icon: string
   badge?: string
   features: string[]
+}
+
+interface LensVariant {
+  id: string
+  name: string
+  price: number
+  badge?: string
+  features: string[]
+  suitableFor: string
+  recommended?: boolean
+}
+
+interface LensCategoryGroup {
+  id: string
+  name: string
+  icon: string
+  desc: string
+  badge?: string
+  variants: LensVariant[]
 }
 
 interface EyeRx {
@@ -43,48 +62,58 @@ interface CheckoutForm {
   rxImageName: string
 }
 
-const DON_TRONG: LensOption[] = [
+const DON_TRONG_CATEGORIES: LensCategoryGroup[] = [
   {
-    id: 'trang-cb',
-    name: 'Tròng Trắng Cơ Bản',
-    desc: 'Tròng nhựa CR-39 trong suốt, chống UV400',
-    price: 300000,
+    id: 'trang',
+    name: 'Tròng Trắng',
     icon: '⬜',
-    features: ['Chống UV400', 'Phủ chống trầy', 'Chỉ số 1.56'],
+    desc: 'Tròng trong suốt, chống UV400 — lựa chọn phổ thông',
+    variants: [
+      { id: 'trang-156', name: 'CR-39 1.56 Tiêu Chuẩn', price: 300000, badge: 'Tiết kiệm', features: ['Chống UV400', 'Phủ chống trầy', 'Chỉ số 1.56'], suitableFor: '0 – 4 độ' },
+      { id: 'trang-160', name: 'Hi-Index 1.60', price: 450000, features: ['Chống UV400', 'Mỏng hơn 15%', 'Phủ chống trầy'], suitableFor: '4 – 8 độ', recommended: true },
+    ],
   },
   {
-    id: 'blue-light',
+    id: 'blue',
     name: 'Chống Ánh Sáng Xanh',
-    desc: 'Bảo vệ mắt khi dùng màn hình nhiều giờ',
-    price: 550000,
     icon: '🔵',
+    desc: 'Lọc HEV Blue Light, giảm mỏi mắt khi dùng màn hình',
     badge: 'Phổ biến',
-    features: ['Lọc HEV Blue Light', 'Chống UV400', 'Giảm mỏi mắt'],
+    variants: [
+      { id: 'blue-156', name: 'CR-39 1.56', price: 550000, badge: 'Phổ biến', features: ['Lọc HEV Blue Light', 'Chống UV400', 'Giảm mỏi mắt'], suitableFor: '0 – 4 độ', recommended: true },
+      { id: 'blue-160', name: 'Hi-Index 1.60', price: 750000, features: ['Lọc HEV Blue Light', 'Mỏng hơn 15%', 'Chống UV400'], suitableFor: '4 – 8 độ' },
+      { id: 'blue-167', name: '1.67 Siêu Mỏng', price: 950000, badge: 'Mỏng nhất', features: ['Lọc HEV Blue Light', 'Siêu mỏng nhẹ', 'Chống UV400', 'Phủ AR'], suitableFor: 'Trên 6 độ' },
+    ],
   },
   {
     id: 'doi-mau',
-    name: 'Tròng Đổi Màu',
-    desc: 'Trong nhà trong suốt, ra nắng tự tối trong 30 giây',
-    price: 850000,
+    name: 'Tự Đổi Màu',
     icon: '🌗',
+    desc: 'Trong nhà trong suốt, tự tối khi ra nắng trong 30 giây',
     badge: 'Độc đáo',
-    features: ['Đổi màu tự động', 'Chống UV400', 'Bảo vệ 100% tia UV'],
-  },
-  {
-    id: 'mong',
-    name: 'Tròng Mỏng Hi-Index',
-    desc: 'Siêu mỏng nhẹ, phù hợp độ cận cao',
-    price: 750000,
-    icon: '💎',
-    features: ['Chỉ số 1.67–1.74', 'Siêu mỏng nhẹ', 'Chống UV400'],
+    variants: [
+      { id: 'doi-mau-156', name: 'CR-39 1.56', price: 850000, features: ['Đổi màu tự động', 'Chống UV400', 'Bảo vệ 100% tia UV'], suitableFor: '0 – 4 độ', recommended: true },
+      { id: 'doi-mau-160', name: 'Hi-Index 1.60', price: 1100000, features: ['Đổi màu tự động', 'Mỏng hơn', 'Chống UV400'], suitableFor: '4 – 8 độ' },
+    ],
   },
   {
     id: 'phan-cuc',
     name: 'Tròng Phân Cực',
-    desc: 'Chống chói tối ưu, lý tưởng khi lái xe',
-    price: 650000,
     icon: '🕶️',
-    features: ['Chống chói 100%', 'Tăng độ tương phản', 'Chống UV400'],
+    desc: 'Chống chói tối ưu khi lái xe và hoạt động ngoài trời',
+    variants: [
+      { id: 'phan-cuc-std', name: 'Polarized Tiêu Chuẩn', price: 650000, features: ['Chống chói 100%', 'Tăng độ tương phản', 'Chống UV400'], suitableFor: 'Kính râm / lái xe', recommended: true },
+    ],
+  },
+  {
+    id: 'mong',
+    name: 'Tròng Mỏng Hi-Index',
+    icon: '💎',
+    desc: 'Siêu mỏng nhẹ, thẩm mỹ cao — dành cho độ cận lớn',
+    variants: [
+      { id: 'mong-167', name: '1.67 Mỏng', price: 750000, features: ['Chỉ số 1.67', 'Mỏng hơn 30%', 'Chống UV400'], suitableFor: '4 – 8 độ', recommended: true },
+      { id: 'mong-174', name: '1.74 Siêu Mỏng', price: 1100000, badge: 'Mỏng nhất', features: ['Chỉ số 1.74', 'Mỏng nhất hiện nay', 'Chống UV400', 'Phủ AR'], suitableFor: 'Trên 8 độ' },
+    ],
   },
 ]
 
@@ -368,6 +397,7 @@ function LensIcon({ icon }: { icon: string }) {
 export default function OrderModal({ product, onClose }: OrderModalProps) {
   const [step, setStep] = useState<Step>('main')
   const [selectedLens, setSelectedLens] = useState<LensOption | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<LensCategoryGroup | null>(null)
   const emptyEye: EyeRx = { sph: '', cyl: '', axis: '' }
   const [form, setForm] = useState<CheckoutForm>({
     name: '', phone: '', address: '', note: '', payment: '',
@@ -391,6 +421,28 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
     setSelectedLens(lens)
     setForm(f => ({ ...f, payment: '' }))
     setStep('checkout')
+  }
+
+  function handleSelectCategory(cat: LensCategoryGroup) {
+    setSelectedCategory(cat)
+    if (cat.variants.length === 1) {
+      const v = cat.variants[0]
+      goToCheckout({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, icon: cat.icon, badge: v.badge, features: v.features })
+    } else {
+      setStep('don-trong-detail')
+    }
+  }
+
+  function handleSelectVariant(variant: LensVariant) {
+    goToCheckout({
+      id: variant.id,
+      name: selectedCategory!.variants.length === 1 ? selectedCategory!.name : `${selectedCategory!.name} — ${variant.name}`,
+      desc: variant.suitableFor,
+      price: variant.price,
+      icon: selectedCategory!.icon,
+      badge: variant.badge,
+      features: variant.features,
+    })
   }
 
   function validate() {
@@ -463,13 +515,12 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
     setStep('success')
   }
 
-  const currentLens = step === 'don-trong' ? DON_TRONG : DA_TRONG
-  const stepTitle = step === 'don-trong' ? 'Đơn Tròng' : 'Hai Tròng / Đa Tròng'
-
   const headerTitle =
     step === 'main' ? 'Chọn Loại Tròng' :
-    step === 'checkout' ? 'Thông Tin Đặt Hàng' :
-    step === 'success' ? 'Đặt Hàng Thành Công' : stepTitle
+    step === 'don-trong' ? 'Đơn Tròng' :
+    step === 'don-trong-detail' ? (selectedCategory?.name ?? 'Chọn Tròng') :
+    step === 'da-trong' ? 'Hai Tròng / Đa Tròng' :
+    step === 'checkout' ? 'Thông Tin Đặt Hàng' : 'Đặt Hàng Thành Công'
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -479,9 +530,20 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-brand-border px-5 py-4 flex items-center gap-3 z-10 rounded-t-3xl">
-          {(step === 'don-trong' || step === 'da-trong' || step === 'checkout') && (
+          {(step === 'don-trong' || step === 'don-trong-detail' || step === 'da-trong' || step === 'checkout') && (
             <button
-              onClick={() => step === 'checkout' ? setStep(selectedLens ? (selectedLens.id.startsWith('da') ? 'da-trong' : 'don-trong') : 'main') : setStep('main')}
+              onClick={() => {
+                if (step === 'checkout') {
+                  if (!selectedLens) { setStep('main'); return }
+                  if (selectedLens.id.startsWith('da')) { setStep('da-trong'); return }
+                  if (selectedCategory && selectedCategory.variants.length > 1) { setStep('don-trong-detail'); return }
+                  setStep('don-trong')
+                } else if (step === 'don-trong-detail') {
+                  setStep('don-trong')
+                } else {
+                  setStep('main')
+                }
+              }}
               className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -620,14 +682,109 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
             </>
           )}
 
-          {/* ── BƯỚC 2: Chọn tròng cụ thể ── */}
-          {(step === 'don-trong' || step === 'da-trong') && (
+          {/* ── BƯỚC 2a: Chọn loại tròng (category) ── */}
+          {step === 'don-trong' && (
+            <div className="space-y-2.5">
+              <div className="pb-1">
+                <p className="font-bold text-base text-brand-black">Chọn Loại Tròng</p>
+                <p className="text-xs text-brand-muted mt-0.5">Chọn loại phù hợp, rồi chọn mức giá theo độ mắt</p>
+              </div>
+              {DON_TRONG_CATEGORIES.map(cat => {
+                const minPrice = Math.min(...cat.variants.map(v => v.price))
+                return (
+                  <button key={cat.id} onClick={() => handleSelectCategory(cat)}
+                    className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group text-left">
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0 border border-gray-200">
+                      {cat.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-sm text-brand-black">{cat.name}</span>
+                        {cat.badge && (
+                          <span className="text-[10px] bg-brand-gold text-white font-bold px-1.5 py-0.5 rounded-full">{cat.badge}</span>
+                        )}
+                        {cat.variants.length > 1 && (
+                          <span className="text-[10px] text-brand-muted bg-gray-100 px-1.5 py-0.5 rounded-full">{cat.variants.length} loại</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-brand-muted mt-0.5 leading-snug line-clamp-1">{cat.desc}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-0.5">
+                      <span className="text-[10px] text-brand-muted">từ</span>
+                      <span className="font-black text-sm text-brand-black">+{formatVND(minPrice)}</span>
+                      <svg className="w-4 h-4 text-brand-muted group-hover:text-brand-black group-hover:translate-x-0.5 transition-all mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {/* ── BƯỚC 2b: Chọn variant trong loại đã chọn ── */}
+          {step === 'don-trong-detail' && selectedCategory && (
+            <div className="space-y-3">
+              {/* Header loại tròng */}
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-brand-border">
+                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-xl border border-gray-200 flex-shrink-0">
+                  {selectedCategory.icon}
+                </div>
+                <div>
+                  <p className="font-bold text-sm text-brand-black">{selectedCategory.name}</p>
+                  <p className="text-xs text-brand-muted leading-snug">{selectedCategory.desc}</p>
+                </div>
+              </div>
+
+              <p className="text-xs font-semibold text-brand-muted px-1">Chọn mức phù hợp với độ mắt của bạn:</p>
+
+              {selectedCategory.variants.map(variant => (
+                <button key={variant.id} onClick={() => handleSelectVariant(variant)}
+                  className={`w-full text-left p-4 rounded-2xl border-2 bg-white transition-all active:scale-95 group ${variant.recommended ? 'border-brand-black hover:border-black' : 'border-brand-border hover:border-gray-400'}`}>
+                  {variant.recommended && (
+                    <div className="flex justify-end mb-1.5">
+                      <span className="text-[10px] bg-brand-black text-white font-bold px-2 py-0.5 rounded-full">✓ Phổ biến nhất</span>
+                    </div>
+                  )}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-sm text-brand-black">{variant.name}</span>
+                        {variant.badge && !variant.recommended && (
+                          <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded-full">{variant.badge}</span>
+                        )}
+                      </div>
+                      {/* Phạm vi độ mắt */}
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                          👁 {variant.suitableFor}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {variant.features.map(f => (
+                          <span key={f} className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full border border-green-100">✓ {f}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-0.5">
+                      <span className="font-black text-base text-brand-black">+{formatVND(variant.price)}</span>
+                      <span className="text-xs text-red-500 font-semibold">= {formatVND(Math.round((basePrice + variant.price) * 0.8))}</span>
+                      <span className="text-[10px] text-gray-400 line-through">{formatVND(basePrice + variant.price)}</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ── BƯỚC 2c: Đa tròng ── */}
+          {step === 'da-trong' && (
             <div className="space-y-3">
               <div className="pb-1">
-                <p className="font-bold text-base text-brand-black">{stepTitle}</p>
+                <p className="font-bold text-base text-brand-black">Hai Tròng / Đa Tròng</p>
                 <p className="text-xs text-brand-muted mt-0.5">Chọn loại tròng bạn muốn lắp</p>
               </div>
-              {currentLens.map(lens => (
+              {DA_TRONG.map(lens => (
                 <button key={lens.id} onClick={() => goToCheckout(lens)}
                   className="w-full flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-border hover:border-brand-zalo bg-white transition-all active:scale-95 group text-left">
                   <LensIcon icon={lens.icon} />
