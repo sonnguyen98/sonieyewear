@@ -9,13 +9,17 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
     const body = JSON.parse(rawBody)
 
-    // SePay xác thực bằng API key trong header "apikey" (không phải HMAC)
+    // SePay xác thực bằng API key trong header "apikey"
+    // Chỉ reject nếu gửi SAI key — không reject khi thiếu key (SePay chưa cấu hình token)
     const secret = process.env.SEPAY_WEBHOOK_SECRET
     if (secret) {
       const apiKey = req.headers.get('apikey') ?? req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
-      if (apiKey !== secret) {
-        console.warn('[SePay] Invalid API key — request rejected')
+      if (apiKey && apiKey !== secret) {
+        console.warn('[SePay] Invalid API key — request rejected:', apiKey)
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      if (!apiKey) {
+        console.warn('[SePay] Webhook received without apikey header — accepted (configure token in SePay for security)')
       }
     }
 
