@@ -557,7 +557,33 @@ function StockSection() {
 }
 
 // ── LENS ─────────────────────────────────────────────────────────────────────
-interface LensItem { id: string; name: string; desc: string; price: number; badge: string; image: string; features: string[] }
+interface LensItem {
+  id: string; name: string; desc: string; price: number; badge: string; image: string; features: string[]
+  category: 'don-trong' | 'da-trong'
+  categoryGroup: string
+  suitableFor: string
+  recommended: boolean
+}
+
+const GROUP_LABELS: Record<string, string> = {
+  trang: 'Tròng Trắng', blue: 'Chống Ánh Sáng Xanh', 'doi-mau': 'Tự Đổi Màu',
+  'phan-cuc': 'Tròng Phân Cực', mong: 'Tròng Mỏng Hi-Index',
+  'da-cb': 'Đa Tròng Cơ Bản', 'da-blue': 'Đa Tròng Chống Ánh Xanh', 'da-mong': 'Đa Tròng Mỏng Cao Cấp',
+}
+
+const DON_TRONG_GROUPS = [
+  { value: 'trang', label: 'Tròng Trắng' },
+  { value: 'blue', label: 'Chống Ánh Sáng Xanh' },
+  { value: 'doi-mau', label: 'Tự Đổi Màu' },
+  { value: 'phan-cuc', label: 'Tròng Phân Cực' },
+  { value: 'mong', label: 'Tròng Mỏng Hi-Index' },
+]
+
+const DA_TRONG_GROUPS = [
+  { value: 'da-cb', label: 'Đa Tròng Cơ Bản' },
+  { value: 'da-blue', label: 'Đa Tròng Chống Ánh Xanh' },
+  { value: 'da-mong', label: 'Đa Tròng Mỏng Cao Cấp' },
+]
 
 function LensSection() {
   const [items, setItems] = useState<LensItem[]>([])
@@ -593,32 +619,58 @@ function LensSection() {
   return (
     <div>
       <SectionHeader title="🔵 Tròng Kính" subtitle={`${items.length} loại tròng`}
-        onAdd={() => { setEditing({ id: `trong-${Date.now()}`, name: '', desc: '', price: 0, badge: '', image: '', features: [] }); setIsNew(true) }} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {items.map(item => (
-          <div key={item.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex">
-            {/* Ảnh */}
-            <div className="w-24 h-24 flex-shrink-0 bg-gray-100 relative self-stretch">
-              {item.image
-                ? <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized/>
-                : <div className="w-full h-full flex items-center justify-center text-2xl">🔵</div>
-              }
-            </div>
-            <div className="flex-1 p-3 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-bold text-sm text-gray-900 line-clamp-1">{item.name}</p>
-                {item.badge && <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">{item.badge}</span>}
+        onAdd={() => { setEditing({ id: `trong-${Date.now()}`, name: '', desc: '', price: 0, badge: '', image: '', features: [], category: 'don-trong', categoryGroup: 'trang', suitableFor: '', recommended: false }); setIsNew(true) }} />
+      {/* Nhóm theo loại */}
+      {(['don-trong', 'da-trong'] as const).map(cat => {
+        const catItems = items.filter(i => (i.category ?? 'don-trong') === cat)
+        if (catItems.length === 0) return null
+        // Nhóm theo categoryGroup
+        const groups = catItems.reduce<Record<string, LensItem[]>>((acc, i) => {
+          const g = i.categoryGroup ?? 'khac'
+          acc[g] = [...(acc[g] ?? []), i]
+          return acc
+        }, {})
+        return (
+          <div key={cat} className="mb-8">
+            <h2 className="text-base font-black text-gray-700 mb-3 flex items-center gap-2">
+              {cat === 'don-trong' ? '👁 Đơn Tròng' : '👓 Đa Tròng / Hai Tròng'}
+              <span className="text-xs font-normal text-gray-400">({catItems.length} loại)</span>
+            </h2>
+            {Object.entries(groups).map(([groupId, groupItems]) => (
+              <div key={groupId} className="mb-4">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 ml-1">
+                  {GROUP_LABELS[groupId] ?? groupId}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {groupItems.map(item => (
+                    <div key={item.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex">
+                      <div className="w-20 h-20 flex-shrink-0 bg-gray-100 relative self-stretch">
+                        {item.image
+                          ? <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized/>
+                          : <div className="w-full h-full flex items-center justify-center text-2xl">🔵</div>
+                        }
+                      </div>
+                      <div className="flex-1 p-3 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-bold text-sm text-gray-900 line-clamp-1">{item.name}</p>
+                          {item.recommended && <span className="text-[9px] bg-gray-900 text-white px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">★ Phổ biến</span>}
+                          {item.badge && <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">{item.badge}</span>}
+                        </div>
+                        {item.suitableFor && <p className="text-[10px] text-blue-600 font-semibold mt-0.5">👁 {item.suitableFor}</p>}
+                        <p className="text-sm font-black text-gray-900 mt-0.5">{fmt(item.price)}</p>
+                      </div>
+                      <div className="flex flex-col gap-1.5 p-2.5 flex-shrink-0 justify-center">
+                        <button onClick={() => { setEditing(item); setIsNew(false) }} className="text-xs bg-gray-900 text-white px-2.5 py-1.5 rounded-lg">Sửa</button>
+                        <button onClick={() => del(item.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg">Xoá</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.desc}</p>
-              <p className="text-sm font-black text-gray-900 mt-1">{fmt(item.price)}</p>
-            </div>
-            <div className="flex flex-col gap-1.5 p-3 flex-shrink-0 justify-center">
-              <button onClick={() => { setEditing(item); setIsNew(false) }} className="text-xs bg-gray-900 text-white px-3 py-1.5 rounded-lg">Sửa</button>
-              <button onClick={() => del(item.id)} className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-lg">Xoá</button>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )
+      })}
       {editing && <LensEditModal item={editing} saving={saving} onSave={save} onClose={() => setEditing(null)} />}
     </div>
   )
@@ -627,7 +679,14 @@ function LensSection() {
 function LensEditModal({ item, saving, onSave, onClose }: {
   item: LensItem; saving: boolean; onSave: (item: LensItem) => void; onClose: () => void
 }) {
-  const [form, setForm] = useState({ ...item, features: item.features.join('\n') })
+  const [form, setForm] = useState({
+    ...item,
+    features: item.features.join('\n'),
+    category: item.category ?? 'don-trong',
+    categoryGroup: item.categoryGroup ?? 'trang',
+    suitableFor: item.suitableFor ?? '',
+    recommended: item.recommended ?? false,
+  })
   const [uploading, setUploading] = useState(false)
 
   async function handleUpload(file: File) {
@@ -678,15 +737,66 @@ function LensEditModal({ item, saving, onSave, onClose }: {
             </div>
           </div>
 
+          {/* ── Phân loại ── */}
+          <div className="border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-100">
+              <p className="text-xs font-bold text-gray-700">🗂 Phân Loại Tròng</p>
+            </div>
+            <div className="p-4 space-y-3">
+              {/* Loại chính */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Loại tròng *</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'don-trong', label: '👁 Đơn Tròng' },
+                    { value: 'da-trong', label: '👓 Đa Tròng / Hai Tròng' },
+                  ].map(opt => (
+                    <button key={opt.value} type="button"
+                      onClick={() => setForm(f => ({ ...f, category: opt.value as 'don-trong' | 'da-trong', categoryGroup: opt.value === 'don-trong' ? 'trang' : 'da-cb' }))}
+                      className={`py-2 rounded-xl text-xs font-semibold border-2 transition-all ${form.category === opt.value ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 hover:border-gray-400 text-gray-700'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nhóm loại */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Nhóm loại *</label>
+                <select value={form.categoryGroup}
+                  onChange={e => setForm(f => ({ ...f, categoryGroup: e.target.value }))} className={inp()}>
+                  {(form.category === 'don-trong' ? DON_TRONG_GROUPS : DA_TRONG_GROUPS).map(g => (
+                    <option key={g.value} value={g.value}>{g.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Phạm vi độ */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Phạm vi độ phù hợp</label>
+                <input value={form.suitableFor}
+                  onChange={e => setForm(f => ({ ...f, suitableFor: e.target.value }))}
+                  className={inp()} placeholder="VD: 0 – 4 độ, 4 – 8 độ, Trên 8 độ, Kính râm..." />
+              </div>
+
+              {/* Phổ biến */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.recommended}
+                  onChange={e => setForm(f => ({ ...f, recommended: e.target.checked }))} />
+                <span className="text-sm text-gray-700">⭐ Đánh dấu là phổ biến nhất trong nhóm</span>
+              </label>
+            </div>
+          </div>
+
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tên tròng kính *</label>
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inp()} /></div>
-          <div><label className="block text-xs font-semibold text-gray-600 mb-1">Mô tả</label>
+            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inp()} placeholder="VD: CR-39 1.56, Hi-Index 1.60, 1.67 Siêu Mỏng" /></div>
+          <div><label className="block text-xs font-semibold text-gray-600 mb-1">Mô tả ngắn</label>
             <input value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} className={inp()} /></div>
           <div className="grid grid-cols-2 gap-4">
             <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giá (đ)</label>
               <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: +e.target.value }))} className={inp()} /></div>
-            <div><label className="block text-xs font-semibold text-gray-600 mb-1">Badge</label>
-              <input value={form.badge} onChange={e => setForm(f => ({ ...f, badge: e.target.value }))} className={inp()} placeholder="Phổ biến, Cao cấp..." /></div>
+            <div><label className="block text-xs font-semibold text-gray-600 mb-1">Badge nhãn</label>
+              <input value={form.badge} onChange={e => setForm(f => ({ ...f, badge: e.target.value }))} className={inp()} placeholder="Phổ biến, Cao cấp, Mỏng nhất..." /></div>
           </div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tính năng (mỗi dòng 1 tính năng)</label>
             <textarea rows={4} value={form.features} onChange={e => setForm(f => ({ ...f, features: e.target.value }))}
