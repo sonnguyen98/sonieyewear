@@ -101,17 +101,16 @@ export default function HeroBanner() {
       <div className="absolute inset-0">
         {SLIDES.map((s, i) => (
           <div key={s.id} className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'}`}>
-            <Image src={s.image} alt="" fill className="object-cover object-center" priority={i === 0} sizes="100vw"/>
+            <Image src={s.image} alt="" fill className="object-cover object-right sm:object-center" priority={i === 0} sizes="100vw"/>
           </div>
         ))}
-        {/* Overlay gradient nhẹ toàn màn */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
+        {/* Overlay trắng mờ dần từ trái sang phải */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 sm:via-white/70 to-white/10 sm:to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-14 flex items-center min-h-[420px] sm:min-h-[480px]">
-        {/* Glass card */}
-        <div className="w-full max-w-sm sm:max-w-md bg-white/80 backdrop-blur-lg rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/60">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 flex items-center min-h-[420px] sm:min-h-[480px]">
+        <div className="w-full max-w-xs sm:max-w-sm md:max-w-md">
 
           {/* Badge */}
           <div className={`inline-flex items-center gap-2 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-4 ${slide.badgeBg}`}>
@@ -121,8 +120,8 @@ export default function HeroBanner() {
 
           {/* Heading */}
           <h1 className="font-black text-gray-900 tracking-tight mb-3 leading-tight">
-            {slide.heading.split('\n').map((line, i, arr) => (
-              <span key={i} className={`block ${i === 1 ? slide.accentClass : ''} ${i === 0 ? 'text-2xl sm:text-3xl md:text-4xl' : i === 1 ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl text-gray-600'}`}>
+            {slide.heading.split('\n').map((line, i) => (
+              <span key={i} className={`block ${i === 1 ? slide.accentClass : i === 2 ? 'text-gray-500' : ''} ${i === 0 ? 'text-2xl sm:text-3xl md:text-4xl' : i === 1 ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'}`}>
                 {line}
               </span>
             ))}
@@ -132,23 +131,23 @@ export default function HeroBanner() {
           <p className="text-sm text-gray-600 leading-relaxed mb-5">{slide.sub}</p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-2.5 mb-6">
+          <div className="flex flex-wrap gap-2.5 mb-6">
             <Link href={slide.ctaHref}
-              className={`flex-1 text-center px-5 py-2.5 rounded-2xl font-bold text-sm transition-all shadow-lg hover:shadow-xl active:scale-95 ${slide.btnPrimary}`}>
+              className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg active:scale-95 ${slide.btnPrimary}`}>
               {slide.cta}
             </Link>
             <Link href={slide.cta2Href}
-              className={`flex-1 text-center px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all active:scale-95 ${slide.btnSecond}`}>
+              className={`px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all active:scale-95 ${slide.btnSecond}`}>
               {slide.cta2}
             </Link>
           </div>
 
           {/* Stats */}
-          <div className="flex gap-4 pt-4 border-t border-gray-200">
+          <div className="flex gap-5 pt-4 border-t border-gray-200/80">
             {slide.stats.map(s => (
-              <div key={s.label} className="flex-1 text-center">
+              <div key={s.label}>
                 <div className={`text-xl font-black ${slide.accentClass}`}>{s.value}</div>
-                <div className="text-[10px] text-gray-400 mt-0.5 leading-tight">{s.label}</div>
+                <div className="text-[10px] text-gray-400 mt-0.5">{s.label}</div>
               </div>
             ))}
           </div>
