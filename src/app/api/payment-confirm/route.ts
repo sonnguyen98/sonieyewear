@@ -9,43 +9,52 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
     const body = JSON.parse(rawBody)
 
-    // SePay xác thực bằng API key trong header "apikey"
-    // Chỉ reject nếu gửi SAI key — không reject khi thiếu key (SePay chưa cấu hình token)
+    // SePay gửi: Authorization: Apikey <key>  (không phải Bearer)
     const secret = process.env.SEPAY_WEBHOOK_SECRET
     if (secret) {
-      const apiKey = req.headers.get('apikey') ?? req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
-      if (apiKey && apiKey !== secret) {
-        console.warn('[SePay] Invalid API key — request rejected:', apiKey)
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      const authHeader = req.headers.get('Authorization') ?? ''
+      // Hỗ trợ cả "Apikey xxx" và "Bearer xxx" và header "apikey" riêng
+      let receivedKey = req.headers.get('apikey') ?? ''
+      if (!receivedKey && authHeader.toLowerCase().startsWith('apikey ')) {
+        receivedKey = authHeader.slice(7).trim()
+      } else if (!receivedKey && authHeader.toLowerCase().startsWith('bearer ')) {
+        receivedKey = authHeader.slice(7).trim()
       }
-      if (!apiKey) {
-        console.warn('[SePay] Webhook received without apikey header — accepted (configure token in SePay for security)')
+
+      if (receivedKey && receivedKey !== secret) {
+        console.warn('[SePay] Invalid API key — rejected. Received:', receivedKey)
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
     }
 
     console.log('[SePay webhook]', JSON.stringify(body))
 
-    const { content, transferAmount, transferType, referenceCode, id } = body
+    // SePay có thể gửi "content" hoặc "description" tuỳ phiên bản
+    const transferContent: string = body.content ?? body.description ?? ''
+    const transferAmount: number = body.transferAmount ?? body.amount ?? 0
+    const referenceCode: string = body.referenceCode ?? body.reference ?? ''
+    const transferId: string = String(body.id ?? '')
+    // transferType: "in" = tiền vào, "out" = tiền ra; nếu không có → mặc định là "in"
+    const transferType: string = body.transferType ?? 'in'
 
-    // Chỉ xử lý tiền vào
     if (transferType !== 'in') {
       return NextResponse.json({ success: true })
     }
 
     // Tìm mã đơn hàng SONIXXXXXXX trong nội dung chuyển khoản
-    const match = (content as string)?.match(/SONI\d{7}/i)
+    const match = transferContent.match(/SONI\d{7}/i)
     if (!match) {
-      console.log('[SePay] Không tìm thấy mã đơn trong:', content)
+      console.log('[SePay] Không tìm thấy mã đơn trong:', transferContent)
       return NextResponse.json({ success: true })
     }
 
     const orderCode = match[0].toUpperCase()
-    const txRef = referenceCode || String(id)
+    const txRef = referenceCode || transferId
 
     const updated = await markPaid(orderCode, txRef)
     console.log(`[SePay] ${orderCode} — ${updated ? '✓ Xác nhận thành công' : '⚠ Không tìm thấy đơn'} — ${transferAmount}đ`)
 
-    // Tự động approve affiliate commission khi thanh toán thật đã vào
+    // Tự động approve affiliate commission khi tiền thật đã vào
     if (updated) {
       await approveAffiliateCommission(orderCode)
     }
@@ -73,18 +82,16 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Khi SePay xác nhận tiền vào → duyệt commission pending cho đơn đó
 async function approveAffiliateCommission(orderCode: string) {
   try {
     const commissions: AffiliateCommission[] = (await kvGet<AffiliateCommission[]>(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json')) ?? []
     const idx = commissions.findIndex(c => c.orderCode === orderCode && c.status === 'pending')
-    if (idx === -1) return // Không có commission pending cho đơn này
+    if (idx === -1) return
 
     const commission = commissions[idx]
     commissions[idx] = { ...commission, status: 'approved', approvedAt: new Date().toISOString() }
     await kvSet(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json', commissions)
 
-    // Cộng tiền thật vào balance affiliate
     const affiliates: Affiliate[] = (await kvGet<Affiliate[]>(KV_KEYS.affiliates, 'affiliates.json')) ?? []
     const affIdx = affiliates.findIndex(a => a.code === commission.affiliateCode)
     if (affIdx === -1) return
@@ -96,7 +103,7 @@ async function approveAffiliateCommission(orderCode: string) {
       totalEarned: affiliates[affIdx].totalEarned + commission.commission,
     }
     await kvSet(KV_KEYS.affiliates, 'affiliates.json', affiliates)
-    console.log(`[Affiliate] Commission approved for ${orderCode}: +${commission.commission}đ → ${commission.affiliateCode}`)
+    console.log(`[Affiliate] +${commission.commission}đ → ${commission.affiliateCode} (${orderCode})`)
   } catch (e) {
     console.error('[Affiliate] Error approving commission:', e)
   }
