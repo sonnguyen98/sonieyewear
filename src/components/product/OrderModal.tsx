@@ -418,7 +418,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
   const emptyEye: EyeRx = { sph: '', cyl: '', axis: '' }
 
   useEffect(() => {
-    fetch('/api/admin/content/lens-products')
+    fetch('/api/lens-products')
       .then(r => r.json())
       .then((items: { id: string; name: string; desc: string; price: number; badge: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean }[]) => {
         if (!Array.isArray(items) || items.length === 0) return
