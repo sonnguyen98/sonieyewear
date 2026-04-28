@@ -8,6 +8,7 @@ import { formatVND } from '@/lib/utils'
 
 interface OrderModalProps {
   product: Product
+  selectedColorId?: string
   onClose: () => void
 }
 
@@ -409,7 +410,8 @@ function LensIcon({ icon }: { icon: string }) {
   )
 }
 
-export default function OrderModal({ product, onClose }: OrderModalProps) {
+export default function OrderModal({ product, selectedColorId, onClose }: OrderModalProps) {
+  const selectedColor = product.colorVariants.find(v => v.id === selectedColorId) ?? product.colorVariants[0]
   const [step, setStep] = useState<Step>('main')
   const [selectedLens, setSelectedLens] = useState<LensOption | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<LensCategoryGroup | null>(null)
@@ -540,6 +542,9 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
           note: form.note,
           product: product.name,
           productId: product.id,
+          color: selectedColor.name,
+          colorHex: selectedColor.hex,
+          variantId: selectedColor.id,
           lens: selectedLens?.name ?? 'Chỉ Gọng',
           total: formatVND(discountedTotal),
           originalTotal: formatVND(totalPrice),
@@ -548,7 +553,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
           payAmount,
           prescription: rxText,
           prescriptionImage: form.rxMode === 'image' ? form.rxImageBase64 : '',
-          variantIds: product.colorVariants.map(v => v.id),
+          variantIds: [selectedColor.id], // Chỉ trừ tồn kho màu đã chọn
           affiliateCode: typeof window !== 'undefined' ? (localStorage.getItem('affiliateRef') ?? '') : '',
           orderAmount: discountedTotal,
           paymentType: form.payment === 'cod' ? 'cod' : 'prepaid',

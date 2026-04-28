@@ -17,13 +17,17 @@ export async function PUT(req: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
-// PATCH — chỉ gọi nội bộ từ order route, dùng internal secret
+// PATCH — gọi nội bộ từ order route để trừ tồn kho
 export async function PATCH(req: NextRequest) {
-  const secret = req.headers.get('x-internal-secret')
-  if (secret !== (process.env.INTERNAL_API_SECRET ?? '')) {
-    // Fallback: cho phép admin token
-    if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const internalSecret = process.env.INTERNAL_API_SECRET
+  if (internalSecret) {
+    // Nếu đã cấu hình secret → bắt buộc xác thực
+    const sent = req.headers.get('x-internal-secret') ?? ''
+    if (sent !== internalSecret && !await checkAdminAuth(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
   }
+  // Nếu INTERNAL_API_SECRET chưa set → cho phép (server-to-server call)
 
   const { variantIds } = await req.json()
   if (!Array.isArray(variantIds)) return NextResponse.json({ error: 'Invalid' }, { status: 400 })

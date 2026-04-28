@@ -289,7 +289,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
       {/* Order Modal */}
       {modalOpen && (
-        <OrderModal product={product} onClose={() => setModalOpen(false)} />
+        <OrderModal product={product} selectedColorId={selectedColorId} onClose={() => setModalOpen(false)} />
       )}
     </div>
   )
