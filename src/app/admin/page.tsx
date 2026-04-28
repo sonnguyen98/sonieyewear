@@ -574,9 +574,9 @@ const GROUP_LABELS: Record<string, string> = {
 const DON_TRONG_GROUPS = [
   { value: 'trang', label: 'Tròng Trắng' },
   { value: 'blue', label: 'Chống Ánh Sáng Xanh' },
+  { value: 'mong', label: 'Tròng Mỏng Hi-Index' },
   { value: 'doi-mau', label: 'Tự Đổi Màu' },
   { value: 'phan-cuc', label: 'Tròng Phân Cực' },
-  { value: 'mong', label: 'Tròng Mỏng Hi-Index' },
 ]
 
 const DA_TRONG_GROUPS = [
