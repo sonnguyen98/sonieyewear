@@ -740,7 +740,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
 
               <p className="text-xs font-semibold text-brand-muted px-1">Chọn mức phù hợp với độ mắt của bạn:</p>
 
-              {selectedCategory.variants.map(variant => (
+              {[...selectedCategory.variants].sort((a, b) => b.price - a.price).map(variant => (
                 <button key={variant.id} onClick={() => handleSelectVariant(variant)}
                   className={`w-full text-left p-4 rounded-2xl border-2 bg-white transition-all active:scale-95 group ${variant.recommended ? 'border-brand-black hover:border-black' : 'border-brand-border hover:border-gray-400'}`}>
                   {variant.recommended && (
