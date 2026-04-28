@@ -200,7 +200,7 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
   const isDeposit = form.payment.startsWith('deposit')
   const isMomo = form.payment.endsWith('momo')
   const payAmount = isDeposit
-    ? Math.round((selectedLens?.price ?? 0) * 0.8)
+    ? Math.round((selectedLens?.price ?? 0) * 0.5)
     : discountedTotal
 
   const BANK = process.env.NEXT_PUBLIC_BANK_ID ?? 'MB'
@@ -466,12 +466,12 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
     const isCOD = form.payment === 'cod'
     const isDeposit = form.payment.startsWith('deposit')
     const payAmount = isDeposit
-      ? Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT))
+      ? Math.round((selectedLens?.price ?? 0) * 0.5)
       : discountedTotal
 
     const paymentLabel = form.payment === 'cod' ? 'COD - Thu hộ khi giao' :
-      form.payment === 'deposit-bank' ? `Cọc tròng ${formatVND(payAmount)} - Chuyển khoản MB` :
-      form.payment === 'deposit-momo' ? `Cọc tròng ${formatVND(payAmount)} - MoMo` :
+      form.payment === 'deposit-bank' ? `Cọc 50% tròng ${formatVND(payAmount)} - Chuyển khoản MB` :
+      form.payment === 'deposit-momo' ? `Cọc 50% tròng ${formatVND(payAmount)} - MoMo` :
       form.payment === 'full-bank' ? `Toàn bộ ${formatVND(payAmount)} - Chuyển khoản MB` :
       form.payment === 'full-momo' ? `Toàn bộ ${formatVND(payAmount)} - MoMo` :
       form.payment === 'bank' ? 'Chuyển khoản MB' :
@@ -1066,10 +1066,10 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                     {[
                       {
                         id: 'deposit',
-                        title: 'Cọc tiền tròng',
-                        amount: Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT)),
+                        title: 'Cọc 50% tiền tròng',
+                        amount: Math.round((selectedLens?.price ?? 0) * 0.5),
                         originalAmount: selectedLens?.price ?? 0,
-                        sub: 'Cọc phần tròng kính, trả phần gọng khi nhận hàng',
+                        sub: 'Cọc 50% tròng — trả 50% còn lại + gọng khi nhận hàng',
                         badge: 'Linh hoạt',
                         badgeColor: 'bg-blue-100 text-blue-700',
                         icon: (
