@@ -147,6 +147,19 @@ const DA_TRONG: LensOption[] = [
 
 const DISCOUNT = 0.20
 
+const DON_GROUP_ORDER = ['trang', 'blue', 'mong', 'doi-mau', 'phan-cuc']
+
+const GROUP_META: Record<string, { name: string; icon: string; desc: string; badge?: string }> = {
+  trang:    { name: 'Tròng Trắng',           icon: '⬜', desc: 'Tròng trong suốt, chống UV400 — lựa chọn phổ thông' },
+  blue:     { name: 'Chống Ánh Sáng Xanh',   icon: '🔵', desc: 'Lọc HEV Blue Light, giảm mỏi mắt khi dùng màn hình', badge: 'Phổ biến' },
+  mong:     { name: 'Tròng Mỏng Hi-Index',    icon: '💎', desc: 'Siêu mỏng nhẹ, thẩm mỹ cao — dành cho độ cận lớn' },
+  'doi-mau':  { name: 'Tự Đổi Màu',          icon: '🌗', desc: 'Trong nhà trong suốt, tự tối khi ra nắng trong 30 giây', badge: 'Độc đáo' },
+  'phan-cuc': { name: 'Tròng Phân Cực',       icon: '🕶️', desc: 'Chống chói tối ưu khi lái xe và hoạt động ngoài trời' },
+  'da-cb':    { name: 'Đa Tròng Cơ Bản',      icon: '👁️', desc: 'Nhìn gần, trung, xa trong cùng một tròng' },
+  'da-blue':  { name: 'Đa Tròng Chống Ánh Xanh', icon: '🔵', desc: 'Đa tròng tích hợp lọc ánh sáng xanh', badge: 'Đề xuất' },
+  'da-mong':  { name: 'Đa Tròng Mỏng Cao Cấp',   icon: '💎', desc: 'Siêu mỏng, thẩm mỹ cao, cho độ lớn' },
+}
+
 const PAYMENT_METHODS = [
   {
     id: 'cod' as const,
@@ -400,7 +413,37 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
   const [step, setStep] = useState<Step>('main')
   const [selectedLens, setSelectedLens] = useState<LensOption | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<LensCategoryGroup | null>(null)
+  const [donTrongCats, setDonTrongCats] = useState<LensCategoryGroup[]>(DON_TRONG_CATEGORIES)
+  const [daTrong, setDaTrong] = useState<LensOption[]>(DA_TRONG)
   const emptyEye: EyeRx = { sph: '', cyl: '', axis: '' }
+
+  useEffect(() => {
+    fetch('/api/admin/content/lens-products')
+      .then(r => r.json())
+      .then((items: { id: string; name: string; desc: string; price: number; badge: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean }[]) => {
+        if (!Array.isArray(items) || items.length === 0) return
+
+        // Đơn tròng: nhóm theo categoryGroup
+        const donItems = items.filter(i => (i.category ?? 'don-trong') === 'don-trong')
+        const groupMap: Record<string, LensVariant[]> = {}
+        donItems.forEach(item => {
+          const g = item.categoryGroup ?? 'trang'
+          if (!groupMap[g]) groupMap[g] = []
+          groupMap[g].push({ id: item.id, name: item.name, price: item.price, badge: item.badge || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
+        })
+        const cats: LensCategoryGroup[] = DON_GROUP_ORDER
+          .filter(g => (groupMap[g]?.length ?? 0) > 0)
+          .map(g => ({ id: g, ...(GROUP_META[g] ?? { name: g, icon: '🔵', desc: '' }), variants: groupMap[g] }))
+        if (cats.length > 0) setDonTrongCats(cats)
+
+        // Đa tròng: flat list
+        const daItems = items.filter(i => i.category === 'da-trong')
+        if (daItems.length > 0) {
+          setDaTrong(daItems.map(i => ({ id: i.id, name: i.name, desc: i.desc, price: i.price, icon: GROUP_META[i.categoryGroup ?? '']?.icon ?? '👁️', badge: i.badge || undefined, features: i.features })))
+        }
+      })
+      .catch(() => {})
+  }, [])
   const [form, setForm] = useState<CheckoutForm>({
     name: '', phone: '', address: '', note: '', payment: '',
     rxMode: 'form',
@@ -691,7 +734,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                 <p className="font-bold text-base text-brand-black">Chọn Loại Tròng</p>
                 <p className="text-xs text-brand-muted mt-0.5">Chọn loại phù hợp, rồi chọn mức giá theo độ mắt</p>
               </div>
-              {DON_TRONG_CATEGORIES.map(cat => {
+              {donTrongCats.map(cat => {
                 const minPrice = Math.min(...cat.variants.map(v => v.price))
                 return (
                   <button key={cat.id} onClick={() => handleSelectCategory(cat)}
@@ -786,7 +829,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                 <p className="font-bold text-base text-brand-black">Hai Tròng / Đa Tròng</p>
                 <p className="text-xs text-brand-muted mt-0.5">Chọn loại tròng bạn muốn lắp</p>
               </div>
-              {DA_TRONG.map(lens => (
+              {daTrong.map(lens => (
                 <button key={lens.id} onClick={() => goToCheckout(lens)}
                   className="w-full flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-border hover:border-brand-zalo bg-white transition-all active:scale-95 group text-left">
                   <LensIcon icon={lens.icon} />
