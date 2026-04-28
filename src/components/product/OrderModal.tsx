@@ -145,6 +145,8 @@ const DA_TRONG: LensOption[] = [
   },
 ]
 
+const DISCOUNT = 0.20
+
 const PAYMENT_METHODS = [
   {
     id: 'cod' as const,
@@ -200,7 +202,7 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
   const isDeposit = form.payment.startsWith('deposit')
   const isMomo = form.payment.endsWith('momo')
   const payAmount = isDeposit
-    ? Math.round((selectedLens?.price ?? 0) * 0.5)
+    ? Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT) * 0.5)
     : discountedTotal
 
   const BANK = process.env.NEXT_PUBLIC_BANK_ID ?? 'MB'
@@ -411,7 +413,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
   const [orderCode, setOrderCode] = useState('')
   const [paymentConfirmed, setPaymentConfirmed] = useState(false)
 
-  const DISCOUNT = 0.20
+
   const basePrice = product.basePrice
   const totalPrice = basePrice + (selectedLens?.price ?? 0)
   const discountedTotal = Math.round(totalPrice * (1 - DISCOUNT))
@@ -466,7 +468,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
     const isCOD = form.payment === 'cod'
     const isDeposit = form.payment.startsWith('deposit')
     const payAmount = isDeposit
-      ? Math.round((selectedLens?.price ?? 0) * 0.5)
+      ? Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT) * 0.5)
       : discountedTotal
 
     const paymentLabel = form.payment === 'cod' ? 'COD - Thu hộ khi giao' :
@@ -1067,7 +1069,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                       {
                         id: 'deposit',
                         title: 'Cọc 50% tiền tròng',
-                        amount: Math.round((selectedLens?.price ?? 0) * 0.5),
+                        amount: Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT) * 0.5),
                         originalAmount: selectedLens?.price ?? 0,
                         sub: 'Cọc 50% tròng — trả 50% còn lại + gọng khi nhận hàng',
                         badge: 'Linh hoạt',
