@@ -788,10 +788,13 @@ function LensEditModal({ item, saving, onSave, onClose }: {
             </div>
           </div>
 
-          <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tên tròng kính *</label>
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inp()} placeholder="VD: CR-39 1.56, Hi-Index 1.60, 1.67 Siêu Mỏng" /></div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Tên sản phẩm tròng (hãng sản xuất) *</label>
+            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inp()} placeholder="VD: Crystal Primer Chemi 1.56 U2, Essilor Crizal 1.60, Hoya ID 1.67..." />
+            <p className="text-[10px] text-gray-400 mt-1">Nhập tên thương mại / mã sản phẩm của hãng tròng kính</p>
+          </div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Mô tả ngắn</label>
-            <input value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} className={inp()} /></div>
+            <input value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} className={inp()} placeholder="VD: Tròng nhựa cao cấp, chống tia UV, phủ AR 7 lớp..." /></div>
           <div className="grid grid-cols-2 gap-4">
             <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giá (đ)</label>
               <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: +e.target.value }))} className={inp()} /></div>
