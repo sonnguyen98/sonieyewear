@@ -91,7 +91,7 @@ export default function ARProductCard({ product, facePhoto, faceLandmarks }: ARP
   const discountedPrice = Math.round(product.basePrice * 0.8)
 
   return (
-    <Link href={`/gong-kinh/${product.slug}`}
+    <Link href={`/gong-kinh/${product.id}`}
       className="group bg-white rounded-2xl overflow-hidden border border-brand-border hover:shadow-lg transition-all block">
       {/* Canvas với ảnh mặt + kính */}
       <div className="relative aspect-[4/3] bg-gray-900 overflow-hidden">

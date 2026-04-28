@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getProductBySlug, getRelatedProducts, MERGED_PRODUCTS } from '@/data/products'
+import { getProductBySlug, getProductById, getRelatedProducts, MERGED_PRODUCTS } from '@/data/products'
 import ImageGallery from '@/components/product/ImageGallery'
 import OrderModal from '@/components/product/OrderModal'
 import CountdownTimer from '@/components/product/CountdownTimer'
@@ -22,7 +22,8 @@ interface PageProps {
 
 export default function ProductDetailPage({ params }: PageProps) {
   const { id } = use(params)
-  const staticProduct = getProductBySlug(id)
+  // Ưu tiên lookup bằng ID (unique), fallback sang slug (backward compat)
+  const staticProduct = getProductById(id) ?? getProductBySlug(id)
 
   // ── Tất cả hooks phải ở đây, trước mọi conditional return ──
   const [product, setProduct] = useState(staticProduct)
@@ -39,7 +40,8 @@ export default function ProductDetailPage({ params }: PageProps) {
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) {
-          const found = data.find((p: { slug: string }) => p.slug === id)
+          // Ưu tiên ID (unique) trước, fallback sang slug
+          const found = data.find((p: { id: string; slug: string }) => p.id === id) ?? data.find((p: { id: string; slug: string }) => p.slug === id)
           if (found) {
             setProduct(found)
             if (!staticProduct) setSelectedColorId(found.colorVariants?.[0]?.id ?? '')

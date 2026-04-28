@@ -49,7 +49,7 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
 
   return (
     <Link
-      href={isAvailable ? `/gong-kinh/${product.slug}` : '#'}
+      href={isAvailable ? `/gong-kinh/${product.id}` : '#'}
       onClick={e => { if (!isAvailable) e.preventDefault() }}
       className={`group block ${!isAvailable ? 'cursor-not-allowed' : ''}`}
     >

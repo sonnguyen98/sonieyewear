@@ -301,7 +301,7 @@ function ThuKinhContent() {
                     </div>
                   )}
                   {/* Ảnh lớn */}
-                  <Link href={`/gong-kinh/${product.slug}`} className="block">
+                  <Link href={`/gong-kinh/${product.id}`} className="block">
                     <div className="relative aspect-square bg-gray-50">
                       <Image src={thumb} alt={product.name} fill className="object-contain p-3" unoptimized sizes="(max-width: 640px) 50vw, 300px"/>
                     </div>
@@ -314,7 +314,7 @@ function ThuKinhContent() {
                       <span className="text-[10px] text-red-500 font-bold">-20%</span>
                     </div>
                     {/* CTA mua hàng ngay */}
-                    <Link href={`/gong-kinh/${product.slug}`}
+                    <Link href={`/gong-kinh/${product.id}`}
                       className="mt-auto w-full bg-brand-zalo hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl text-center transition-all active:scale-95 block">
                       Đặt Hàng Ngay
                     </Link>

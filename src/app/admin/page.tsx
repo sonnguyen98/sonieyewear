@@ -238,10 +238,13 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
 
     setSaving(true)
     const id = 'sp' + Date.now()
-    const slug = form.name.toLowerCase()
+    // Thêm suffix từ ID để đảm bảo slug luôn unique, tránh nhầm sản phẩm cùng tên
+    const slugBase = form.name.toLowerCase()
       .replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i')
       .replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u').replace(/[đ]/g, 'd')
-      .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-').slice(0, 60)
+      .replace(/[ươ]/g, 'u').replace(/[ăâ]/g, 'a').replace(/[êô]/g, 'o')
+      .replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 50)
+    const slug = slugBase + '-' + id.slice(-6)
 
     const product = {
       id, slug, ...form,
