@@ -21,6 +21,14 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-brand-border shadow-sm">
+      {/* Affiliate top bar */}
+      <div className="bg-gray-900 text-center py-1.5 px-4">
+        <Link href="/affiliate" className="inline-flex items-center gap-2 text-xs font-semibold text-gray-300 hover:text-amber-400 transition-colors">
+          <span className="text-amber-400">💰</span>
+          Kiếm tiền cùng SONi — Nhận <span className="text-amber-400 font-black">10% hoa hồng</span> mỗi đơn hàng thành công
+          <span className="hidden sm:inline bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full text-[10px] font-bold border border-amber-400/30">Đăng ký ngay →</span>
+        </Link>
+      </div>
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
 
         {/* Logo */}
