@@ -92,7 +92,9 @@ export async function POST(req: NextRequest) {
   if (!aff) return NextResponse.json({ error: 'Affiliate không tồn tại' }, { status: 404 })
 
   const commission = Math.round(orderAmount * COMMISSION_RATE)
-  const status: 'approved' | 'pending' = paymentType === 'prepaid' ? 'approved' : 'pending'
+  // Commission luôn PENDING khi tạo đơn — chỉ APPROVED sau khi tiền thực sự vào tài khoản
+  // (SePay webhook xác nhận thanh toán, hoặc admin duyệt COD)
+  const status = 'pending' as const
 
   const commissions: AffiliateCommission[] = (await kvGet<AffiliateCommission[]>(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json')) ?? []
 
@@ -106,17 +108,12 @@ export async function POST(req: NextRequest) {
     affiliateCode, orderCode, customerName,
     orderAmount, commission, paymentType, status,
     createdAt: new Date().toISOString(),
-    ...(status === 'approved' ? { approvedAt: new Date().toISOString() } : {}),
   }
   await kvSet(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json', [...commissions, newCommission])
 
-  // Cập nhật số dư affiliate
+  // Commission luôn pending → cộng vào pendingBalance
   const affIdx = affiliates.findIndex(a => a.code === affiliateCode)
-  if (status === 'approved') {
-    affiliates[affIdx] = { ...affiliates[affIdx], balance: affiliates[affIdx].balance + commission, totalEarned: affiliates[affIdx].totalEarned + commission }
-  } else {
-    affiliates[affIdx] = { ...affiliates[affIdx], pendingBalance: affiliates[affIdx].pendingBalance + commission }
-  }
+  affiliates[affIdx] = { ...affiliates[affIdx], pendingBalance: affiliates[affIdx].pendingBalance + commission }
   await kvSet(KV_KEYS.affiliates, 'affiliates.json', affiliates)
 
   return NextResponse.json({ success: true, commission: newCommission })
