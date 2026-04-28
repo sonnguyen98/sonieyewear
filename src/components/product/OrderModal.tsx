@@ -549,6 +549,9 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
           prescription: rxText,
           prescriptionImage: form.rxMode === 'image' ? form.rxImageBase64 : '',
           variantIds: product.colorVariants.map(v => v.id),
+          affiliateCode: typeof window !== 'undefined' ? (localStorage.getItem('affiliateRef') ?? '') : '',
+          orderAmount: discountedTotal,
+          paymentType: form.payment === 'cod' ? 'cod' : 'prepaid',
         }),
       })
     } catch {

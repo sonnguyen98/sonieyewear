@@ -37,6 +37,23 @@ export async function POST(req: NextRequest) {
       }).catch(() => {})
     }
 
+    // Xử lý affiliate commission
+    if (body.affiliateCode && body.orderAmount) {
+      // prepaid = có thanh toán trước (cọc tròng hoặc full); cod = chỉ gọng ship COD
+      const paymentType = body.paymentType ?? 'cod'
+      fetch(`${req.nextUrl.origin}/api/admin/affiliates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderCode: body.orderCode,
+          customerName: body.name,
+          affiliateCode: body.affiliateCode,
+          orderAmount: body.orderAmount,
+          paymentType,
+        }),
+      }).catch(() => {})
+    }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Order API error:', err)

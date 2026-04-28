@@ -7,7 +7,7 @@ import type { Product } from '@/types/product'
 const PASSWORD = 'Sonnguyen98'
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
-type Section = 'products' | 'stock' | 'lens' | 'blog' | 'stores' | 'policies'
+type Section = 'products' | 'stock' | 'lens' | 'blog' | 'stores' | 'policies' | 'affiliate'
 
 const SECTIONS = [
   { id: 'products' as Section, label: 'Gọng Kính', icon: '👓' },
@@ -16,6 +16,7 @@ const SECTIONS = [
   { id: 'blog' as Section, label: 'SONi Share', icon: '✍️' },
   { id: 'stores' as Section, label: 'Hệ Thống CH', icon: '🏪' },
   { id: 'policies' as Section, label: 'Chính Sách BH', icon: '🛡️' },
+  { id: 'affiliate' as Section, label: 'Affiliate', icon: '💰' },
 ]
 
 export default function AdminPage() {
@@ -72,6 +73,7 @@ export default function AdminPage() {
         {section === 'blog' && <BlogSection />}
         {section === 'stores' && <StoresSection />}
         {section === 'policies' && <PoliciesSection />}
+        {section === 'affiliate' && <AffiliateSection />}
       </div>
     </div>
   )
@@ -1570,6 +1572,143 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
           <SaveBtn saving={saving} onClick={handleSave} />
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── AFFILIATE SECTION ─────────────────────────────────────────────────────────
+interface AffiliateAccount { id: string; code: string; name: string; phone: string; bankName: string; bankAccount: string; bankOwner: string; balance: number; pendingBalance: number; totalEarned: number; totalWithdrawn: number; createdAt: string; status: string }
+interface AffComm { id: string; affiliateCode: string; orderCode: string; customerName: string; orderAmount: number; commission: number; paymentType: string; status: 'approved' | 'pending'; createdAt: string }
+interface AffWd { id: string; affiliateCode: string; affiliateName: string; affiliatePhone: string; amount: number; bankName: string; bankAccount: string; bankOwner: string; status: 'pending' | 'paid'; requestedAt: string; paidAt?: string }
+type AffTab = 'affiliates' | 'commissions' | 'withdrawals'
+
+function AffiliateSection() {
+  const [tab, setTab] = useState<AffTab>('withdrawals')
+  const [affiliates, setAffiliates] = useState<AffiliateAccount[]>([])
+  const [commissions, setCommissions] = useState<AffComm[]>([])
+  const [withdrawals, setWithdrawals] = useState<AffWd[]>([])
+  const [loading, setLoading] = useState(true)
+  const [acting, setActing] = useState<string | null>(null)
+  const fmtV = (n: number) => new Intl.NumberFormat('vi-VN').format(n) + 'đ'
+  const fmtD = (s: string) => new Date(s).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const r = await fetch('/api/admin/affiliates', { headers: { 'x-admin-token': PASSWORD } })
+    const d = await r.json()
+    setAffiliates(d.affiliates ?? []); setCommissions(d.commissions ?? []); setWithdrawals(d.withdrawals ?? [])
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  async function doAction(payload: object, id: string) {
+    setActing(id)
+    await fetch('/api/admin/affiliates', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD }, body: JSON.stringify(payload) })
+    await load(); setActing(null)
+  }
+
+  const pendingWd = withdrawals.filter(w => w.status === 'pending')
+  const pendingCm = commissions.filter(c => c.status === 'pending')
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-black text-gray-900">💰 Quản Lý Affiliate</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{affiliates.length} affiliate · {pendingWd.length} chờ rút · {pendingCm.length} hoa hồng chờ duyệt</p>
+        </div>
+        <button onClick={load} className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm hover:bg-gray-50">↻ Làm mới</button>
+      </div>
+      <div className="flex gap-2 mb-5">
+        {([{ id: 'withdrawals' as AffTab, label: `Lệnh Rút${pendingWd.length ? ` (${pendingWd.length})` : ''}` }, { id: 'commissions' as AffTab, label: `Hoa Hồng${pendingCm.length ? ` (${pendingCm.length})` : ''}` }, { id: 'affiliates' as AffTab, label: 'Danh Sách' }]).map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === t.id ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{t.label}</button>
+        ))}
+      </div>
+      {loading ? <p className="text-gray-400 text-sm">Đang tải...</p> : (<>
+        {tab === 'withdrawals' && (
+          <div className="space-y-3">
+            {withdrawals.length === 0 && <p className="text-gray-400 text-sm text-center py-8">Chưa có lệnh rút tiền nào</p>}
+            {withdrawals.map(w => (
+              <div key={w.id} className={`bg-white rounded-2xl border p-4 flex items-start gap-4 ${w.status === 'pending' ? 'border-amber-300' : 'border-gray-200'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <p className="font-bold text-sm text-gray-900">{w.affiliateName}</p>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${w.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{w.status === 'paid' ? '✓ Đã chuyển' : '⏳ Chờ chuyển'}</span>
+                  </div>
+                  <p className="text-2xl font-black text-gray-900">{fmtV(w.amount)}</p>
+                  <div className="mt-1 text-xs text-gray-500 space-y-0.5">
+                    <p>📱 {w.affiliatePhone}</p>
+                    <p>🏦 {w.bankName} · <strong className="font-mono text-gray-800">{w.bankAccount}</strong> · {w.bankOwner}</p>
+                    <p>🕐 {fmtD(w.requestedAt)}{w.paidAt ? ` · Đã CK: ${fmtD(w.paidAt)}` : ''}</p>
+                  </div>
+                </div>
+                {w.status === 'pending' && (
+                  <button onClick={() => doAction({ action: 'mark-paid', withdrawalId: w.id }, w.id)} disabled={acting === w.id}
+                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-xl disabled:opacity-50 flex-shrink-0">
+                    {acting === w.id ? '...' : '✓ Đã chuyển khoản'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {tab === 'commissions' && (
+          <div className="space-y-2">
+            {commissions.length === 0 && <p className="text-gray-400 text-sm text-center py-8">Chưa có hoa hồng nào</p>}
+            {commissions.map(c => (
+              <div key={c.id} className={`bg-white rounded-xl border p-3 flex items-center gap-3 ${c.status === 'pending' ? 'border-amber-200' : 'border-gray-200'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs font-bold text-gray-900">{c.orderCode}</p>
+                    <code className="text-[10px] text-gray-400">{c.affiliateCode}</code>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${c.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{c.status === 'approved' ? '✓ Đã duyệt' : '⏳ COD chờ giao'}</span>
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{fmtD(c.createdAt)}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="font-black text-sm text-gray-900">+{fmtV(c.commission)}</p>
+                  <p className="text-[10px] text-gray-400">{fmtV(c.orderAmount)} · 10%</p>
+                </div>
+                {c.status === 'pending' && (
+                  <button onClick={() => doAction({ action: 'approve-commission', commissionId: c.id }, c.id)} disabled={acting === c.id}
+                    className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-[10px] font-bold rounded-lg disabled:opacity-50 flex-shrink-0">
+                    {acting === c.id ? '...' : 'Duyệt COD'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {tab === 'affiliates' && (
+          <div className="space-y-3">
+            {affiliates.length === 0 && <p className="text-gray-400 text-sm text-center py-8">Chưa có affiliate nào đăng ký</p>}
+            {affiliates.map(a => (
+              <div key={a.id} className={`bg-white rounded-2xl border p-4 ${a.status === 'suspended' ? 'border-red-200 opacity-60' : 'border-gray-200'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <p className="font-bold text-sm text-gray-900">{a.name}</p>
+                      <code className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">{a.code}</code>
+                      {a.status === 'suspended' && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-bold">Đã khóa</span>}
+                    </div>
+                    <p className="text-xs text-gray-500">📱 {a.phone} · 🏦 {a.bankName} · {a.bankAccount} · {a.bankOwner}</p>
+                    <div className="flex gap-5 mt-2">
+                      {[{ l: 'Số dư', v: a.balance, c: 'text-green-600' }, { l: 'Chờ duyệt', v: a.pendingBalance, c: 'text-amber-600' }, { l: 'Tổng kiếm', v: a.totalEarned, c: 'text-blue-600' }, { l: 'Đã rút', v: a.totalWithdrawn, c: 'text-gray-500' }].map(s => (
+                        <div key={s.l}><p className={`text-sm font-black ${s.c}`}>{fmtV(s.v)}</p><p className="text-[10px] text-gray-400">{s.l}</p></div>
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={() => doAction({ action: 'toggle-status', affiliateId: a.id }, a.id)} disabled={acting === a.id}
+                    className={`px-3 py-1.5 text-[10px] font-bold rounded-lg flex-shrink-0 ${a.status === 'active' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
+                    {acting === a.id ? '...' : a.status === 'active' ? 'Khóa' : 'Mở khóa'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </>)}
     </div>
   )
 }

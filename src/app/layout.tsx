@@ -5,6 +5,8 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import MobileNav from '@/components/layout/MobileNav'
 import ZaloFloatingButton from '@/components/ui/ZaloFloatingButton'
+import { Suspense } from 'react'
+import AffiliateTracker from '@/components/ui/AffiliateTracker'
 
 const beVietnam = Be_Vietnam_Pro({
   subsets: ['vietnamese', 'latin'],
@@ -46,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <MobileNav />
         <ZaloFloatingButton />
+        <Suspense fallback={null}><AffiliateTracker /></Suspense>
       </body>
     </html>
   )
