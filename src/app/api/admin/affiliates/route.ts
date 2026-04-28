@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
+import { checkAdminAuth } from '@/lib/adminAuth'
 import type { Affiliate } from '@/app/api/affiliate/register/route'
 import type { AffiliateCommission, AffiliateWithdrawal } from '@/app/api/affiliate/dashboard/route'
 
 const COMMISSION_RATE = 0.10
 
-function checkAuth(req: NextRequest) {
-  return req.headers.get('x-admin-token') === (process.env.ADMIN_PASSWORD ?? 'admin123')
-}
-
 // GET: toàn bộ dữ liệu affiliate
 export async function GET(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const [affiliates, commissions, withdrawals] = await Promise.all([
     kvGet<Affiliate[]>(KV_KEYS.affiliates, 'affiliates.json'),
@@ -28,7 +25,7 @@ export async function GET(req: NextRequest) {
 
 // PUT: các hành động admin
 export async function PUT(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { action, ...payload } = await req.json()
 
@@ -98,6 +95,12 @@ export async function POST(req: NextRequest) {
   const status: 'approved' | 'pending' = paymentType === 'prepaid' ? 'approved' : 'pending'
 
   const commissions: AffiliateCommission[] = (await kvGet<AffiliateCommission[]>(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json')) ?? []
+
+  // Chặn duplicate: mỗi orderCode chỉ được tạo commission một lần
+  if (commissions.some(c => c.orderCode === orderCode)) {
+    return NextResponse.json({ success: true, skipped: 'duplicate' })
+  }
+
   const newCommission: AffiliateCommission = {
     id: 'cm-' + Date.now(),
     affiliateCode, orderCode, customerName,

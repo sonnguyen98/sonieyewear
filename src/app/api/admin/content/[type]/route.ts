@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
+import { checkAdminAuth } from '@/lib/adminAuth'
 
 const ALLOWED: Record<string, string> = {
   'lens-products': KV_KEYS.lensProducts,
@@ -8,12 +9,8 @@ const ALLOWED: Record<string, string> = {
   'policies':      KV_KEYS.policies,
 }
 
-function checkAuth(req: NextRequest) {
-  return req.headers.get('x-admin-token') === (process.env.ADMIN_PASSWORD ?? 'admin123')
-}
-
 export async function GET(req: NextRequest, { params }: { params: Promise<{ type: string }> }) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { type } = await params
   const kvKey = ALLOWED[type]
   if (!kvKey) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -22,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ type
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ type: string }> }) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { type } = await params
   const kvKey = ALLOWED[type]
   if (!kvKey) return NextResponse.json({ error: 'Not found' }, { status: 404 })

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /_next/
+
+# Không cho phép crawl data nhạy cảm
+Disallow: /api/admin/
+Disallow: /api/affiliate/
+
+Sitemap: https://kinhmatsoni.com/sitemap.xml

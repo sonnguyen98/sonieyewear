@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { markPaid } from '@/lib/orderStore'
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
+    const rawBody = await req.text()
+    const body = JSON.parse(rawBody)
+
+    // Xác thực chữ ký webhook từ SePay
+    const secret = process.env.SEPAY_WEBHOOK_SECRET
+    if (secret) {
+      const signature = req.headers.get('x-sepay-signature') ?? req.headers.get('apikey') ?? ''
+      const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+      if (signature !== expected && signature !== secret) {
+        console.warn('[SePay] Invalid signature — request rejected')
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
+
     console.log('[SePay webhook]', JSON.stringify(body))
 
     // SePay gửi: transferAmount, content, transferType, referenceCode, gateway...

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import type { Product } from '@/types/product'
 
-const PASSWORD = 'Sonnguyen98'
+// Session token — được server cấp sau login, không hardcode password trong code
+let PASSWORD = ''
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
 type Section = 'products' | 'stock' | 'lens' | 'blog' | 'stores' | 'policies' | 'affiliate'
@@ -22,7 +23,28 @@ const SECTIONS = [
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
   const [pw, setPw] = useState('')
+  const [loginErr, setLoginErr] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
   const [section, setSection] = useState<Section>('products')
+
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? sessionStorage.getItem('adminToken') : null
+    if (saved) { PASSWORD = saved; setAuthed(true) }
+  }, [])
+
+  async function handleLogin() {
+    setLoginLoading(true); setLoginErr('')
+    const r = await fetch('/api/admin/session', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw }),
+    })
+    setLoginLoading(false)
+    if (!r.ok) { setLoginErr('Sai mật khẩu'); return }
+    const { token } = await r.json()
+    PASSWORD = token
+    sessionStorage.setItem('adminToken', token)
+    setAuthed(true)
+  }
 
   if (!authed) {
     return (
@@ -34,11 +56,12 @@ export default function AdminPage() {
           </div>
           <input type="password" placeholder="Mật khẩu" value={pw}
             onChange={e => setPw(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && pw === PASSWORD && setAuthed(true)}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
             className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-900 mb-3" />
-          <button onClick={() => pw === PASSWORD ? setAuthed(true) : alert('Sai mật khẩu')}
-            className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-700 transition-colors">
-            Đăng nhập
+          {loginErr && <p className="text-red-500 text-xs mb-3 text-center">{loginErr}</p>}
+          <button onClick={handleLogin} disabled={loginLoading}
+            className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-colors">
+            {loginLoading ? 'Đang xác thực...' : 'Đăng nhập'}
           </button>
         </div>
       </div>

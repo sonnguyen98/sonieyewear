@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
+import { checkAdminAuth } from '@/lib/adminAuth'
 import type { Product } from '@/types/product'
 import fs from 'fs'
 import path from 'path'
-
-function checkAuth(req: NextRequest) {
-  return req.headers.get('x-admin-token') === (process.env.ADMIN_PASSWORD ?? 'admin123')
-}
 
 function touchProducts() {
   try {
@@ -18,12 +15,12 @@ function touchProducts() {
 }
 
 export async function GET(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   return NextResponse.json((await kvGet<Product[]>(KV_KEYS.newProducts, 'new-products.json')) ?? [])
 }
 
 export async function POST(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const product = await req.json()
   const existing = (await kvGet<Product[]>(KV_KEYS.newProducts, 'new-products.json')) ?? []
   existing.push(product)
@@ -33,7 +30,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, data } = await req.json()
   let existing = (await kvGet<Product[]>(KV_KEYS.newProducts, 'new-products.json')) ?? []
   existing = existing.map((p: Product) => p.id === id ? { ...p, ...data } : p)
@@ -42,7 +39,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!checkAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await checkAdminAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id } = await req.json()
   let existing = (await kvGet<Product[]>(KV_KEYS.newProducts, 'new-products.json')) ?? []
   existing = existing.filter((p: Product) => p.id !== id)

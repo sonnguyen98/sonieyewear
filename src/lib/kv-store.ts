@@ -70,6 +70,7 @@ export async function kvSet(key: string, fallbackFile: string, data: unknown): P
 
 // ── Các key chuẩn ─────────────────────────────────────────────────────────────
 export const KV_KEYS = {
+  adminSessions:         'admin-sessions',
   overrides:             'products-override',
   stock:                 'stock',
   newProducts:           'new-products',
