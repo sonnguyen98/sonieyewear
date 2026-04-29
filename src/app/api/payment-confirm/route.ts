@@ -68,16 +68,16 @@ export async function POST(req: NextRequest) {
       await approveAffiliateCommission(orderCode)
     }
 
-    // Thông báo lên Google Sheet — fix redirect POST→POST
+    // Thông báo lên Google Sheet — PHẢI await để Vercel không kill trước khi hoàn thành
     const SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL
     if (SCRIPT_URL && updated) {
-      postToAppsScript(SCRIPT_URL, {
+      await postToAppsScript(SCRIPT_URL, {
         action: 'markPaid',
         orderCode,
         transactionRef: txRef,
         paidAmount: transferAmount,
         paidAt: new Date().toLocaleString('vi-VN'),
-      }).catch(() => {})
+      })
     }
 
     return NextResponse.json({ success: true })
