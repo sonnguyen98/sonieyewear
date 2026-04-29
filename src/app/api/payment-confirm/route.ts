@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { markPaid } from '@/lib/orderStore'
+
+async function postToAppsScript(url: string, data: object) {
+  const body = JSON.stringify(data)
+  const r1 = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, redirect: 'manual' })
+  if (r1.status >= 300 && r1.status < 400) {
+    const loc = r1.headers.get('location') ?? ''
+    if (loc) await fetch(loc, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+  }
+}
 import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
 import type { AffiliateCommission } from '@/app/api/affiliate/dashboard/route'
 import type { Affiliate } from '@/app/api/affiliate/register/route'
@@ -59,19 +68,15 @@ export async function POST(req: NextRequest) {
       await approveAffiliateCommission(orderCode)
     }
 
-    // Thông báo lên Google Sheet
+    // Thông báo lên Google Sheet — fix redirect POST→POST
     const SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL
     if (SCRIPT_URL && updated) {
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'markPaid',
-          orderCode,
-          transactionRef: txRef,
-          paidAmount: transferAmount,
-          paidAt: new Date().toLocaleString('vi-VN'),
-        }),
+      postToAppsScript(SCRIPT_URL, {
+        action: 'markPaid',
+        orderCode,
+        transactionRef: txRef,
+        paidAmount: transferAmount,
+        paidAt: new Date().toLocaleString('vi-VN'),
       }).catch(() => {})
     }
 
