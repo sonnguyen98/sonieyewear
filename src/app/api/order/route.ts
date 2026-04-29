@@ -1,26 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOrder } from '@/lib/orderStore'
 
-// Google Apps Script trả 302 redirect tới /macros/echo — fetch sẽ tự follow GET,
-// nhưng Apps Script vẫn xử lý doPost ở bước đầu, nên redirect: 'follow' (mặc định) là OK.
-// Log chi tiết để debug khi đơn không lên Sheet.
+// Google Apps Script trả 302 redirect — Node.js tự đổi POST→GET làm mất body.
+// Dùng redirect:'manual' → lấy Location header → POST lại thủ công giữ body.
 async function postToScript(url: string, data: object) {
   const body = JSON.stringify(data)
   try {
-    const res = await fetch(url, {
+    // Bước 1: POST tới script.google.com — sẽ nhận 302 redirect
+    const r1 = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
-      redirect: 'follow',
+      redirect: 'manual',
     })
-    const text = await res.text()
-    console.log('[Apps Script] status:', res.status, '| body:', text.slice(0, 500))
-    if (!res.ok) {
-      console.error('[Apps Script] FAILED — kiểm tra: 1) script có hàm doPost? 2) deploy "Anyone"? 3) đã New version sau khi sửa code?')
+    console.log('[Script] step1 status:', r1.status, '| type:', r1.type)
+
+    // Bước 2: Lấy Location và POST lại (giữ body)
+    const location = r1.headers.get('location') ?? ''
+    console.log('[Script] redirect to:', location?.slice(0, 80))
+
+    if (location) {
+      const r2 = await fetch(location, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+      const text = await r2.text()
+      console.log('[Script] step2 status:', r2.status, '| body:', text.slice(0, 200))
+      return { ok: r2.ok, status: r2.status }
     }
-    return { ok: res.ok, status: res.status, body: text }
+
+    // Nếu không redirect → thử luôn response đầu tiên
+    if (r1.status === 200) {
+      return { ok: true, status: 200 }
+    }
+    return { ok: false, status: r1.status, note: 'no location header' }
   } catch (err) {
-    console.error('[Apps Script] Network error:', err)
+    console.error('[Script] Error:', err)
     return { ok: false, error: String(err) }
   }
 }
