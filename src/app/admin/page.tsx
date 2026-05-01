@@ -212,7 +212,9 @@ function ProductsSection() {
 function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingColor, setUploadingColor] = useState<number | null>(null)
   const [images, setImages] = useState<string[]>([])
+  const [colorImages, setColorImages] = useState<Record<number, string[]>>({})
   const [colors, setColors] = useState([{ name: 'Đen', hex: '#1A1A1A', quantity: 10 }])
   const [form, setForm] = useState({
     name: '', sku: '', brand: 'SONi', basePrice: '', originalPrice: '',
@@ -228,6 +230,15 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
     const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
     const { url } = await r.json()
     setImages(p => [...p, url]); setUploading(false)
+  }
+
+  async function handleColorUpload(file: File, colorIdx: number) {
+    setUploadingColor(colorIdx)
+    const fd = new FormData(); fd.append('file', file); fd.append('productId', `new-color-${colorIdx}-${Date.now()}`)
+    const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const { url } = await r.json()
+    setColorImages(prev => ({ ...prev, [colorIdx]: [...(prev[colorIdx] ?? []), url] }))
+    setUploadingColor(null)
   }
 
   async function handleSave() {
@@ -252,14 +263,18 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
       originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
       rating: 4.5, reviewCount: 0,
       features: form.features.split('\n').filter(Boolean),
-      colorVariants: colors.map((c, i) => ({
-        id: `${id}-${i}`,
-        name: c.name,
-        hex: c.hex,
-        imageUrl: images[0] ?? '',
-        overlayImageUrl: `/images/overlays/${form.shape}-overlay.svg`,
-        inStock: c.quantity > 0,
-      })),
+      colorVariants: colors.map((c, i) => {
+        const cImgs = colorImages[i] ?? []
+        return {
+          id: `${id}-${i}`,
+          name: c.name,
+          hex: c.hex,
+          imageUrl: cImgs[0] ?? images[0] ?? '',
+          images: cImgs,
+          overlayImageUrl: `/images/overlays/${form.shape}-overlay.svg`,
+          inStock: c.quantity > 0,
+        }
+      }),
       specs: { bridgeWidth: 18, lensWidth: 50, templeLength: 145, frameWidth: 'Vừa', weight: 20 },
       images,
       modelImages: [],
@@ -384,34 +399,54 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
             </label>
           </div>
 
-          {/* Màu sắc */}
+          {/* Màu sắc + ảnh theo màu */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-semibold text-gray-600">Màu sắc *</label>
               <button onClick={() => setColors(c => [...c, { name: '', hex: '#888888', quantity: 10 }])}
                 className="text-xs text-blue-600 font-semibold hover:underline">+ Thêm màu</button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               {colors.map((c, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <input type="color" value={c.hex}
-                    onChange={e => setColors(p => p.map((x, j) => j === i ? { ...x, hex: e.target.value } : x))}
-                    className="w-9 h-9 rounded-lg cursor-pointer border border-gray-300 p-0.5" />
-                  <input value={c.name} placeholder="Tên màu (VD: Đen Bóng)"
-                    onChange={e => setColors(p => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
-                    className={inp('flex-1')} />
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-xs text-gray-400">SL:</span>
-                    <input
-                      type="number" min={0} value={c.quantity}
-                      onChange={e => setColors(p => p.map((x, j) => j === i ? { ...x, quantity: Math.max(0, +e.target.value) } : x))}
-                      className="w-16 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-center outline-none focus:border-gray-900"
-                    />
+                <div key={i} className="border border-gray-200 rounded-xl p-3 space-y-2">
+                  {/* Thông tin màu */}
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={c.hex}
+                      onChange={e => setColors(p => p.map((x, j) => j === i ? { ...x, hex: e.target.value } : x))}
+                      className="w-9 h-9 rounded-lg cursor-pointer border border-gray-300 p-0.5 flex-shrink-0" />
+                    <input value={c.name} placeholder="Tên màu (VD: Đen Bóng)"
+                      onChange={e => setColors(p => p.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                      className={inp('flex-1')} />
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <span className="text-xs text-gray-400">SL:</span>
+                      <input type="number" min={0} value={c.quantity}
+                        onChange={e => setColors(p => p.map((x, j) => j === i ? { ...x, quantity: Math.max(0, +e.target.value) } : x))}
+                        className="w-16 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-center outline-none focus:border-gray-900" />
+                    </div>
+                    {colors.length > 1 && (
+                      <button onClick={() => setColors(p => p.filter((_, j) => j !== i))}
+                        className="text-red-400 hover:text-red-600 text-sm flex-shrink-0">✕</button>
+                    )}
                   </div>
-                  {colors.length > 1 && (
-                    <button onClick={() => setColors(p => p.filter((_, j) => j !== i))}
-                      className="text-red-400 hover:text-red-600 text-sm flex-shrink-0">✕</button>
-                  )}
+                  {/* Ảnh riêng của màu này */}
+                  <div>
+                    <p className="text-[10px] text-gray-400 mb-1.5">📷 Ảnh màu {c.name || `#${i+1}`} ({(colorImages[i] ?? []).length} ảnh) — khách click màu này sẽ thấy ảnh này</p>
+                    <div className="grid grid-cols-6 gap-1.5">
+                      <label className={`aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer text-center transition-colors ${uploadingColor === i ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-gray-400 bg-gray-50'}`}>
+                        <input type="file" accept="image/*" multiple className="hidden"
+                          onChange={e => Array.from(e.target.files ?? []).forEach(f => handleColorUpload(f, i))} />
+                        {uploadingColor === i ? <span className="text-[10px] text-blue-500">⏳</span> : <><span className="text-base">+</span><span className="text-[9px] text-gray-400">Thêm</span></>}
+                      </label>
+                      {(colorImages[i] ?? []).map((url, j) => (
+                        <div key={url} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                          <Image src={url} alt="" fill className="object-cover" unoptimized sizes="64px" />
+                          {j === 0 && <span className="absolute bottom-0 left-0 right-0 text-[8px] bg-yellow-400 text-yellow-900 font-bold text-center">Chính</span>}
+                          <button onClick={() => setColorImages(prev => ({ ...prev, [i]: (prev[i] ?? []).filter((_, k) => k !== j) }))}
+                            className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] opacity-0 group-hover:opacity-100 flex items-center justify-center">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
