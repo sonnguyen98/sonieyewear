@@ -33,15 +33,20 @@ export async function PATCH(req: NextRequest) {
   if (!Array.isArray(variantIds)) return NextResponse.json({ error: 'Invalid' }, { status: 400 })
 
   const stock = (await kvGet<StockMap>(KV_KEYS.stock, 'stock.json')) ?? {}
-  let changed = false
+  const decremented: string[] = []
+  const outOfStock: string[] = []
+
   for (const vid of variantIds as string[]) {
-    if (typeof vid !== 'string' || !stock[vid]) continue
-    if (stock[vid].quantity > 0) {
+    if (typeof vid !== 'string') continue
+    if (!stock[vid] || stock[vid].quantity <= 0) {
+      outOfStock.push(vid) // Hết hàng — từ chối
+    } else {
       stock[vid].quantity -= 1
       if (stock[vid].quantity === 0) stock[vid].inStock = false
-      changed = true
+      decremented.push(vid)
     }
   }
-  if (changed) await kvSet(KV_KEYS.stock, 'stock.json', stock)
-  return NextResponse.json({ success: true, stock })
+
+  if (decremented.length > 0) await kvSet(KV_KEYS.stock, 'stock.json', stock)
+  return NextResponse.json({ success: outOfStock.length === 0, stock, outOfStock })
 }

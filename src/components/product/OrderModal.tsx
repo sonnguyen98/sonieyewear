@@ -531,7 +531,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
       : 'Không cần (chỉ gọng)'
 
     try {
-      await fetch('/api/order', {
+      const orderRes = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -559,8 +559,21 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
           paymentType: form.payment === 'cod' ? 'cod' : 'prepaid',
         }),
       })
+
+      // Kiểm tra nếu hết hàng (race condition: 2 khách cùng đặt cuối)
+      if (orderRes.status === 409) {
+        const errData = await orderRes.json()
+        if (errData.error === 'out_of_stock') {
+          setSubmitting(false)
+          invalidateStockCache()
+          setSubmitError('Rất tiếc, sản phẩm này vừa hết hàng. Vui lòng chọn màu khác hoặc liên hệ Zalo để được hỗ trợ.')
+          return
+        }
+      }
     } catch {
-      // Không chặn flow nếu network lỗi
+      setSubmitting(false)
+      setSubmitError('Có lỗi kết nối, vui lòng thử lại.')
+      return
     }
 
     setSubmitting(false)

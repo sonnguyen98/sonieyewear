@@ -7,7 +7,7 @@ type StockMap = Record<string, { inStock: boolean; quantity: number }>
 let cache: StockMap | null = null
 let cacheTime = 0
 let fetchPromise: Promise<StockMap> | null = null
-const TTL = 30_000 // 30 giây
+const TTL = 10_000 // 10 giây — cập nhật nhanh hơn sau mỗi đơn hàng
 
 async function fetchStock(): Promise<StockMap> {
   const now = Date.now()

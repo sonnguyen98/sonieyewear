@@ -58,13 +58,17 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Trừ tồn kho — chỉ màu đã chọn
+    // Trừ tồn kho — kiểm tra trước, từ chối nếu hết hàng
     if (body.variantIds?.length) {
-      fetch(`${req.nextUrl.origin}/api/admin/stock`, {
+      const stockRes = await fetch(`${req.nextUrl.origin}/api/admin/stock`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variantIds: body.variantIds }),
-      }).catch(() => {})
+      })
+      const stockData = await stockRes.json()
+      if (stockData.outOfStock?.length > 0) {
+        return NextResponse.json({ success: false, error: 'out_of_stock' }, { status: 409 })
+      }
     }
 
     // Gửi lên Google Sheet — PHẢI await để Vercel không kill trước khi hoàn thành
