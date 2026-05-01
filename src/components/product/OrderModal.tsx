@@ -1225,6 +1225,14 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                 )}
               </div>
 
+              {/* Thông báo lỗi — hiện ngay trên nút xác nhận */}
+              {submitError && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-2">
+                  <span className="text-red-500 text-base flex-shrink-0 mt-0.5">⚠️</span>
+                  <p className="text-sm text-red-700 font-medium leading-snug">{submitError}</p>
+                </div>
+              )}
+
               {/* Nút xác nhận */}
               <button onClick={handleConfirm} disabled={submitting}
                 className="w-full bg-brand-black hover:bg-gray-800 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-base shadow-lg">
