@@ -498,6 +498,25 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     if (!form.phone.trim() || !/^0\d{9}$/.test(form.phone.trim())) e.phone = 'Số điện thoại không hợp lệ'
     if (!form.address.trim()) e.address = 'Vui lòng nhập địa chỉ'
     if (!form.payment) e.payment = 'Vui lòng chọn phương thức thanh toán'
+
+    // Bắt buộc nhập độ mắt hoặc ảnh khi có chọn tròng kính
+    if (selectedLens) {
+      if (form.rxMode === 'form') {
+        const hasSph = form.rxRight.sph.trim() || form.rxLeft.sph.trim()
+        if (!hasSph) {
+          setSubmitError('⚠️ Vui lòng nhập thông số độ mắt (SPH Mắt P hoặc Mắt T) — hoặc chuyển sang chụp ảnh đơn thuốc.')
+          setErrors(e)
+          return false
+        }
+      } else {
+        if (!form.rxImageBase64) {
+          setSubmitError('⚠️ Vui lòng upload ảnh đơn thuốc mắt để chúng tôi lắp đúng độ.')
+          setErrors(e)
+          return false
+        }
+      }
+    }
+
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -1163,7 +1182,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                     ].map(opt => (
                       <button key={opt.id} onClick={() => setForm(f => ({ ...f, payment: opt.id }))}
                         className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                          form.payment === opt.id ? 'border-brand-black bg-gray-50' : 'border-brand-border hover:border-gray-400'
+                          (form.payment === opt.id || form.payment.startsWith(opt.id + '-')) ? 'border-brand-black bg-gray-50' : 'border-brand-border hover:border-gray-400'
                         }`}>
                         <div className="flex items-start gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 border ${opt.color}`}>{opt.icon}</div>
@@ -1179,8 +1198,8 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                               <span className="text-xs text-green-600 font-semibold">(-20%)</span>
                             </div>
                           </div>
-                          <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center mt-0.5 ${form.payment === opt.id ? 'border-brand-black' : 'border-gray-300'}`}>
-                            {form.payment === opt.id && <div className="w-2.5 h-2.5 rounded-full bg-brand-black" />}
+                          <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center mt-0.5 ${(form.payment === opt.id || form.payment.startsWith(opt.id + '-')) ? 'border-brand-black' : 'border-gray-300'}`}>
+                            {(form.payment === opt.id || form.payment.startsWith(opt.id + '-')) && <div className="w-2.5 h-2.5 rounded-full bg-brand-black" />}
                           </div>
                         </div>
                         {/* Kênh chuyển khoản */}
