@@ -1643,6 +1643,35 @@ interface AffComm { id: string; affiliateCode: string; orderCode: string; custom
 interface AffWd { id: string; affiliateCode: string; affiliateName: string; affiliatePhone: string; amount: number; bankName: string; bankAccount: string; bankOwner: string; status: 'pending' | 'paid'; requestedAt: string; paidAt?: string }
 type AffTab = 'affiliates' | 'commissions' | 'withdrawals'
 
+const BANK_CODES: Record<string, string> = {
+  'vietcombank': 'VCB', 'vcb': 'VCB',
+  'techcombank': 'TCB', 'tcb': 'TCB',
+  'mbbank': 'MB', 'mb': 'MB',
+  'bidv': 'BIDV',
+  'vietinbank': 'ICB', 'icb': 'ICB',
+  'agribank': 'AGR', 'agr': 'AGR',
+  'vpbank': 'VPB', 'vpb': 'VPB',
+  'sacombank': 'STB', 'stb': 'STB',
+  'acb': 'ACB',
+  'tpbank': 'TPB', 'tpb': 'TPB',
+  'msb': 'MSB',
+  'ocb': 'OCB',
+  'shb': 'SHB',
+  'vib': 'VIB',
+  'hdbank': 'HDB', 'hdb': 'HDB',
+  'seabank': 'SEAB',
+  'eximbank': 'EIB', 'eib': 'EIB',
+  'namabank': 'NAB',
+  'kienlongbank': 'KLB',
+  'pgbank': 'PGB',
+  'abbank': 'ABB',
+  'ncb': 'NCB',
+  'vietabank': 'VAB',
+  'bvbank': 'BVB',
+  'gpbank': 'GPB',
+  'cbbank': 'CBB',
+}
+
 function AffiliateSection() {
   const [tab, setTab] = useState<AffTab>('withdrawals')
   const [affiliates, setAffiliates] = useState<AffiliateAccount[]>([])
@@ -1688,30 +1717,72 @@ function AffiliateSection() {
       </div>
       {loading ? <p className="text-gray-400 text-sm">Đang tải...</p> : (<>
         {tab === 'withdrawals' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {withdrawals.length === 0 && <p className="text-gray-400 text-sm text-center py-8">Chưa có lệnh rút tiền nào</p>}
-            {withdrawals.map(w => (
-              <div key={w.id} className={`bg-white rounded-2xl border p-4 flex items-start gap-4 ${w.status === 'pending' ? 'border-amber-300' : 'border-gray-200'}`}>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <p className="font-bold text-sm text-gray-900">{w.affiliateName}</p>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${w.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{w.status === 'paid' ? '✓ Đã chuyển' : '⏳ Chờ chuyển'}</span>
+            {withdrawals.map(w => {
+              const bankCode = BANK_CODES[w.bankName.toLowerCase().replace(/\s/g, '')] ?? ''
+              const qrUrl = bankCode
+                ? `https://img.vietqr.io/image/${bankCode}-${w.bankAccount}-compact2.png?amount=${w.amount}&addInfo=SONi+Affiliate+${w.affiliateCode || ''}&accountName=${encodeURIComponent(w.bankOwner)}`
+                : ''
+              const msg = `SONi Kính đã chuyển khoản hoa hồng affiliate cho bạn:\n💰 Số tiền: ${fmtV(w.amount)}\n🏦 ${w.bankName} - ${w.bankAccount}\n👤 ${w.bankOwner}\n\nCảm ơn bạn đã hợp tác cùng SONi! 🎉`
+              return (
+                <div key={w.id} className={`bg-white rounded-2xl border overflow-hidden ${w.status === 'pending' ? 'border-amber-300' : 'border-gray-200'}`}>
+                  {/* Header */}
+                  <div className="p-4 flex items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <p className="font-bold text-sm text-gray-900">{w.affiliateName}</p>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${w.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {w.status === 'paid' ? '✓ Đã chuyển' : '⏳ Chờ chuyển'}
+                        </span>
+                      </div>
+                      <p className="text-2xl font-black text-gray-900">{fmtV(w.amount)}</p>
+                      <div className="mt-1 text-xs text-gray-500 space-y-0.5">
+                        <p>📱 {w.affiliatePhone}</p>
+                        <p>🏦 {w.bankName} · <strong className="font-mono text-gray-800">{w.bankAccount}</strong> · {w.bankOwner}</p>
+                        <p>🕐 {fmtD(w.requestedAt)}{w.paidAt ? ` · Đã CK: ${fmtD(w.paidAt)}` : ''}</p>
+                      </div>
+                    </div>
+                    {w.status === 'pending' && (
+                      <button onClick={() => doAction({ action: 'mark-paid', withdrawalId: w.id }, w.id)} disabled={acting === w.id}
+                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-xl disabled:opacity-50 flex-shrink-0">
+                        {acting === w.id ? '...' : '✓ Đã chuyển khoản'}
+                      </button>
+                    )}
                   </div>
-                  <p className="text-2xl font-black text-gray-900">{fmtV(w.amount)}</p>
-                  <div className="mt-1 text-xs text-gray-500 space-y-0.5">
-                    <p>📱 {w.affiliatePhone}</p>
-                    <p>🏦 {w.bankName} · <strong className="font-mono text-gray-800">{w.bankAccount}</strong> · {w.bankOwner}</p>
-                    <p>🕐 {fmtD(w.requestedAt)}{w.paidAt ? ` · Đã CK: ${fmtD(w.paidAt)}` : ''}</p>
-                  </div>
+
+                  {/* QR + Tin nhắn — chỉ hiện khi pending */}
+                  {w.status === 'pending' && (
+                    <div className="border-t border-gray-100 p-4 bg-amber-50 flex flex-col sm:flex-row gap-4">
+                      {/* QR Code */}
+                      {qrUrl ? (
+                        <div className="flex-shrink-0 text-center">
+                          <p className="text-[10px] font-bold text-gray-500 mb-1.5">QR CHUYỂN KHOẢN</p>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={qrUrl} alt="QR" className="w-36 h-36 rounded-xl border border-gray-200 bg-white p-1 mx-auto" />
+                          <p className="text-[9px] text-gray-400 mt-1">Quét để CK {fmtV(w.amount)}</p>
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0 w-36 h-36 bg-gray-100 rounded-xl flex items-center justify-center text-center p-3">
+                          <p className="text-[10px] text-gray-400">Ngân hàng chưa hỗ trợ QR tự động</p>
+                        </div>
+                      )}
+
+                      {/* Tin nhắn mẫu */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-gray-500 mb-1.5">TIN NHẮN GỬI AFFILIATE</p>
+                        <pre className="text-xs text-gray-700 bg-white border border-gray-200 rounded-xl p-3 whitespace-pre-wrap font-sans leading-relaxed">{msg}</pre>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(msg); alert('Đã copy tin nhắn!') }}
+                          className="mt-2 w-full text-xs font-semibold bg-gray-900 text-white py-2 rounded-xl hover:bg-gray-700 transition-colors">
+                          📋 Copy tin nhắn gửi Zalo/SMS
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                {w.status === 'pending' && (
-                  <button onClick={() => doAction({ action: 'mark-paid', withdrawalId: w.id }, w.id)} disabled={acting === w.id}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-xl disabled:opacity-50 flex-shrink-0">
-                    {acting === w.id ? '...' : '✓ Đã chuyển khoản'}
-                  </button>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
         {tab === 'commissions' && (
