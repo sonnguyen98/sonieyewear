@@ -20,11 +20,8 @@ async function postToScript(url: string, data: object) {
     console.log('[Script] redirect to:', location?.slice(0, 80))
 
     if (location) {
-      const r2 = await fetch(location, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-      })
+      // Echo URL chỉ nhận GET để lấy response — doPost đã chạy ở bước 1
+      const r2 = await fetch(location, { method: 'GET' })
       const text = await r2.text()
       console.log('[Script] step2 status:', r2.status, '| body:', text.slice(0, 200))
       return { ok: r2.ok, status: r2.status }

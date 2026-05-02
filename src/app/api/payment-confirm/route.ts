@@ -6,7 +6,7 @@ async function postToAppsScript(url: string, data: object) {
   const r1 = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, redirect: 'manual' })
   if (r1.status >= 300 && r1.status < 400) {
     const loc = r1.headers.get('location') ?? ''
-    if (loc) await fetch(loc, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+    if (loc) await fetch(loc, { method: 'GET' }) // echo URL chỉ nhận GET
   }
 }
 import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
