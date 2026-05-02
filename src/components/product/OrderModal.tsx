@@ -171,64 +171,31 @@ const ADD_OPTIONS = ['1.00','1.25','1.50','1.75','2.00','2.25','2.50','2.75','3.
 
 interface EyeRxLocal { sph: string; cyl: string; axis: string }
 
-// ScrollPicker: hiện 7 dòng, giá trị chọn luôn ở giữa
-function ScrollPicker({ options, value, onChange, disabled, placeholder }: {
-  options: string[]; value: string; onChange: (v: string) => void
-  disabled?: boolean; placeholder?: string
-}) {
-  const ref = useRef<HTMLDivElement>(null)
-  const ITEM_H = 32
-  const VISIBLE = 7
-  const allOpts = placeholder ? [{ label: placeholder, val: '' }, ...options.map(o => ({ label: o, val: o }))] : options.map(o => ({ label: o, val: o }))
-  const idx = allOpts.findIndex(o => o.val === value)
-
-  useEffect(() => {
-    if (!ref.current) return
-    const target = Math.max(0, idx) * ITEM_H - Math.floor(VISIBLE / 2) * ITEM_H
-    ref.current.scrollTop = target
-  }, [value, idx])
-
-  if (disabled) return (
-    <div className="border border-brand-border rounded-lg bg-gray-50 flex items-center justify-center h-8 text-[10px] text-brand-muted opacity-40 text-center px-1">— Trục —</div>
-  )
-
-  return (
-    <div className="relative border border-brand-border rounded-lg overflow-hidden" style={{ height: ITEM_H * VISIBLE }}>
-      {/* Highlight giữa */}
-      <div className="absolute left-0 right-0 pointer-events-none z-10 border-t border-b border-brand-black/20 bg-blue-50/60"
-        style={{ top: Math.floor(VISIBLE / 2) * ITEM_H, height: ITEM_H }} />
-      {/* Fade top */}
-      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent pointer-events-none z-10" />
-      {/* Fade bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none z-10" />
-      {/* List */}
-      <div ref={ref} className="overflow-y-auto h-full scroll-smooth" style={{ scrollbarWidth: 'none' }}>
-        {/* Padding top/bottom để Plano có thể lên giữa */}
-        <div style={{ height: Math.floor(VISIBLE / 2) * ITEM_H }} />
-        {allOpts.map(o => (
-          <div key={o.val || '__placeholder__'}
-            onClick={() => onChange(o.val)}
-            className={`flex items-center justify-center text-xs font-medium cursor-pointer transition-colors select-none ${o.val === value ? 'text-brand-black font-bold' : 'text-brand-muted hover:text-brand-black'}`}
-            style={{ height: ITEM_H }}>
-            {o.label}
-          </div>
-        ))}
-        <div style={{ height: Math.floor(VISIBLE / 2) * ITEM_H }} />
-      </div>
-    </div>
-  )
-}
+// SPH mặc định = Plano để dropdown tự scroll đến giữa khi mở
+const DEFAULT_EYE: EyeRxLocal = { sph: '0.00 (Plano)', cyl: '0.00 (Không loạn)', axis: '' }
 
 function RxRow({ label, sub, rx, onChange }: { label: string; sub: string; rx: EyeRxLocal; onChange: (r: EyeRxLocal) => void }) {
+  const sel = 'border border-brand-border rounded-lg text-xs text-center outline-none focus:border-brand-black transition-colors bg-white w-full py-2 px-0.5 cursor-pointer'
   const noCyl = !rx.cyl || rx.cyl === '0.00 (Không loạn)'
   return (
-    <div className="grid grid-cols-4 gap-1 items-start">
-      <div className="text-xs font-bold text-brand-black pt-14">
+    <div className="grid grid-cols-4 gap-1 items-center">
+      <div className="text-xs font-bold text-brand-black">
         {label}<br/><span className="text-[10px] text-brand-muted font-normal">({sub})</span>
       </div>
-      <ScrollPicker options={SPH_OPTIONS} value={rx.sph} onChange={v => onChange({ ...rx, sph: v })} placeholder="SPH" />
-      <ScrollPicker options={CYL_OPTIONS} value={rx.cyl} onChange={v => onChange({ ...rx, cyl: v, axis: v === '0.00 (Không loạn)' ? '' : rx.axis })} placeholder="CYL" />
-      <ScrollPicker options={AXIS_OPTIONS.map(v => v + '°')} value={rx.axis ? rx.axis + '°' : ''} onChange={v => onChange({ ...rx, axis: v.replace('°', '') })} disabled={noCyl} placeholder="Trục" />
+      {/* SPH — mặc định Plano, browser tự scroll đến giữa list khi mở */}
+      <select value={rx.sph} onChange={e => onChange({ ...rx, sph: e.target.value })} className={sel} size={1}>
+        {SPH_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+      </select>
+      {/* CYL — mặc định 0.00 */}
+      <select value={rx.cyl} onChange={e => onChange({ ...rx, cyl: e.target.value, axis: e.target.value === '0.00 (Không loạn)' ? '' : rx.axis })} className={sel}>
+        {CYL_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+      </select>
+      {/* AXIS — chỉ bật khi có CYL */}
+      <select value={rx.axis} onChange={e => onChange({ ...rx, axis: e.target.value })} disabled={noCyl}
+        className={`${sel} ${noCyl ? 'opacity-40 cursor-not-allowed bg-gray-50' : ''}`}>
+        <option value="">— Trục —</option>
+        {AXIS_OPTIONS.map(v => <option key={v} value={v}>{v}°</option>)}
+      </select>
     </div>
   )
 }
@@ -502,7 +469,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
   const [selectedCategory, setSelectedCategory] = useState<LensCategoryGroup | null>(null)
   const [donTrongCats, setDonTrongCats] = useState<LensCategoryGroup[]>(DON_TRONG_CATEGORIES)
   const [daTrong, setDaTrong] = useState<LensOption[]>(DA_TRONG)
-  const emptyEye: EyeRx = { sph: '', cyl: '', axis: '' }
+  const emptyEye: EyeRx = DEFAULT_EYE
 
   useEffect(() => {
     fetch('/api/lens-products')
@@ -587,10 +554,11 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     // Bắt buộc nhập độ mắt hoặc ảnh khi có chọn tròng kính
     if (selectedLens) {
       if (form.rxMode === 'form') {
-        // Coi là "chưa chọn" nếu còn trống (chưa chọn từ dropdown)
-        const hasSph = form.rxRight.sph.trim() || form.rxLeft.sph.trim()
-        if (!hasSph) {
-          setSubmitError('⚠️ Vui lòng chọn thông số độ mắt (SPH Mắt P hoặc Mắt T) — hoặc chuyển sang chụp ảnh đơn thuốc.')
+        // Báo lỗi nếu cả 2 mắt đều ở mặc định Plano + không loạn (chưa thay đổi gì)
+        const isDefaultR = form.rxRight.sph === '0.00 (Plano)' && form.rxRight.cyl === '0.00 (Không loạn)'
+        const isDefaultL = form.rxLeft.sph === '0.00 (Plano)' && form.rxLeft.cyl === '0.00 (Không loạn)'
+        if (isDefaultR && isDefaultL) {
+          setSubmitError('⚠️ Vui lòng chọn thông số độ mắt phù hợp — hoặc chuyển sang chụp ảnh đơn thuốc.')
           setErrors(e)
           return false
         }
