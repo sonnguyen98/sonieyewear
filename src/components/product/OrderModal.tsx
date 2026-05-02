@@ -12,7 +12,7 @@ interface OrderModalProps {
   onClose: () => void
 }
 
-type Step = 'main' | 'don-trong' | 'don-trong-detail' | 'da-trong' | 'checkout' | 'success'
+type Step = 'main' | 'don-trong' | 'don-trong-detail' | 'da-trong' | 'checkout' | 'summary' | 'success'
 
 interface LensOption {
   id: string
@@ -150,19 +150,19 @@ const DISCOUNT = 0.20
 
 // ── Prescription dropdown options ─────────────────────────────────────────────
 function buildSPH(): string[] {
-  const opts: string[] = []
-  for (let v = 1600; v >= -1600; v -= 25) {
-    const n = v / 100
-    if (n === 0) opts.push('0.00')
-    else if (n > 0) opts.push('+' + n.toFixed(2))
-    else opts.push(n.toFixed(2))
+  // Plano (0.00) ở giữa: âm xuống dưới, dương lên trên
+  const neg: string[] = []
+  const pos: string[] = []
+  for (let v = 25; v <= 1600; v += 25) {
+    neg.push((-v / 100).toFixed(2))         // -0.25, -0.50 ...
+    pos.push('+' + (v / 100).toFixed(2))    // +0.25, +0.50 ...
   }
-  return opts
+  return ['0.00 (Plano)', ...neg, ...pos]
 }
 function buildCYL(): string[] {
-  const opts = ['0.00']
-  for (let v = 25; v <= 600; v += 25) opts.push('+' + (v / 100).toFixed(2))
-  for (let v = -25; v >= -600; v -= 25) opts.push((v / 100).toFixed(2))
+  // Chỉ loạn âm (-) — phổ biến nhất trong lâm sàng
+  const opts = ['0.00 (Không loạn)']
+  for (let v = 25; v <= 600; v += 25) opts.push((-v / 100).toFixed(2))
   return opts
 }
 const SPH_OPTIONS = buildSPH()
@@ -549,9 +549,10 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     // Bắt buộc nhập độ mắt hoặc ảnh khi có chọn tròng kính
     if (selectedLens) {
       if (form.rxMode === 'form') {
+        // Coi là "chưa chọn" nếu còn trống (chưa chọn từ dropdown)
         const hasSph = form.rxRight.sph.trim() || form.rxLeft.sph.trim()
         if (!hasSph) {
-          setSubmitError('⚠️ Vui lòng nhập thông số độ mắt (SPH Mắt P hoặc Mắt T) — hoặc chuyển sang chụp ảnh đơn thuốc.')
+          setSubmitError('⚠️ Vui lòng chọn thông số độ mắt (SPH Mắt P hoặc Mắt T) — hoặc chuyển sang chụp ảnh đơn thuốc.')
           setErrors(e)
           return false
         }
@@ -652,7 +653,8 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     step === 'don-trong' ? 'Đơn Tròng' :
     step === 'don-trong-detail' ? (selectedCategory?.name ?? 'Chọn Tròng') :
     step === 'da-trong' ? 'Hai Tròng / Đa Tròng' :
-    step === 'checkout' ? 'Thông Tin Đặt Hàng' : 'Đặt Hàng Thành Công'
+    step === 'checkout' ? 'Thông Tin Đặt Hàng' :
+    step === 'summary' ? 'Xác Nhận Đơn Hàng' : 'Đặt Hàng Thành Công'
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -662,9 +664,10 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-brand-border px-5 py-4 flex items-center gap-3 z-10 rounded-t-3xl">
-          {(step === 'don-trong' || step === 'don-trong-detail' || step === 'da-trong' || step === 'checkout') && (
+          {(step === 'don-trong' || step === 'don-trong-detail' || step === 'da-trong' || step === 'checkout' || step === 'summary') && (
             <button
               onClick={() => {
+                if (step === 'summary') { setStep('checkout'); return }
                 if (step === 'checkout') {
                   if (!selectedLens) { setStep('main'); return }
                   if (selectedLens.id.startsWith('da')) { setStep('da-trong'); return }
@@ -1259,25 +1262,86 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
               )}
 
               {/* Nút xác nhận */}
-              <button onClick={handleConfirm} disabled={submitting}
-                className="w-full bg-brand-black hover:bg-gray-800 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-base shadow-lg">
-                {submitting ? (
-                  <>
-                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
-                    Đang gửi đơn hàng...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Xác Nhận Đặt Hàng
-                  </>
-                )}
+              <button onClick={() => { if (validate()) { setSubmitError(''); setStep('summary') } }}
+                className="w-full bg-brand-black hover:bg-gray-800 active:scale-95 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-base shadow-lg">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+                Xem Lại Đơn Hàng →
               </button>
               <p className="text-center text-xs text-brand-muted">🛡️ Đổi trả trong 7 ngày • Bảo hành 12 tháng</p>
+            </div>
+          )}
+
+          {/* ── BƯỚC 3.5: Xác nhận đơn hàng (hoá đơn preview) ── */}
+          {step === 'summary' && (
+            <div className="space-y-4">
+              <div className="bg-brand-light rounded-2xl p-4 space-y-3 text-sm">
+                <p className="text-xs font-black text-brand-black uppercase tracking-wide border-b border-brand-border pb-2">📋 Xác nhận thông tin đơn hàng</p>
+
+                {/* Sản phẩm */}
+                <div className="space-y-1.5">
+                  <p className="text-xs font-bold text-brand-muted uppercase">Sản phẩm</p>
+                  <div className="flex justify-between"><span className="text-brand-muted">Gọng kính</span><span className="font-semibold text-right max-w-[55%]">{product.name}</span></div>
+                  {selectedLens && <div className="flex justify-between"><span className="text-brand-muted">Tròng kính</span><span className="font-semibold text-right max-w-[55%]">{selectedLens.name}</span></div>}
+                </div>
+
+                {/* Thông số độ */}
+                {selectedLens && form.rxMode === 'form' && (form.rxRight.sph || form.rxLeft.sph) && (
+                  <div className="space-y-1.5 border-t border-brand-border pt-2">
+                    <p className="text-xs font-bold text-brand-muted uppercase">Thông số độ mắt</p>
+                    {form.rxRight.sph && <div className="flex justify-between"><span className="text-brand-muted">Mắt P (OD)</span><span className="font-semibold font-mono text-xs">SPH {form.rxRight.sph}{form.rxRight.cyl && form.rxRight.cyl !== '0.00 (Không loạn)' ? ` / CYL ${form.rxRight.cyl}` : ''}{form.rxRight.axis ? ` / Trục ${form.rxRight.axis}°` : ''}</span></div>}
+                    {form.rxLeft.sph && <div className="flex justify-between"><span className="text-brand-muted">Mắt T (OS)</span><span className="font-semibold font-mono text-xs">SPH {form.rxLeft.sph}{form.rxLeft.cyl && form.rxLeft.cyl !== '0.00 (Không loạn)' ? ` / CYL ${form.rxLeft.cyl}` : ''}{form.rxLeft.axis ? ` / Trục ${form.rxLeft.axis}°` : ''}</span></div>}
+                    {form.rxAdd && <div className="flex justify-between"><span className="text-brand-muted">ADD (Đa tròng)</span><span className="font-semibold">{form.rxAdd}</span></div>}
+                  </div>
+                )}
+                {selectedLens && form.rxMode === 'image' && form.rxImageBase64 && (
+                  <div className="border-t border-brand-border pt-2">
+                    <p className="text-xs font-bold text-brand-muted uppercase mb-1">Đơn thuốc mắt</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.rxImageBase64} alt="prescription" className="max-h-24 rounded-lg object-contain border border-brand-border" />
+                  </div>
+                )}
+
+                {/* Giao hàng */}
+                <div className="space-y-1.5 border-t border-brand-border pt-2">
+                  <p className="text-xs font-bold text-brand-muted uppercase">Thông tin giao hàng</p>
+                  <div className="flex justify-between"><span className="text-brand-muted">Họ tên</span><span className="font-semibold">{form.name}</span></div>
+                  <div className="flex justify-between"><span className="text-brand-muted">SĐT</span><span className="font-semibold">{form.phone}</span></div>
+                  <div className="flex justify-between gap-4"><span className="text-brand-muted flex-shrink-0">Địa chỉ</span><span className="font-semibold text-right">{form.address}</span></div>
+                  {form.note && <div className="flex justify-between"><span className="text-brand-muted">Ghi chú</span><span className="font-semibold text-right max-w-[60%]">{form.note}</span></div>}
+                </div>
+
+                {/* Thanh toán */}
+                <div className="space-y-1.5 border-t border-brand-border pt-2">
+                  <p className="text-xs font-bold text-brand-muted uppercase">Thanh toán</p>
+                  <div className="flex justify-between"><span className="text-brand-muted">Hình thức</span><span className="font-semibold text-right max-w-[55%]">{form.payment || '—'}</span></div>
+                  <div className="flex justify-between text-brand-black">
+                    <span className="font-bold">Tổng thanh toán</span>
+                    <div className="text-right">
+                      <span className="font-black text-red-600">{formatVND(discountedTotal)}</span>
+                      <span className="text-xs text-gray-400 line-through ml-1.5">{formatVND(totalPrice)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {submitError && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-2">
+                  <span className="text-red-500 flex-shrink-0">⚠️</span>
+                  <p className="text-sm text-red-700 font-medium">{submitError}</p>
+                </div>
+              )}
+
+              <button onClick={handleConfirm} disabled={submitting}
+                className="w-full bg-brand-zalo hover:bg-blue-700 active:scale-95 disabled:opacity-60 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-base shadow-lg">
+                {submitting ? (
+                  <><svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z"/></svg>Đang gửi đơn hàng...</>
+                ) : (
+                  <><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Xác Nhận &amp; Thanh Toán</>
+                )}
+              </button>
+              <button onClick={() => setStep('checkout')} className="w-full py-2.5 text-sm text-brand-muted hover:text-brand-black transition-colors">← Quay lại sửa thông tin</button>
             </div>
           )}
 
