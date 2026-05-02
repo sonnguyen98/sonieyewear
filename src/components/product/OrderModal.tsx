@@ -148,6 +148,53 @@ const DA_TRONG: LensOption[] = [
 
 const DISCOUNT = 0.20
 
+// ── Prescription dropdown options ─────────────────────────────────────────────
+function buildSPH(): string[] {
+  const opts: string[] = []
+  for (let v = 1600; v >= -1600; v -= 25) {
+    const n = v / 100
+    if (n === 0) opts.push('0.00')
+    else if (n > 0) opts.push('+' + n.toFixed(2))
+    else opts.push(n.toFixed(2))
+  }
+  return opts
+}
+function buildCYL(): string[] {
+  const opts = ['0.00']
+  for (let v = 25; v <= 600; v += 25) opts.push('+' + (v / 100).toFixed(2))
+  for (let v = -25; v >= -600; v -= 25) opts.push((v / 100).toFixed(2))
+  return opts
+}
+const SPH_OPTIONS = buildSPH()
+const CYL_OPTIONS = buildCYL()
+const AXIS_OPTIONS = Array.from({ length: 180 }, (_, i) => String(i + 1))
+const ADD_OPTIONS = ['1.00','1.25','1.50','1.75','2.00','2.25','2.50','2.75','3.00','3.25','3.50']
+
+interface EyeRxLocal { sph: string; cyl: string; axis: string }
+function RxRow({ label, sub, rx, onChange }: { label: string; sub: string; rx: EyeRxLocal; onChange: (r: EyeRxLocal) => void }) {
+  const sel = 'border border-brand-border rounded-lg text-xs text-center outline-none focus:border-brand-black transition-colors bg-white w-full py-2 px-1'
+  const hasCyl = rx.cyl && rx.cyl !== '0.00'
+  return (
+    <div className="grid grid-cols-4 gap-1 items-center">
+      <div className="text-xs font-bold text-brand-black">
+        {label}<br/><span className="text-[10px] text-brand-muted font-normal">({sub})</span>
+      </div>
+      <select value={rx.sph} onChange={e => onChange({ ...rx, sph: e.target.value })} className={sel}>
+        <option value="">-- SPH --</option>
+        {SPH_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+      </select>
+      <select value={rx.cyl} onChange={e => onChange({ ...rx, cyl: e.target.value, axis: e.target.value === '0.00' ? '' : rx.axis })} className={sel}>
+        <option value="">-- CYL --</option>
+        {CYL_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+      </select>
+      <select value={rx.axis} onChange={e => onChange({ ...rx, axis: e.target.value })} disabled={!hasCyl} className={`${sel} ${!hasCyl ? 'opacity-40 cursor-not-allowed' : ''}`}>
+        <option value="">-- Trục --</option>
+        {AXIS_OPTIONS.map(v => <option key={v} value={v}>{v}°</option>)}
+      </select>
+    </div>
+  )
+}
+
 const DON_GROUP_ORDER = ['trang', 'blue', 'mong', 'doi-mau', 'phan-cuc']
 
 const GROUP_META: Record<string, { name: string; icon: string; desc: string; badge?: string }> = {
@@ -991,17 +1038,13 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                       </button>
                     </div>
 
-                    {/* Form điền tay */}
+                    {/* Form chọn độ — dropdown */}
                     {form.rxMode === 'form' && (
                       <div className="px-4 pb-4 space-y-3">
-                        {/* Header bảng */}
+                        {/* Header */}
                         <div className="grid grid-cols-4 gap-1 mt-1">
                           <div />
-                          {[
-                            { label: 'Độ Cận/Viễn', sub: 'SPH' },
-                            { label: 'Độ Loạn', sub: 'CYL' },
-                            { label: 'Trục Loạn', sub: 'AXIS' },
-                          ].map(h => (
+                          {[{ label: 'Độ Cận/Viễn', sub: 'SPH' }, { label: 'Độ Loạn', sub: 'CYL' }, { label: 'Trục Loạn', sub: 'AXIS' }].map(h => (
                             <div key={h.sub} className="text-center">
                               <div className="text-[10px] font-bold text-brand-black leading-tight">{h.label}</div>
                               <div className="text-[9px] text-brand-muted">{h.sub}</div>
@@ -1010,49 +1053,31 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                         </div>
 
                         {/* Mắt phải */}
-                        <div className="grid grid-cols-4 gap-1 items-center">
-                          <div className="text-xs font-bold text-brand-black">
-                            Mắt P<br/><span className="text-[10px] text-brand-muted font-normal">(OD)</span>
-                          </div>
-                          {(['sph', 'cyl', 'axis'] as const).map(field => (
-                            <input key={field} type="text"
-                              placeholder={field === 'axis' ? '0–180' : '±0.00'}
-                              value={form.rxRight[field]}
-                              onChange={e => setForm(f => ({ ...f, rxRight: { ...f.rxRight, [field]: e.target.value } }))}
-                              className="border border-brand-border rounded-lg px-2 py-2 text-xs text-center outline-none focus:border-brand-black transition-colors"
-                            />
-                          ))}
-                        </div>
+                        <RxRow label="Mắt P" sub="OD"
+                          rx={form.rxRight}
+                          onChange={rx => setForm(f => ({ ...f, rxRight: rx }))}
+                        />
 
                         {/* Mắt trái */}
-                        <div className="grid grid-cols-4 gap-1 items-center">
-                          <div className="text-xs font-bold text-brand-black">
-                            Mắt T<br/><span className="text-[10px] text-brand-muted font-normal">(OS)</span>
-                          </div>
-                          {(['sph', 'cyl', 'axis'] as const).map(field => (
-                            <input key={field} type="text"
-                              placeholder={field === 'axis' ? '0–180' : '±0.00'}
-                              value={form.rxLeft[field]}
-                              onChange={e => setForm(f => ({ ...f, rxLeft: { ...f.rxLeft, [field]: e.target.value } }))}
-                              className="border border-brand-border rounded-lg px-2 py-2 text-xs text-center outline-none focus:border-brand-black transition-colors"
-                            />
-                          ))}
-                        </div>
+                        <RxRow label="Mắt T" sub="OS"
+                          rx={form.rxLeft}
+                          onChange={rx => setForm(f => ({ ...f, rxLeft: rx }))}
+                        />
 
                         {/* ADD cho đa tròng */}
                         {selectedLens.id.startsWith('da') && (
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-bold text-brand-black w-16">ADD<br/><span className="text-[10px] text-brand-muted font-normal">(Thêm)</span></span>
-                            <input type="text" placeholder="+0.00 đến +3.50"
-                              value={form.rxAdd}
-                              onChange={e => setForm(f => ({ ...f, rxAdd: e.target.value }))}
-                              className="border border-brand-border rounded-lg px-3 py-2 text-xs text-center outline-none focus:border-brand-black transition-colors w-36"
-                            />
+                            <select value={form.rxAdd} onChange={e => setForm(f => ({ ...f, rxAdd: e.target.value }))}
+                              className="border border-brand-border rounded-lg px-2 py-2 text-xs text-center outline-none focus:border-brand-black transition-colors w-36 bg-white">
+                              <option value="">-- Chọn ADD --</option>
+                              {ADD_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+                            </select>
                           </div>
                         )}
 
                         <p className="text-[10px] text-brand-muted bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
-                          💡 Ví dụ: Cầu <strong>-2.50</strong>, Trụ <strong>-0.75</strong>, Trục <strong>90</strong>. Xem trên đơn thuốc của bác sĩ mắt.
+                          💡 Chọn đúng số trên đơn thuốc của bác sĩ mắt. CYL = 0.00 nếu không bị loạn thị. Trục chỉ cần chọn khi CYL ≠ 0.
                         </p>
                       </div>
                     )}
