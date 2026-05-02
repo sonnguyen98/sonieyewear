@@ -670,8 +670,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={step === 'success' ? onClose : undefined} />
 
-      <div className="relative w-full sm:w-[500px] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto overscroll-contain"
-        ref={el => { if (el && (step === 'checkout' || step === 'summary')) el.scrollTop = 0 }}>
+      <div className="relative w-full sm:w-[500px] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto overscroll-contain">
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-brand-border px-5 py-4 flex items-center gap-3 z-10 rounded-t-3xl">
