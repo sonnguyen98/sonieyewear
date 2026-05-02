@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { invalidateStockCache } from '@/hooks/useStock'
 import Image from 'next/image'
 import type { Product } from '@/types/product'
@@ -170,26 +170,65 @@ const AXIS_OPTIONS = Array.from({ length: 180 }, (_, i) => String(i + 1))
 const ADD_OPTIONS = ['1.00','1.25','1.50','1.75','2.00','2.25','2.50','2.75','3.00','3.25','3.50']
 
 interface EyeRxLocal { sph: string; cyl: string; axis: string }
-function RxRow({ label, sub, rx, onChange }: { label: string; sub: string; rx: EyeRxLocal; onChange: (r: EyeRxLocal) => void }) {
-  const sel = 'border border-brand-border rounded-lg text-xs text-center outline-none focus:border-brand-black transition-colors bg-white w-full py-2 px-1'
-  const hasCyl = rx.cyl && rx.cyl !== '0.00'
+
+// ScrollPicker: hiện 7 dòng, giá trị chọn luôn ở giữa
+function ScrollPicker({ options, value, onChange, disabled, placeholder }: {
+  options: string[]; value: string; onChange: (v: string) => void
+  disabled?: boolean; placeholder?: string
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const ITEM_H = 32
+  const VISIBLE = 7
+  const allOpts = placeholder ? [{ label: placeholder, val: '' }, ...options.map(o => ({ label: o, val: o }))] : options.map(o => ({ label: o, val: o }))
+  const idx = allOpts.findIndex(o => o.val === value)
+
+  useEffect(() => {
+    if (!ref.current) return
+    const target = Math.max(0, idx) * ITEM_H - Math.floor(VISIBLE / 2) * ITEM_H
+    ref.current.scrollTop = target
+  }, [value, idx])
+
+  if (disabled) return (
+    <div className="border border-brand-border rounded-lg bg-gray-50 flex items-center justify-center h-8 text-[10px] text-brand-muted opacity-40 text-center px-1">— Trục —</div>
+  )
+
   return (
-    <div className="grid grid-cols-4 gap-1 items-center">
-      <div className="text-xs font-bold text-brand-black">
+    <div className="relative border border-brand-border rounded-lg overflow-hidden" style={{ height: ITEM_H * VISIBLE }}>
+      {/* Highlight giữa */}
+      <div className="absolute left-0 right-0 pointer-events-none z-10 border-t border-b border-brand-black/20 bg-blue-50/60"
+        style={{ top: Math.floor(VISIBLE / 2) * ITEM_H, height: ITEM_H }} />
+      {/* Fade top */}
+      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent pointer-events-none z-10" />
+      {/* Fade bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none z-10" />
+      {/* List */}
+      <div ref={ref} className="overflow-y-auto h-full scroll-smooth" style={{ scrollbarWidth: 'none' }}>
+        {/* Padding top/bottom để Plano có thể lên giữa */}
+        <div style={{ height: Math.floor(VISIBLE / 2) * ITEM_H }} />
+        {allOpts.map(o => (
+          <div key={o.val || '__placeholder__'}
+            onClick={() => onChange(o.val)}
+            className={`flex items-center justify-center text-xs font-medium cursor-pointer transition-colors select-none ${o.val === value ? 'text-brand-black font-bold' : 'text-brand-muted hover:text-brand-black'}`}
+            style={{ height: ITEM_H }}>
+            {o.label}
+          </div>
+        ))}
+        <div style={{ height: Math.floor(VISIBLE / 2) * ITEM_H }} />
+      </div>
+    </div>
+  )
+}
+
+function RxRow({ label, sub, rx, onChange }: { label: string; sub: string; rx: EyeRxLocal; onChange: (r: EyeRxLocal) => void }) {
+  const noCyl = !rx.cyl || rx.cyl === '0.00 (Không loạn)'
+  return (
+    <div className="grid grid-cols-4 gap-1 items-start">
+      <div className="text-xs font-bold text-brand-black pt-14">
         {label}<br/><span className="text-[10px] text-brand-muted font-normal">({sub})</span>
       </div>
-      <select value={rx.sph} onChange={e => onChange({ ...rx, sph: e.target.value })} className={sel}>
-        <option value="">-- SPH --</option>
-        {SPH_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
-      </select>
-      <select value={rx.cyl} onChange={e => onChange({ ...rx, cyl: e.target.value, axis: e.target.value === '0.00' ? '' : rx.axis })} className={sel}>
-        <option value="">-- CYL --</option>
-        {CYL_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
-      </select>
-      <select value={rx.axis} onChange={e => onChange({ ...rx, axis: e.target.value })} disabled={!hasCyl} className={`${sel} ${!hasCyl ? 'opacity-40 cursor-not-allowed' : ''}`}>
-        <option value="">-- Trục --</option>
-        {AXIS_OPTIONS.map(v => <option key={v} value={v}>{v}°</option>)}
-      </select>
+      <ScrollPicker options={SPH_OPTIONS} value={rx.sph} onChange={v => onChange({ ...rx, sph: v })} placeholder="SPH" />
+      <ScrollPicker options={CYL_OPTIONS} value={rx.cyl} onChange={v => onChange({ ...rx, cyl: v, axis: v === '0.00 (Không loạn)' ? '' : rx.axis })} placeholder="CYL" />
+      <ScrollPicker options={AXIS_OPTIONS.map(v => v + '°')} value={rx.axis ? rx.axis + '°' : ''} onChange={v => onChange({ ...rx, axis: v.replace('°', '') })} disabled={noCyl} placeholder="Trục" />
     </div>
   )
 }
