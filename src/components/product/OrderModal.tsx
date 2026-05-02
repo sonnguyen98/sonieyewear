@@ -150,14 +150,13 @@ const DISCOUNT = 0.20
 
 // ── Prescription dropdown options ─────────────────────────────────────────────
 function buildSPH(): string[] {
-  // Plano (0.00) ở giữa: âm xuống dưới, dương lên trên
-  const neg: string[] = []
-  const pos: string[] = []
-  for (let v = 25; v <= 1600; v += 25) {
-    neg.push((-v / 100).toFixed(2))         // -0.25, -0.50 ...
-    pos.push('+' + (v / 100).toFixed(2))    // +0.25, +0.50 ...
-  }
-  return ['0.00 (Plano)', ...neg, ...pos]
+  // Thứ tự: cận (-) phía trên → Plano ở giữa → viễn (+) phía dưới
+  // Cuộn lên = độ cận tăng dần, cuộn xuống = độ viễn tăng dần
+  const opts: string[] = []
+  for (let v = 1600; v >= 25; v -= 25) opts.push((-v / 100).toFixed(2)) // -16.00 → -0.25
+  opts.push('0.00 (Plano)')
+  for (let v = 25; v <= 1600; v += 25) opts.push('+' + (v / 100).toFixed(2)) // +0.25 → +16.00
+  return opts
 }
 function buildCYL(): string[] {
   // Chỉ loạn âm (-) — phổ biến nhất trong lâm sàng
