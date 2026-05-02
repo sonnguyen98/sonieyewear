@@ -59,6 +59,7 @@ interface CheckoutForm {
   rxRight: EyeRx
   rxLeft: EyeRx
   rxAdd: string
+  pd: string
   rxImageBase64: string
   rxImageName: string
 }
@@ -168,6 +169,8 @@ const SPH_OPTIONS = buildSPH()
 const CYL_OPTIONS = buildCYL()
 const AXIS_OPTIONS = Array.from({ length: 180 }, (_, i) => String(i + 1))
 const ADD_OPTIONS = ['1.00','1.25','1.50','1.75','2.00','2.25','2.50','2.75','3.00','3.25','3.50']
+// PD: 54–74mm bước 0.5 — khoảng cách đồng tử
+const PD_OPTIONS = Array.from({ length: 41 }, (_, i) => (54 + i * 0.5).toFixed(1) + ' mm')
 
 interface EyeRxLocal { sph: string; cyl: string; axis: string }
 
@@ -502,6 +505,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     name: '', phone: '', address: '', note: '', payment: '',
     rxMode: 'form',
     rxRight: { ...emptyEye }, rxLeft: { ...emptyEye }, rxAdd: '',
+    pd: '',
     rxImageBase64: '', rxImageName: '',
   })
   const [errors, setErrors] = useState<Partial<CheckoutForm>>({})
@@ -599,8 +603,8 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
 
     const rxText = selectedLens
       ? form.rxMode === 'image'
-        ? '[Ảnh đơn thuốc đính kèm]'
-        : `MP: SPH ${form.rxRight.sph||'?'} / CYL ${form.rxRight.cyl||'?'} / Trục ${form.rxRight.axis||'?'} | MT: SPH ${form.rxLeft.sph||'?'} / CYL ${form.rxLeft.cyl||'?'} / Trục ${form.rxLeft.axis||'?'}${form.rxAdd ? ` | ADD ${form.rxAdd}` : ''}`
+        ? `[Ảnh đơn thuốc]${form.pd ? ` | PD: ${form.pd}` : ''}`
+        : `MP: SPH ${form.rxRight.sph||'?'} / CYL ${form.rxRight.cyl||'?'} / Trục ${form.rxRight.axis||'?'} | MT: SPH ${form.rxLeft.sph||'?'} / CYL ${form.rxLeft.cyl||'?'} / Trục ${form.rxLeft.axis||'?'}${form.rxAdd ? ` | ADD ${form.rxAdd}` : ''}${form.pd ? ` | PD: ${form.pd}` : ''}`
       : 'Không cần (chỉ gọng)'
 
     try {
@@ -1085,6 +1089,20 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                           </div>
                         )}
 
+                        {/* PD — khoảng cách đồng tử */}
+                        <div className="flex items-center gap-3 pt-1">
+                          <div className="flex-shrink-0">
+                            <p className="text-xs font-bold text-brand-black">PD</p>
+                            <p className="text-[10px] text-brand-muted leading-tight">Khoảng cách<br/>đồng tử</p>
+                          </div>
+                          <select value={form.pd} onChange={e => setForm(f => ({ ...f, pd: e.target.value }))}
+                            className="border border-brand-border rounded-lg text-xs text-center outline-none focus:border-brand-black transition-colors bg-white py-2 px-2 w-36">
+                            <option value="">— Chọn PD —</option>
+                            {PD_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
+                          </select>
+                          <p className="text-[10px] text-brand-muted leading-tight">Thường từ<br/>54–74 mm</p>
+                        </div>
+
                         <p className="text-[10px] text-brand-muted bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
                           💡 Chọn đúng số trên đơn thuốc của bác sĩ mắt. CYL = 0.00 nếu không bị loạn thị. Trục chỉ cần chọn khi CYL ≠ 0.
                         </p>
@@ -1299,6 +1317,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                     {form.rxRight.sph && <div className="flex justify-between"><span className="text-brand-muted">Mắt P (OD)</span><span className="font-semibold font-mono text-xs">SPH {form.rxRight.sph}{form.rxRight.cyl && form.rxRight.cyl !== '0.00 (Không loạn)' ? ` / CYL ${form.rxRight.cyl}` : ''}{form.rxRight.axis ? ` / Trục ${form.rxRight.axis}°` : ''}</span></div>}
                     {form.rxLeft.sph && <div className="flex justify-between"><span className="text-brand-muted">Mắt T (OS)</span><span className="font-semibold font-mono text-xs">SPH {form.rxLeft.sph}{form.rxLeft.cyl && form.rxLeft.cyl !== '0.00 (Không loạn)' ? ` / CYL ${form.rxLeft.cyl}` : ''}{form.rxLeft.axis ? ` / Trục ${form.rxLeft.axis}°` : ''}</span></div>}
                     {form.rxAdd && <div className="flex justify-between"><span className="text-brand-muted">ADD (Đa tròng)</span><span className="font-semibold">{form.rxAdd}</span></div>}
+                    {form.pd && <div className="flex justify-between"><span className="text-brand-muted">PD (Khoảng cách đồng tử)</span><span className="font-semibold">{form.pd}</span></div>}
                   </div>
                 )}
                 {selectedLens && form.rxMode === 'image' && form.rxImageBase64 && (
