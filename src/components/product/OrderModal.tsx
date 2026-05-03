@@ -468,6 +468,12 @@ function LensIcon({ icon }: { icon: string }) {
 export default function OrderModal({ product, selectedColorId, onClose }: OrderModalProps) {
   const selectedColor = product.colorVariants.find(v => v.id === selectedColorId) ?? product.colorVariants[0]
   const [step, setStep] = useState<Step>('main')
+  const modalRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (step === 'checkout' || step === 'summary') {
+      modalRef.current?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    }
+  }, [step])
   const [selectedLens, setSelectedLens] = useState<LensOption | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<LensCategoryGroup | null>(null)
   const [donTrongCats, setDonTrongCats] = useState<LensCategoryGroup[]>(DON_TRONG_CATEGORIES)
@@ -670,7 +676,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={step === 'success' ? onClose : undefined} />
 
-      <div className="relative w-full sm:w-[500px] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto overscroll-contain">
+      <div ref={modalRef} className="relative w-full sm:w-[500px] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto overscroll-contain">
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-brand-border px-5 py-4 flex items-center gap-3 z-10 rounded-t-3xl">
