@@ -35,6 +35,9 @@ export const metadata: Metadata = {
     locale: 'vi_VN',
     type: 'website',
   },
+    other: {
+          'zalo-platform-site-verification': 'GOIyCPcI43fQhuWtt91Q7W2Xt0VirmbTE3au',
+    },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
