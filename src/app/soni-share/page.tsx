@@ -1,6 +1,9 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
 import postsFallback from '@/data/blog-posts.json'
+
+export const revalidate = 120
 
 interface BlogPost { id: string; slug: string; title: string; excerpt: string; date: string; category: string; image: string; published: boolean; scheduledAt?: string }
 
@@ -80,9 +83,9 @@ export default async function SoniSharePage({ searchParams }: PageProps) {
           {posts.map(post => (
             <Link key={post.id} href={`/soni-share/${post.slug}`}
               className="group bg-white rounded-2xl border border-brand-border overflow-hidden hover:shadow-md transition-all">
-              <div className="h-40 bg-gradient-to-br from-brand-light to-gray-200 flex items-center justify-center overflow-hidden">
+              <div className="relative h-40 bg-gradient-to-br from-brand-light to-gray-200 flex items-center justify-center overflow-hidden">
                 {post.image
-                  ? <img src={post.image} alt={post.title} className="w-full h-full object-cover"/>
+                  ? <Image src={post.image} alt={post.title} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"/>
                   : <span className="text-4xl">👓</span>
                 }
               </div>

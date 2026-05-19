@@ -303,7 +303,7 @@ function ThuKinhContent() {
                   {/* Ảnh lớn */}
                   <Link href={`/gong-kinh/${product.id}`} className="block">
                     <div className="relative aspect-square bg-gray-50">
-                      <Image src={thumb} alt={product.name} fill className="object-contain p-3" unoptimized sizes="(max-width: 640px) 50vw, 300px"/>
+                      <Image src={thumb} alt={product.name} fill className="object-contain p-3" sizes="(max-width: 640px) 50vw, 300px"/>
                     </div>
                   </Link>
                   {/* Info */}

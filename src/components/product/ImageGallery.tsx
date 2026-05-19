@@ -62,7 +62,6 @@ export default function ImageGallery({ product, selectedColor }: ImageGalleryPro
             transformOrigin: 'center center',
           }}
           sizes="(max-width: 768px) 100vw, 55vw"
-          unoptimized
           priority
         />
 
@@ -101,7 +100,7 @@ export default function ImageGallery({ product, selectedColor }: ImageGalleryPro
               }`}
             >
               <Image src={src} alt={`${selectedColor.name} ${i + 1}`} fill
-                className="object-contain p-1" sizes="64px" unoptimized />
+                className="object-contain p-1" sizes="64px" />
             </button>
           ))}
         </div>

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { markPaid } from '@/lib/orderStore'
+import { approveCommissionByOrderCode } from '@/lib/affiliateStore'
+import { applyRateLimit, limiters, getClientIp } from '@/lib/ratelimit'
 
 async function postToAppsScript(url: string, data: object) {
   const body = JSON.stringify(data)
@@ -9,31 +11,33 @@ async function postToAppsScript(url: string, data: object) {
     if (loc) await fetch(loc, { method: 'GET' }) // echo URL chỉ nhận GET
   }
 }
-import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
-import type { AffiliateCommission } from '@/app/api/affiliate/dashboard/route'
-import type { Affiliate } from '@/app/api/affiliate/register/route'
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(limiters.paymentWebhook, getClientIp(req))
+  if (limited) return limited
+
   try {
     const rawBody = await req.text()
     const body = JSON.parse(rawBody)
 
-    // SePay gửi: Authorization: Apikey <key>  (không phải Bearer)
+    // Fail-closed: webhook BẮT BUỘC có secret. Nếu env thiếu → từ chối toàn bộ.
     const secret = process.env.SEPAY_WEBHOOK_SECRET
-    if (secret) {
-      const authHeader = req.headers.get('Authorization') ?? ''
-      // Hỗ trợ cả "Apikey xxx" và "Bearer xxx" và header "apikey" riêng
-      let receivedKey = req.headers.get('apikey') ?? ''
-      if (!receivedKey && authHeader.toLowerCase().startsWith('apikey ')) {
-        receivedKey = authHeader.slice(7).trim()
-      } else if (!receivedKey && authHeader.toLowerCase().startsWith('bearer ')) {
-        receivedKey = authHeader.slice(7).trim()
-      }
+    if (!secret) {
+      console.error('[SePay] SEPAY_WEBHOOK_SECRET chưa cấu hình — từ chối webhook')
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 503 })
+    }
 
-      if (receivedKey && receivedKey !== secret) {
-        console.warn('[SePay] Invalid API key — rejected. Received:', receivedKey)
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    const authHeader = req.headers.get('Authorization') ?? ''
+    let receivedKey = req.headers.get('apikey') ?? ''
+    if (!receivedKey && authHeader.toLowerCase().startsWith('apikey ')) {
+      receivedKey = authHeader.slice(7).trim()
+    } else if (!receivedKey && authHeader.toLowerCase().startsWith('bearer ')) {
+      receivedKey = authHeader.slice(7).trim()
+    }
+
+    if (!receivedKey || receivedKey !== secret) {
+      console.warn('[SePay] Invalid/missing API key — rejected')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     console.log('[SePay webhook]', JSON.stringify(body))
@@ -65,7 +69,12 @@ export async function POST(req: NextRequest) {
 
     // Tự động approve affiliate commission khi tiền thật đã vào
     if (updated) {
-      await approveAffiliateCommission(orderCode)
+      try {
+        const ok = await approveCommissionByOrderCode(orderCode)
+        if (ok) console.log(`[Affiliate] approved commission for ${orderCode}`)
+      } catch (e) {
+        console.error('[Affiliate] approve error:', e)
+      }
     }
 
     // Thông báo lên Google Sheet — PHẢI await để Vercel không kill trước khi hoàn thành
@@ -84,32 +93,5 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('[SePay] Error:', err)
     return NextResponse.json({ success: false }, { status: 500 })
-  }
-}
-
-async function approveAffiliateCommission(orderCode: string) {
-  try {
-    const commissions: AffiliateCommission[] = (await kvGet<AffiliateCommission[]>(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json')) ?? []
-    const idx = commissions.findIndex(c => c.orderCode === orderCode && c.status === 'pending')
-    if (idx === -1) return
-
-    const commission = commissions[idx]
-    commissions[idx] = { ...commission, status: 'approved', approvedAt: new Date().toISOString() }
-    await kvSet(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json', commissions)
-
-    const affiliates: Affiliate[] = (await kvGet<Affiliate[]>(KV_KEYS.affiliates, 'affiliates.json')) ?? []
-    const affIdx = affiliates.findIndex(a => a.code === commission.affiliateCode)
-    if (affIdx === -1) return
-
-    affiliates[affIdx] = {
-      ...affiliates[affIdx],
-      balance: affiliates[affIdx].balance + commission.commission,
-      pendingBalance: Math.max(0, affiliates[affIdx].pendingBalance - commission.commission),
-      totalEarned: affiliates[affIdx].totalEarned + commission.commission,
-    }
-    await kvSet(KV_KEYS.affiliates, 'affiliates.json', affiliates)
-    console.log(`[Affiliate] +${commission.commission}đ → ${commission.affiliateCode} (${orderCode})`)
-  } catch (e) {
-    console.error('[Affiliate] Error approving commission:', e)
   }
 }

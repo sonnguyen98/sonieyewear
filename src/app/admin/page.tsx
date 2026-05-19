@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import type { Product } from '@/types/product'
 
-// Session token — được server cấp sau login, không hardcode password trong code
-let PASSWORD = ''
+// Auth dùng HttpOnly cookie — không có token nào lưu phía client.
+// Tất cả fetch tới /api/admin/* tự kèm cookie same-origin.
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
 type Section = 'products' | 'stock' | 'lens' | 'blog' | 'stores' | 'policies' | 'affiliate'
@@ -21,15 +21,18 @@ const SECTIONS = [
 ]
 
 export default function AdminPage() {
-  const [authed, setAuthed] = useState(false)
+  const [authed, setAuthed] = useState<boolean | null>(null)
   const [pw, setPw] = useState('')
   const [loginErr, setLoginErr] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
   const [section, setSection] = useState<Section>('products')
 
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? sessionStorage.getItem('adminToken') : null
-    if (saved) { PASSWORD = saved; setAuthed(true) }
+    // Kiểm tra cookie phiên còn hiệu lực không
+    fetch('/api/admin/session')
+      .then(r => r.json())
+      .then(d => setAuthed(!!d.authenticated))
+      .catch(() => setAuthed(false))
   }, [])
 
   async function handleLogin() {
@@ -39,11 +42,16 @@ export default function AdminPage() {
       body: JSON.stringify({ password: pw }),
     })
     setLoginLoading(false)
-    if (!r.ok) { setLoginErr('Sai mật khẩu'); return }
-    const { token } = await r.json()
-    PASSWORD = token
-    sessionStorage.setItem('adminToken', token)
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({}))
+      setLoginErr(data.error ?? 'Sai mật khẩu')
+      return
+    }
     setAuthed(true)
+  }
+
+  if (authed === null) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Đang tải...</div>
   }
 
   if (!authed) {
@@ -142,7 +150,7 @@ function ProductsSection() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const r = await fetch('/api/admin/products', { headers: { 'x-admin-token': PASSWORD } })
+      const r = await fetch('/api/admin/products')
       const data = await r.json()
       setProducts(Array.isArray(data) ? data : [])
     } catch { setProducts([]) }
@@ -172,7 +180,7 @@ function ProductsSection() {
             <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="relative h-36 bg-gray-100">
                 <Image src={p.images?.[0] ?? p.colorVariants[0]?.imageUrl ?? '/images/logo.png'}
-                  alt={p.name} fill className="object-cover" unoptimized sizes="200px"/>
+                  alt={p.name} fill className="object-cover" sizes="200px"/>
                 <span className="absolute top-2 right-2 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded font-mono">{p.id}</span>
               </div>
               <div className="p-3">
@@ -187,9 +195,9 @@ function ProductsSection() {
                     if (!confirm(`Xoá "${p.name}"?`)) return
                     const isNew = p.id.startsWith('sp') && p.id.length > 8
                     if (isNew) {
-                      await fetch('/api/admin/new-products', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD }, body: JSON.stringify({ id: p.id }) })
+                      await fetch('/api/admin/new-products', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.id }) })
                     } else {
-                      await fetch('/api/admin/products', { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD }, body: JSON.stringify({ id: p.id }) })
+                      await fetch('/api/admin/products', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: p.id }) })
                     }
                     load()
                   }}
@@ -227,7 +235,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
     setUploading(true)
     const id = 'new-' + Date.now()
     const fd = new FormData(); fd.append('file', file); fd.append('productId', id)
-    const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
     const { url } = await r.json()
     setImages(p => [...p, url]); setUploading(false)
   }
@@ -235,7 +243,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
   async function handleColorUpload(file: File, colorIdx: number) {
     setUploadingColor(colorIdx)
     const fd = new FormData(); fd.append('file', file); fd.append('productId', `new-color-${colorIdx}-${Date.now()}`)
-    const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
     const { url } = await r.json()
     setColorImages(prev => ({ ...prev, [colorIdx]: [...(prev[colorIdx] ?? []), url] }))
     setUploadingColor(null)
@@ -282,7 +290,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
     }
 
     // Đồng bộ số lượng vào stock.json
-    const stockRes = await fetch('/api/admin/stock', { headers: { 'x-admin-token': PASSWORD } })
+    const stockRes = await fetch('/api/admin/stock')
     const currentStock = await stockRes.json()
     colors.forEach((c, i) => {
       const varId = `${id}-${i}`
@@ -290,13 +298,13 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
     })
     await fetch('/api/admin/stock', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentStock),
     })
 
     await fetch('/api/admin/new-products', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product),
     })
     setSaving(false); onSaved()
@@ -324,7 +332,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
               <div className="grid grid-cols-5 gap-2 mt-2">
                 {images.map((url, i) => (
                   <div key={url} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100">
-                    <Image src={url} alt="" fill className="object-cover" unoptimized sizes="80px"/>
+                    <Image src={url} alt="" fill className="object-cover" sizes="80px"/>
                     <button onClick={() => setImages(p => p.filter((_, idx) => idx !== i))}
                       className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center">✕</button>
                     {i === 0 && <span className="absolute bottom-1 left-1 text-[9px] bg-yellow-400 text-yellow-900 font-bold px-1 rounded">Chính</span>}
@@ -439,7 +447,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
                       </label>
                       {(colorImages[i] ?? []).map((url, j) => (
                         <div key={url} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                          <Image src={url} alt="" fill className="object-cover" unoptimized sizes="64px" />
+                          <Image src={url} alt="" fill className="object-cover" sizes="64px" />
                           {j === 0 && <span className="absolute bottom-0 left-0 right-0 text-[8px] bg-yellow-400 text-yellow-900 font-bold text-center">Chính</span>}
                           <button onClick={() => setColorImages(prev => ({ ...prev, [i]: (prev[i] ?? []).filter((_, k) => k !== j) }))}
                             className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] opacity-0 group-hover:opacity-100 flex items-center justify-center">✕</button>
@@ -477,8 +485,8 @@ function StockSection() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/admin/products', { headers: { 'x-admin-token': PASSWORD } }).then(r => r.json()),
-      fetch('/api/admin/stock', { headers: { 'x-admin-token': PASSWORD } }).then(r => r.json()),
+      fetch('/api/admin/products').then(r => r.json()),
+      fetch('/api/admin/stock').then(r => r.json()),
     ]).then(([prods, stk]) => {
       setProducts(Array.isArray(prods) ? prods : [])
       setStock(stk && typeof stk === 'object' && !Array.isArray(stk) ? stk : {})
@@ -508,7 +516,7 @@ function StockSection() {
     )
     await fetch('/api/admin/stock', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(corrected),
     })
     setStock(corrected)
@@ -554,7 +562,7 @@ function StockSection() {
               {/* Product header */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50">
                 <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                  <Image src={thumb} alt={p.name} fill className="object-cover" unoptimized sizes="40px"/>
+                  <Image src={thumb} alt={p.name} fill className="object-cover" sizes="40px"/>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm text-gray-900 line-clamp-1">{p.name}</p>
@@ -655,7 +663,7 @@ function LensSection() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/content/lens-products', { headers: { 'x-admin-token': PASSWORD } })
+    fetch('/api/admin/content/lens-products')
       .then(r => r.json()).then(d => setItems(Array.isArray(d) ? d : []))
   }, [])
 
@@ -663,7 +671,7 @@ function LensSection() {
     setSaving(true)
     const next = isNew ? [...items, item] : items.map(i => i.id === item.id ? item : i)
     await fetch('/api/admin/content/lens-products', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setItems(next); setSaving(false); setEditing(null)
@@ -673,7 +681,7 @@ function LensSection() {
     if (!confirm('Xoá tròng kính này?')) return
     const next = items.filter(i => i.id !== id)
     await fetch('/api/admin/content/lens-products', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setItems(next)
@@ -709,7 +717,7 @@ function LensSection() {
                     <div key={item.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex">
                       <div className="w-20 h-20 flex-shrink-0 bg-gray-100 relative self-stretch">
                         {item.image
-                          ? <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized/>
+                          ? <Image src={item.image} alt={item.name} fill className="object-cover"/>
                           : <div className="w-full h-full flex items-center justify-center text-2xl">🔵</div>
                         }
                       </div>
@@ -757,7 +765,7 @@ function LensEditModal({ item, saving, onSave, onClose }: {
     const fd = new FormData()
     fd.append('file', file)
     fd.append('folder', 'lens')
-    const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
     const { url } = await r.json()
     setForm(f => ({ ...f, image: url }))
     setUploading(false)
@@ -784,7 +792,7 @@ function LensEditModal({ item, saving, onSave, onClose }: {
               {/* Preview */}
               <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0 relative">
                 {form.image
-                  ? <Image src={form.image} alt="preview" fill className="object-cover" unoptimized/>
+                  ? <Image src={form.image} alt="preview" fill className="object-cover"/>
                   : <div className="w-full h-full flex items-center justify-center text-3xl">🔵</div>
                 }
               </div>
@@ -887,7 +895,7 @@ function BlogSection() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/content/blog-posts', { headers: { 'x-admin-token': PASSWORD } })
+    fetch('/api/admin/content/blog-posts')
       .then(r => r.json()).then(d => setPosts(Array.isArray(d) ? d : []))
   }, [])
 
@@ -895,7 +903,7 @@ function BlogSection() {
     setSaving(true)
     const next = isNew ? [...posts, item] : posts.map(p => p.id === item.id ? item : p)
     await fetch('/api/admin/content/blog-posts', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setPosts(next); setSaving(false); setEditing(null)
@@ -905,7 +913,7 @@ function BlogSection() {
     if (!confirm('Xoá bài viết này?')) return
     const next = posts.filter(p => p.id !== id)
     await fetch('/api/admin/content/blog-posts', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setPosts(next)
@@ -915,7 +923,7 @@ function BlogSection() {
     const updated = { ...post, published: !post.published }
     const next = posts.map(p => p.id === post.id ? updated : p)
     await fetch('/api/admin/content/blog-posts', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setPosts(next)
@@ -977,7 +985,7 @@ function StoresSection() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/content/stores', { headers: { 'x-admin-token': PASSWORD } })
+    fetch('/api/admin/content/stores')
       .then(r => r.json()).then(d => setStores(Array.isArray(d) ? d : []))
   }, [])
 
@@ -986,7 +994,7 @@ function StoresSection() {
     const storeItem = item as Store
     const next = isNew ? [...stores, storeItem] : stores.map(s => s.id === storeItem.id ? storeItem : s)
     await fetch('/api/admin/content/stores', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setStores(next); setSaving(false); setEditing(null)
@@ -996,7 +1004,7 @@ function StoresSection() {
     if (!confirm('Xoá cửa hàng này?')) return
     const next = stores.filter(s => s.id !== id)
     await fetch('/api/admin/content/stores', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setStores(next)
@@ -1048,7 +1056,7 @@ function PoliciesSection() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/content/policies', { headers: { 'x-admin-token': PASSWORD } })
+    fetch('/api/admin/content/policies')
       .then(r => r.json()).then(d => setPolicies(Array.isArray(d) ? d : []))
   }, [])
 
@@ -1057,7 +1065,7 @@ function PoliciesSection() {
     const policyItem = item as Policy
     const next = isNew ? [...policies, policyItem] : policies.map(p => p.id === policyItem.id ? policyItem : p)
     await fetch('/api/admin/content/policies', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setPolicies(next); setSaving(false); setEditing(null)
@@ -1067,7 +1075,7 @@ function PoliciesSection() {
     if (!confirm('Xoá chính sách này?')) return
     const next = policies.filter(p => p.id !== id)
     await fetch('/api/admin/content/policies', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
     setPolicies(next)
@@ -1080,7 +1088,7 @@ function PoliciesSection() {
     ;[next[idx], next[target]] = [next[target], next[idx]]
     setPolicies(next)
     await fetch('/api/admin/content/policies', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(next)
     })
   }
@@ -1192,7 +1200,7 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
     const fd = new FormData()
     fd.append('file', file)
     fd.append('folder', 'blog')
-    const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
     const { url } = await r.json()
     setForm(x => ({ ...x, image: url }))
     setUploadingThumb(false)
@@ -1206,7 +1214,7 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('folder', 'blog')
-      const r = await fetch('/api/admin/upload-content', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+      const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
       const { url } = await r.json()
       urls.push(url)
     }
@@ -1399,7 +1407,7 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
   async function handleUpload(file: File) {
     setUploading(true)
     const fd = new FormData(); fd.append('file', file); fd.append('productId', product.id)
-    const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
     const { url } = await r.json()
     setImages(p => [...p, url]); setUploading(false)
   }
@@ -1407,7 +1415,7 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
   async function handleColorUpload(file: File, variantId: string) {
     setUploadingColor(variantId)
     const fd = new FormData(); fd.append('file', file); fd.append('productId', `${product.id}-${variantId}`)
-    const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'x-admin-token': PASSWORD }, body: fd })
+    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
     const { url } = await r.json()
     setColorImages(prev => ({ ...prev, [variantId]: [...(prev[variantId] ?? []), url] }))
     setUploadingColor(null)
@@ -1437,19 +1445,19 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
       // Cập nhật stock cho màu mới
       const newColors = colors.filter(c => c.isNew)
       if (newColors.length > 0) {
-        const stockRes = await fetch('/api/admin/stock', { headers: { 'x-admin-token': PASSWORD } })
+        const stockRes = await fetch('/api/admin/stock')
         const currentStock = await stockRes.json()
         newColors.forEach(c => { currentStock[c.id] = { inStock: true, quantity: 10 } })
         await fetch('/api/admin/stock', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(currentStock),
         })
       }
 
       const res = await fetch('/api/admin/products', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: product.id,
           data: {
@@ -1578,7 +1586,7 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
             <div className="grid grid-cols-5 gap-2 mt-2">
               {images.map((url, i) => (
                 <div key={url} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100">
-                  <Image src={url} alt="" fill className="object-cover" unoptimized sizes="80px" />
+                  <Image src={url} alt="" fill className="object-cover" sizes="80px" />
                   <button onClick={() => setImages(p => p.filter((_, idx) => idx !== i))}
                     className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center">✕</button>
                 </div>
@@ -1616,7 +1624,7 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
                     {/* Ảnh đã upload */}
                     {(colorImages[v.id] ?? []).map((url, i) => (
                       <div key={url} className="relative group aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                        <Image src={url} alt="" fill className="object-cover" unoptimized sizes="80px"/>
+                        <Image src={url} alt="" fill className="object-cover" sizes="80px"/>
                         {i === 0 && <span className="absolute bottom-0 left-0 right-0 text-[9px] bg-yellow-400 text-yellow-900 font-bold text-center py-0.5">Chính</span>}
                         <button onClick={() => setColorImages(prev => ({ ...prev, [v.id]: prev[v.id].filter((_, idx) => idx !== i) }))}
                           className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center">✕</button>
@@ -1684,7 +1692,7 @@ function AffiliateSection() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const r = await fetch('/api/admin/affiliates', { headers: { 'x-admin-token': PASSWORD } })
+    const r = await fetch('/api/admin/affiliates')
     const d = await r.json()
     setAffiliates(d.affiliates ?? []); setCommissions(d.commissions ?? []); setWithdrawals(d.withdrawals ?? [])
     setLoading(false)
@@ -1694,7 +1702,7 @@ function AffiliateSection() {
 
   async function doAction(payload: object, id: string) {
     setActing(id)
-    await fetch('/api/admin/affiliates', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-admin-token': PASSWORD }, body: JSON.stringify(payload) })
+    await fetch('/api/admin/affiliates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     await load(); setActing(null)
   }
 

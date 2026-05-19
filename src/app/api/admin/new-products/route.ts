@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
 import { checkAdminAuth } from '@/lib/adminAuth'
 import type { Product } from '@/types/product'
-import fs from 'fs'
-import path from 'path'
 
 function touchProducts() {
-  try {
-    const file = path.join(process.cwd(), 'src', 'data', 'products.ts')
-    const c = fs.readFileSync(file, 'utf-8')
-    const ts = `// cache-bust: ${Date.now()}`
-    fs.writeFileSync(file, c.includes('// cache-bust:') ? c.replace(/\/\/ cache-bust: \d+/, ts) : c + `\n${ts}\n`)
-  } catch {}
+  revalidatePath('/gong-kinh')
+  revalidatePath('/')
 }
 
 export async function GET(req: NextRequest) {
@@ -35,6 +30,7 @@ export async function PUT(req: NextRequest) {
   let existing = (await kvGet<Product[]>(KV_KEYS.newProducts, 'new-products.json')) ?? []
   existing = existing.map((p: Product) => p.id === id ? { ...p, ...data } : p)
   await kvSet(KV_KEYS.newProducts, 'new-products.json', existing)
+  touchProducts()
   return NextResponse.json({ success: true })
 }
 

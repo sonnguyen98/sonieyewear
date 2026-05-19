@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
 import lensDataFallback from '@/data/lens-products.json'
 
+export const revalidate = 300
+
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
 interface LensItem { id: string; name: string; desc: string; price: number; badge: string; image: string; features: string[] }
@@ -22,7 +24,7 @@ export default async function TrongKinhPage() {
           <div key={t.id} className="bg-white rounded-2xl border border-brand-border overflow-hidden hover:shadow-md transition-shadow flex flex-col">
             <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
               {t.image
-                ? <Image src={t.image} alt={t.name} fill className="object-cover" unoptimized sizes="400px"/>
+                ? <Image src={t.image} alt={t.name} fill className="object-cover" sizes="400px"/>
                 : <div className="w-full h-full flex items-center justify-center text-5xl">🔵</div>
               }
               {t.badge && (

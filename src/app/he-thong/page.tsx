@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
 import storesFallback from '@/data/stores.json'
 
+export const revalidate = 300
+
 interface Store { id: string; name: string; address: string; phone: string; hours: string; mapUrl: string; image: string; published: boolean }
 
 export default async function HeThongPage() {

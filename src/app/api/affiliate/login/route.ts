@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
-import { kvGet, KV_KEYS } from '@/lib/kv-store'
-import type { Affiliate } from '../register/route'
+import { verifyAffiliateLogin } from '@/lib/affiliateStore'
+import { applyRateLimit, limiters, getClientIp } from '@/lib/ratelimit'
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(limiters.affiliateLogin, getClientIp(req))
+  if (limited) return limited
+
   try {
     const { phone, password } = await req.json()
     if (!phone || !password)
       return NextResponse.json({ error: 'Thiếu thông tin đăng nhập' }, { status: 400 })
 
-    const affiliates: Affiliate[] = (await kvGet<Affiliate[]>(KV_KEYS.affiliates, 'affiliates.json')) ?? []
-    const aff = affiliates.find(a => a.phone === phone)
-
-    if (!aff || aff.passwordHash !== crypto.createHash('sha256').update(password).digest('hex'))
+    const aff = await verifyAffiliateLogin(phone, password)
+    if (!aff)
       return NextResponse.json({ error: 'Số điện thoại hoặc mật khẩu không đúng' }, { status: 401 })
 
     if (aff.status === 'suspended')

@@ -67,7 +67,6 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
                   hoverImage ? 'group-hover:opacity-0 group-hover:scale-105' : 'group-hover:scale-105'
                 }`}
                 sizes="(max-width: 768px) 50vw, 33vw"
-                unoptimized
                 onError={() => setImgError(true)}
               />
               {/* Ảnh hover (ảnh thứ 2 / model) — hiện khi di chuột vào */}
@@ -78,7 +77,6 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
                   fill
                   className="object-contain opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500 absolute inset-0"
                   sizes="(max-width: 768px) 50vw, 33vw"
-                  unoptimized
                 />
               )}
             </>

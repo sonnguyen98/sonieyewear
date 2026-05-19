@@ -2,9 +2,8 @@ import { Suspense } from 'react'
 import CatalogContent from './CatalogContent'
 import { getProducts } from '@/lib/getProducts'
 
-// Luôn render mới từ server, không cache ở CDN/Vercel Edge
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// ISR: cache HTML 60s, revalidate background. Admin gọi revalidatePath sau khi update.
+export const revalidate = 60
 
 export default async function CatalogPage() {
   const initialProducts = await getProducts()

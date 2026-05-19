@@ -1,6 +1,8 @@
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
 import policiesFallback from '@/data/policies.json'
 
+export const revalidate = 300
+
 interface Policy { id: string; icon: string; title: string; content: string }
 
 export default async function ChinhSachPage() {

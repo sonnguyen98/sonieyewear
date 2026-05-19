@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/adminAuth'
-import fs from 'fs'
-import path from 'path'
+import { saveImage } from '@/lib/uploadStore'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
 const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif']
@@ -20,12 +19,7 @@ export async function POST(req: NextRequest) {
 
   const rawExt = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
   const ext = ALLOWED_EXTS.includes(rawExt) ? rawExt : 'jpg'
-  const filename = `${productId}-${Date.now()}.${ext}`
-  const dir = path.join(process.cwd(), 'public', 'images', 'products')
 
-  const bytes = await file.arrayBuffer()
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(path.join(dir, filename), Buffer.from(bytes))
-
-  return NextResponse.json({ url: `/images/products/${filename}` })
+  const result = await saveImage(file, `products${productId ? '/' + productId : ''}`, ext)
+  return NextResponse.json(result)
 }

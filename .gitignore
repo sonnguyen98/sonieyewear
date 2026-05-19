@@ -28,6 +28,13 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# Runtime data containing PII / session tokens — KHÔNG commit lên git.
+# Production dùng Upstash Redis; các file này chỉ là buffer dev local.
+/src/data/affiliates.json
+/src/data/affiliate-commissions.json
+/src/data/affiliate-withdrawals.json
+/src/data/admin-sessions.json
+
 # vercel
 .vercel
 

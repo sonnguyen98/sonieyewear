@@ -1,55 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { kvGet, KV_KEYS } from '@/lib/kv-store'
-import type { Affiliate } from '../register/route'
+import { findAffiliateByCodeAndPhone, getAllCommissions, getAllWithdrawals } from '@/lib/affiliateStore'
 
-export interface AffiliateCommission {
-  id: string
-  affiliateCode: string
-  orderCode: string
-  customerName: string
-  orderAmount: number
-  commission: number
-  paymentType: 'prepaid' | 'cod'
-  status: 'approved' | 'pending'
-  createdAt: string
-  approvedAt?: string
-}
-
-export interface AffiliateWithdrawal {
-  id: string
-  affiliateCode: string
-  affiliateName: string
-  affiliatePhone: string
-  amount: number
-  bankName: string
-  bankAccount: string
-  bankOwner: string
-  status: 'pending' | 'paid'
-  requestedAt: string
-  paidAt?: string
-}
-
-function checkAuth(req: NextRequest) {
-  const code = req.headers.get('x-affiliate-code')
-  const phone = req.headers.get('x-affiliate-phone')
-  return { code, phone }
-}
+// Re-export types cho module cũ
+export type { AffiliateCommission, AffiliateWithdrawal } from '@/lib/affiliateStore'
 
 export async function GET(req: NextRequest) {
-  const { code, phone } = checkAuth(req)
+  const code = req.headers.get('x-affiliate-code')
+  const phone = req.headers.get('x-affiliate-phone')
   if (!code || !phone) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const affiliates: Affiliate[] = (await kvGet<Affiliate[]>(KV_KEYS.affiliates, 'affiliates.json')) ?? []
-  const aff = affiliates.find(a => a.code === code && a.phone === phone)
+  const aff = await findAffiliateByCodeAndPhone(code, phone)
   if (!aff) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const allCommissions: AffiliateCommission[] = (await kvGet<AffiliateCommission[]>(KV_KEYS.affiliateCommissions, 'affiliate-commissions.json')) ?? []
-  const allWithdrawals: AffiliateWithdrawal[] = (await kvGet<AffiliateWithdrawal[]>(KV_KEYS.affiliateWithdrawals, 'affiliate-withdrawals.json')) ?? []
+  const [allCommissions, allWithdrawals] = await Promise.all([
+    getAllCommissions(),
+    getAllWithdrawals(),
+  ])
 
-  const { passwordHash: _, ...safe } = aff as Affiliate & { passwordHash: string }
+  const { passwordHash: _, ...safe } = aff
   return NextResponse.json({
     affiliate: safe,
-    commissions: allCommissions.filter(c => c.affiliateCode === code).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    withdrawals: allWithdrawals.filter(w => w.affiliateCode === code).sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)),
+    commissions: allCommissions
+      .filter(c => c.affiliateCode === code)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    withdrawals: allWithdrawals
+      .filter(w => w.affiliateCode === code)
+      .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)),
   })
 }

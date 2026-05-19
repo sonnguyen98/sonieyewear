@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
 import postsFallback from '@/data/blog-posts.json'
 
+export const revalidate = 300
+
 interface BlogPost {
   id: string; slug: string; title: string; excerpt: string
   content: string; date: string; category: string; image: string; published: boolean; scheduledAt?: string

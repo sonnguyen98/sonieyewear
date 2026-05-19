@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { kvGet, kvSet, KV_KEYS } from '@/lib/kv-store'
 import { checkAdminAuth } from '@/lib/adminAuth'
 import { PRODUCTS } from '@/data/products'
 import type { Product } from '@/types/product'
-import fs from 'fs'
-import path from 'path'
 
-function touchProductsFile() {
-  try {
-    const file = path.join(process.cwd(), 'src', 'data', 'products.ts')
-    const content = fs.readFileSync(file, 'utf-8')
-    const ts = `// cache-bust: ${Date.now()}`
-    const updated = content.includes('// cache-bust:')
-      ? content.replace(/\/\/ cache-bust: \d+/, ts)
-      : content + `\n${ts}\n`
-    fs.writeFileSync(file, updated)
-  } catch {}
+function bustProductCache() {
+  revalidatePath('/gong-kinh')
+  revalidatePath('/')
 }
 
 type Override = Partial<Product> & { hidden?: boolean }
@@ -37,7 +29,7 @@ export async function PUT(req: NextRequest) {
   const overrides = (await kvGet<Record<string, Override>>(KV_KEYS.overrides, 'products-override.json')) ?? {}
   overrides[id] = { ...(overrides[id] ?? {}), ...data }
   await kvSet(KV_KEYS.overrides, 'products-override.json', overrides)
-  touchProductsFile()
+  bustProductCache()
   return NextResponse.json({ success: true })
 }
 
@@ -47,6 +39,6 @@ export async function DELETE(req: NextRequest) {
   const overrides = (await kvGet<Record<string, Override>>(KV_KEYS.overrides, 'products-override.json')) ?? {}
   overrides[id] = { ...(overrides[id] ?? {}), hidden: true }
   await kvSet(KV_KEYS.overrides, 'products-override.json', overrides)
-  touchProductsFile()
+  bustProductCache()
   return NextResponse.json({ success: true })
 }

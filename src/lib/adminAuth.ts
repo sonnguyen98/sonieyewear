@@ -1,17 +1,41 @@
-import { kvGet, KV_KEYS } from './kv-store'
 import { NextRequest } from 'next/server'
+import { Redis } from '@upstash/redis'
 
-type Sessions = Record<string, number>
+export const ADMIN_COOKIE = 'soni_admin'
+export const SESSION_TTL_SEC = 8 * 60 * 60 // 8 giờ
+const KEY_PREFIX = 'admin-session:'
 
+const HAS_REDIS = !!process.env.KV_REST_API_URL
+const redis = HAS_REDIS
+  ? new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! })
+  : null
+
+// ── Session ops (per-token, không race) ────────────────────────────────────
+export async function createSession(token: string): Promise<void> {
+  if (redis) {
+    await redis.set(`${KEY_PREFIX}${token}`, 1, { ex: SESSION_TTL_SEC })
+  }
+}
+
+export async function destroySession(token: string): Promise<void> {
+  if (redis) await redis.del(`${KEY_PREFIX}${token}`)
+}
+
+async function sessionExists(token: string): Promise<boolean> {
+  if (!redis) return false
+  const v = await redis.get(`${KEY_PREFIX}${token}`)
+  return v !== null
+}
+
+// ── Auth check ─────────────────────────────────────────────────────────────
 export async function checkAdminAuth(req: NextRequest): Promise<boolean> {
-  const token = req.headers.get('x-admin-token') ?? ''
+  // Ưu tiên cookie (mới); fallback header x-admin-token (backward compat 1 deploy)
+  const token = req.cookies.get(ADMIN_COOKIE)?.value ?? req.headers.get('x-admin-token') ?? ''
   if (!token) return false
 
-  // Kiểm tra session token trong KV store
-  const sessions: Sessions = (await kvGet<Sessions>(KV_KEYS.adminSessions, 'admin-sessions.json')) ?? {}
-  if (sessions[token] && sessions[token] > Date.now()) return true
+  if (await sessionExists(token)) return true
 
-  // Fallback: cho phép raw password trong dev (không khuyến khích production)
+  // Dev fallback: cho phép raw password (không khuyến khích prod)
   if (process.env.NODE_ENV !== 'production' && token === (process.env.ADMIN_PASSWORD ?? 'admin123')) return true
 
   return false

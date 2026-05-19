@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOrder } from '@/lib/orderStore'
+import { deductStock } from '@/lib/stock'
+import { createAffiliateCommission } from '@/lib/affiliateStore'
+import { applyRateLimit, limiters, getClientIp } from '@/lib/ratelimit'
 
 // Google Apps Script trả 302 redirect — Node.js tự đổi POST→GET làm mất body.
 // Dùng redirect:'manual' → lấy Location header → POST lại thủ công giữ body.
@@ -39,6 +42,9 @@ async function postToScript(url: string, data: object) {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(limiters.order, getClientIp(req))
+  if (limited) return limited
+
   const APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL
 
   try {
@@ -57,13 +63,8 @@ export async function POST(req: NextRequest) {
 
     // Trừ tồn kho — kiểm tra trước, từ chối nếu hết hàng
     if (body.variantIds?.length) {
-      const stockRes = await fetch(`${req.nextUrl.origin}/api/admin/stock`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variantIds: body.variantIds }),
-      })
-      const stockData = await stockRes.json()
-      if (stockData.outOfStock?.length > 0) {
+      const result = await deductStock(body.variantIds)
+      if (result.outOfStock.length > 0) {
         return NextResponse.json({ success: false, error: 'out_of_stock' }, { status: 409 })
       }
     }
@@ -78,17 +79,13 @@ export async function POST(req: NextRequest) {
 
     // Xử lý affiliate commission
     if (body.affiliateCode && body.orderAmount) {
-      fetch(`${req.nextUrl.origin}/api/admin/affiliates`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderCode: body.orderCode,
-          customerName: body.name,
-          affiliateCode: body.affiliateCode,
-          orderAmount: body.orderAmount,
-          paymentType: body.paymentType ?? 'cod',
-        }),
-      }).catch(() => {})
+      createAffiliateCommission({
+        orderCode: body.orderCode,
+        customerName: body.name,
+        affiliateCode: body.affiliateCode,
+        orderAmount: body.orderAmount,
+        paymentType: body.paymentType ?? 'cod',
+      }).catch(err => console.error('[Order] affiliate commission error:', err))
     }
 
     return NextResponse.json({ success: true })

@@ -38,7 +38,9 @@ export async function kvGet<T>(key: string, fallbackFile: string): Promise<T | n
         } catch { return null }
       }
       return data
-    } catch (e) {
+    } catch (e: any) {
+      // Next.js cố tình throw DYNAMIC_SERVER_USAGE để detect route động → không phải lỗi thật
+      if (e?.digest?.startsWith?.('DYNAMIC_SERVER_USAGE')) throw e
       console.error('Redis get error:', e)
       return null
     }
@@ -57,7 +59,8 @@ export async function kvSet(key: string, fallbackFile: string, data: unknown): P
     try {
       const redis = getRedis()
       await redis.set(key, data)
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.digest?.startsWith?.('DYNAMIC_SERVER_USAGE')) throw e
       console.error('Redis set error:', e)
     }
     return
@@ -66,6 +69,37 @@ export async function kvSet(key: string, fallbackFile: string, data: unknown): P
   // Development: ghi file
   const file = path.join(process.cwd(), 'src', 'data', fallbackFile)
   fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf-8')
+}
+
+// ── Distributed lock (Redis SETNX) ──────────────────────────────────────────
+// Bảo vệ read-modify-write khỏi race khi 2 request cùng update 1 key.
+// Dev mode (single process) → no-op, chỉ chạy fn().
+export async function withLock<T>(
+  lockKey: string,
+  fn: () => Promise<T>,
+  opts: { ttlSec?: number; maxRetries?: number; retryDelayMs?: number } = {}
+): Promise<T> {
+  const { ttlSec = 10, maxRetries = 50, retryDelayMs = 100 } = opts
+  if (!IS_PROD) return fn()
+
+  const redis = getRedis()
+  const fullKey = `lock:${lockKey}`
+  const token = Math.random().toString(36).slice(2)
+
+  for (let i = 0; i < maxRetries; i++) {
+    const ok = await redis.set(fullKey, token, { nx: true, ex: ttlSec })
+    if (ok === 'OK') {
+      try {
+        return await fn()
+      } finally {
+        // Chỉ xóa lock nếu vẫn là của mình (tránh xóa lock người khác sau khi mình đã expire)
+        const current = await redis.get<string>(fullKey)
+        if (current === token) await redis.del(fullKey)
+      }
+    }
+    await new Promise(r => setTimeout(r, retryDelayMs))
+  }
+  throw new Error(`Lock timeout: ${lockKey}`)
 }
 
 // ── Các key chuẩn ─────────────────────────────────────────────────────────────
