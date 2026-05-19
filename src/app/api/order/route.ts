@@ -77,15 +77,19 @@ export async function POST(req: NextRequest) {
       console.warn('[Order] GOOGLE_APPS_SCRIPT_URL chưa được set')
     }
 
-    // Xử lý affiliate commission
+    // Xử lý affiliate commission — PHẢI await để Vercel không kill trước khi ghi xong
     if (body.affiliateCode && body.orderAmount) {
-      createAffiliateCommission({
-        orderCode: body.orderCode,
-        customerName: body.name,
-        affiliateCode: body.affiliateCode,
-        orderAmount: body.orderAmount,
-        paymentType: body.paymentType ?? 'cod',
-      }).catch(err => console.error('[Order] affiliate commission error:', err))
+      try {
+        await createAffiliateCommission({
+          orderCode: body.orderCode,
+          customerName: body.name,
+          affiliateCode: body.affiliateCode,
+          orderAmount: body.orderAmount,
+          paymentType: body.paymentType ?? 'cod',
+        })
+      } catch (err) {
+        console.error('[Order] affiliate commission error:', err)
+      }
     }
 
     return NextResponse.json({ success: true })
