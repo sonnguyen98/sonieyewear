@@ -256,11 +256,20 @@ export async function approveCommissionById(commissionId: string): Promise<{ ok:
   })
 }
 
-export async function approveCommissionByOrderCode(orderCode: string): Promise<boolean> {
+// transferAmount: số tiền thực tế SePay xác nhận nhận được.
+// Commission không được vượt quá transferAmount — ngăn fake orderAmount.
+export async function approveCommissionByOrderCode(orderCode: string, transferAmount: number): Promise<boolean> {
   return withLock('aff:write', async () => {
     const commissions = await getAllCommissions()
     const idx = commissions.findIndex(c => c.orderCode === orderCode && c.status === 'pending')
     if (idx === -1) return false
+
+    const cm = commissions[idx]
+    if (cm.commission > transferAmount) {
+      console.warn(`[Affiliate] commission ${cm.commission} > transferAmount ${transferAmount} for ${orderCode} — likely inflated orderAmount, skipping`)
+      return false
+    }
+
     return approveCommissionInternal(commissions, idx)
   })
 }

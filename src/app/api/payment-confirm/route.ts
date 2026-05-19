@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     // Tự động approve affiliate commission khi tiền thật đã vào
     if (updated) {
       try {
-        const ok = await approveCommissionByOrderCode(orderCode)
+        const ok = await approveCommissionByOrderCode(orderCode, transferAmount)
         if (ok) console.log(`[Affiliate] approved commission for ${orderCode}`)
       } catch (e) {
         console.error('[Affiliate] approve error:', e)
