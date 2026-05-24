@@ -46,11 +46,22 @@ const TABS = [
     ),
     special: true,
   },
+  {
+    href: '/so-y-ba',
+    label: 'Sổ Y Bạ',
+    icon: (active: boolean) => (
+      <svg className={cn('w-5 h-5', active ? 'text-blue-600' : 'text-brand-muted')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+    special: false,
+    activeColor: 'text-blue-600',
+  },
 ]
 
 export default function MobileNav() {
   const pathname = usePathname()
-  if (pathname === '/thu-kinh' || pathname.startsWith('/admin')) return null
+  if (pathname === '/thu-kinh' || pathname.startsWith('/admin') || pathname.startsWith('/so-y-ba')) return null
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-brand-border" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -61,7 +72,7 @@ export default function MobileNav() {
             <Link key={tab.href} href={tab.href}
               className={cn('flex-1 flex flex-col items-center justify-center py-2.5 transition-colors', active && 'bg-gray-50')}>
               {tab.icon(active)}
-              <span className={cn('text-[10px] font-semibold mt-0.5', active ? tab.special ? 'text-brand-zalo' : 'text-brand-black' : 'text-brand-muted')}>
+              <span className={cn('text-[10px] font-semibold mt-0.5', active ? (tab.activeColor ?? (tab.special ? 'text-brand-zalo' : 'text-brand-black')) : 'text-brand-muted')}>
                 {tab.label}
               </span>
             </Link>

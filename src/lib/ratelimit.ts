@@ -26,8 +26,11 @@ export const limiters = {
   affiliateRegister: build('affiliate-reg', 3, 600),  // 3 lần / 10 phút
   order:           build('order', 10, 3600),          // 10 đơn / giờ / IP
   paymentWebhook:  build('webhook', 60, 60),          // 60 webhook / phút (SePay) — chống flood
-  affiliateWithdraw: build('aff-wd', 5, 3600),        // 5 lệnh rút / giờ
-  api:             build('api', 60, 60),              // 60 req / phút (mặc định)
+  affiliateWithdraw:   build('aff-wd', 5, 3600),        // 5 lệnh rút / giờ
+  customerLogin:       build('cust-login', 5, 60),       // 5 lần / phút
+  customerRegister:    build('cust-reg', 3, 600),        // 3 lần / 10 phút
+  prescriptionOcr:     build('rx-ocr', 10, 3600),        // 10 lần OCR / giờ (Gemini tốn tiền)
+  api:                 build('api', 60, 60),              // 60 req / phút (mặc định)
 }
 
 export function getClientIp(req: NextRequest): string {

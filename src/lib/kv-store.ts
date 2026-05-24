@@ -115,4 +115,6 @@ export const KV_KEYS = {
   affiliates:            'affiliates',
   affiliateCommissions:  'affiliate-commissions',
   affiliateWithdrawals:  'affiliate-withdrawals',
+  customers:             'customers',
+  prescriptions:         'prescriptions',
 }

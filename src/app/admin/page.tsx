@@ -8,7 +8,7 @@ import type { Product } from '@/types/product'
 // Tất cả fetch tới /api/admin/* tự kèm cookie same-origin.
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
-type Section = 'products' | 'stock' | 'lens' | 'blog' | 'stores' | 'policies' | 'affiliate'
+type Section = 'products' | 'stock' | 'lens' | 'blog' | 'stores' | 'policies' | 'affiliate' | 'customers'
 
 const SECTIONS = [
   { id: 'products' as Section, label: 'Gọng Kính', icon: '👓' },
@@ -18,6 +18,7 @@ const SECTIONS = [
   { id: 'stores' as Section, label: 'Hệ Thống CH', icon: '🏪' },
   { id: 'policies' as Section, label: 'Chính Sách BH', icon: '🛡️' },
   { id: 'affiliate' as Section, label: 'Affiliate', icon: '💰' },
+  { id: 'customers' as Section, label: 'Khách Hàng', icon: '👤' },
 ]
 
 export default function AdminPage() {
@@ -105,6 +106,7 @@ export default function AdminPage() {
         {section === 'stores' && <StoresSection />}
         {section === 'policies' && <PoliciesSection />}
         {section === 'affiliate' && <AffiliateSection />}
+        {section === 'customers' && <CustomersSection />}
       </div>
     </div>
   )
@@ -1849,6 +1851,210 @@ function AffiliateSection() {
           </div>
         )}
       </>)}
+    </div>
+  )
+}
+
+// ── CUSTOMERS ─────────────────────────────────────────────────────────────────
+interface AdminEye { sph: number; cyl: number; axis: number; add?: number }
+interface AdminRx {
+  id: string; examDate: string; clinicName?: string
+  right: AdminEye; left: AdminEye; pd?: number; notes?: string; imageUrl?: string; createdAt: string
+}
+interface AdminCustomer {
+  id: string; name: string; email: string; phone: string; createdAt: string; dob?: string
+  prescriptions: AdminRx[]
+}
+
+const fmtDate = (s: string) => new Date(s).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+const fmtRxNum = (n: number) => (n >= 0 ? '+' : '') + n.toFixed(2)
+
+function downloadCsv(customers: AdminCustomer[]) {
+  const rows = [
+    ['Họ tên', 'Email', 'Số điện thoại', 'Ngày sinh', 'Ngày đăng ký', 'Số đơn kính'],
+    ...customers.map(c => [
+      c.name, c.email, c.phone, c.dob ?? '', fmtDate(c.createdAt), String(c.prescriptions.length),
+    ]),
+  ]
+  const csv = rows.map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a'); a.href = url; a.download = `khach-hang-${Date.now()}.csv`; a.click()
+  URL.revokeObjectURL(url)
+}
+
+function RxCard({ rx }: { rx: AdminRx }) {
+  const Eye = ({ label, e }: { label: string; e: AdminEye }) => (
+    <div>
+      <p className="text-[9px] font-bold text-gray-400 mb-0.5">{label}</p>
+      <p className="text-[11px] font-mono text-gray-700">
+        {fmtRxNum(e.sph)} / {fmtRxNum(e.cyl)} × {e.axis}°{e.add ? ` ADD ${fmtRxNum(e.add)}` : ''}
+      </p>
+    </div>
+  )
+  return (
+    <div className="bg-gray-50 rounded-xl px-3 py-2.5 flex items-center gap-4 flex-wrap">
+      <div>
+        <p className="text-[10px] font-bold text-gray-800">{fmtDate(rx.examDate)}</p>
+        {rx.clinicName && <p className="text-[9px] text-gray-400">{rx.clinicName}</p>}
+      </div>
+      <Eye label="MẮT PHẢI" e={rx.right}/>
+      <Eye label="MẮT TRÁI" e={rx.left}/>
+      {rx.pd && <div><p className="text-[9px] text-gray-400">PD</p><p className="text-[11px] font-mono text-gray-700">{rx.pd} mm</p></div>}
+      {rx.imageUrl && (
+        <a href={rx.imageUrl} target="_blank" rel="noopener noreferrer"
+          className="text-[10px] text-blue-500 hover:underline ml-auto flex-shrink-0">Xem ảnh →</a>
+      )}
+    </div>
+  )
+}
+
+function CustomersSection() {
+  const [customers, setCustomers] = useState<AdminCustomer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/customers')
+      .then(r => r.json())
+      .then(d => { setCustomers(d.customers ?? []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const filtered = customers.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.email.toLowerCase().includes(search.toLowerCase()) ||
+    c.phone.includes(search)
+  )
+
+  const totalRx = customers.reduce((s, c) => s + c.prescriptions.length, 0)
+
+  return (
+    <div>
+      <SectionHeader
+        title="Khách Hàng"
+        subtitle={`${customers.length} tài khoản · ${totalRx} đơn kính`}
+      />
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: 'Tổng tài khoản', value: customers.length, color: 'text-blue-600' },
+          { label: 'Có đơn kính', value: customers.filter(c => c.prescriptions.length > 0).length, color: 'text-green-600' },
+          { label: 'Tổng đơn kính', value: totalRx, color: 'text-purple-600' },
+        ].map(s => (
+          <div key={s.label} className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
+            <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex gap-3 mb-4">
+        <input
+          type="text" placeholder="Tìm tên, email, SĐT..." value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-900 transition-colors"
+        />
+        <button
+          onClick={() => downloadCsv(filtered)}
+          className="flex items-center gap-2 border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex-shrink-0"
+        >
+          ⬇ Export CSV
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-16 text-gray-400">Đang tải...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-200">
+          {search ? 'Không tìm thấy khách hàng phù hợp' : 'Chưa có tài khoản nào'}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map(c => (
+            <div key={c.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              {/* Row chính */}
+              <button
+                onClick={() => setExpanded(expanded === c.id ? null : c.id)}
+                className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 font-black text-sm flex items-center justify-center flex-shrink-0">
+                  {c.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold text-sm text-gray-900">{c.name}</p>
+                    {c.prescriptions.length > 0 && (
+                      <span className="text-[10px] bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded-full">
+                        {c.prescriptions.length} đơn kính
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">{c.email} · {c.phone}</p>
+                </div>
+                <div className="text-right flex-shrink-0 hidden sm:block">
+                  <p className="text-xs text-gray-400">Đăng ký</p>
+                  <p className="text-xs font-semibold text-gray-700">{fmtDate(c.createdAt)}</p>
+                </div>
+                <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${expanded === c.id ? 'rotate-180' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+
+              {/* Expanded */}
+              {expanded === c.id && (
+                <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/50 space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Email', value: c.email },
+                      { label: 'SĐT', value: c.phone },
+                      { label: 'Ngày sinh', value: c.dob ? fmtDate(c.dob) : '—' },
+                      { label: 'Đăng ký', value: fmtDate(c.createdAt) },
+                    ].map(f => (
+                      <div key={f.label} className="bg-white rounded-xl px-3 py-2.5 border border-gray-100">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase mb-0.5">{f.label}</p>
+                        <p className="text-xs font-semibold text-gray-800 break-all">{f.value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {c.prescriptions.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-2">Chưa có đơn kính nào</p>
+                  ) : (
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-2">
+                        Lịch sử đơn kính ({c.prescriptions.length})
+                      </p>
+                      <div className="space-y-2">
+                        {c.prescriptions.map(rx => <RxCard key={rx.id} rx={rx}/>)}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-1">
+                    <a href={`mailto:${c.email}`}
+                      className="text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-50 transition-colors">
+                      ✉ Email
+                    </a>
+                    <a href={`tel:${c.phone}`}
+                      className="text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-50 transition-colors">
+                      📞 Gọi
+                    </a>
+                    <a href={`https://zalo.me/${c.phone}`} target="_blank" rel="noopener noreferrer"
+                      className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 hover:bg-blue-100 transition-colors">
+                      💬 Zalo
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

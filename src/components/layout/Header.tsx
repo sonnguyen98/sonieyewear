@@ -10,6 +10,7 @@ import { openZaloDefault } from '@/lib/zalo'
 const NAV_LINKS = [
   { href: '/gong-kinh',   label: 'Gọng Kính' },
   { href: '/trong-kinh',  label: 'Tròng Kính' },
+  { href: '/so-y-ba',     label: '📋 Sổ Y Bạ' },
   { href: '/chinh-sach',  label: 'Chính Sách Bảo Hành' },
   { href: '/soni-share',  label: 'SONi Share' },
   { href: '/he-thong',    label: 'Hệ Thống Cửa Hàng' },
