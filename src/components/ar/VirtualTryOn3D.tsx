@@ -61,13 +61,16 @@ export default function VirtualTryOn3D({ onClose, initialProductId }: VirtualTry
         streamRef.current = stream
         video.srcObject = stream
 
-        // Đợi metadata (để videoWidth/videoHeight có giá trị) rồi mới play
+        // Play và poll cho đến khi videoWidth/videoHeight > 0
+        video.play().catch(() => {})
         await new Promise<void>(res => {
-          if (video.readyState >= 1) { video.play(); res(); return }
-          video.onloadedmetadata = () => { video.play(); res() }
+          const v = video
+          function check() {
+            if (v.videoWidth > 0 && v.videoHeight > 0) { res(); return }
+            requestAnimationFrame(check)
+          }
+          check()
         })
-        // Đợi thêm 1 frame để browser bắt đầu decode
-        await new Promise<void>(res => requestAnimationFrame(() => res()))
         if (!mounted) return
 
         // Step 1: 3D scene
