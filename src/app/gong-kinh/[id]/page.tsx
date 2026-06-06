@@ -179,20 +179,11 @@ export default function ProductDetailPage({ params }: PageProps) {
           </div>
 
           {/* Frame size code */}
-          <div className="flex items-center gap-3 py-3 border-t border-b border-brand-border">
-            <div>
-              <p className="text-xs text-brand-muted mb-0.5">Kích thước gọng</p>
-              <p className="text-base font-bold text-brand-black tracking-widest">
-                {product.specs.lensWidth}–{product.specs.bridgeWidth}–{product.specs.templeLength}
-              </p>
-            </div>
-            <div className="h-8 w-px bg-brand-border"/>
-            <a
-              href="/soni-share/do-kinh-cu"
-              className="text-xs text-brand-muted underline underline-offset-2 hover:text-brand-black transition-colors leading-snug"
-            >
-              Cách đo gọng kính cũ<br/>để so sánh →
-            </a>
+          <div className="py-3 border-t border-b border-brand-border">
+            <p className="text-xs text-brand-muted mb-0.5">Kích thước gọng</p>
+            <p className="text-base font-bold text-brand-black tracking-widest">
+              {product.specs.lensWidth}–{product.specs.bridgeWidth}–{product.specs.templeLength}
+            </p>
           </div>
 
           {/* ── URGENCY CTA ── */}
