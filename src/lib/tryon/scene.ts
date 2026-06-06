@@ -21,7 +21,7 @@ export function createVideoBackground(
   bg.minFilter = THREE.LinearFilter
 
   const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: bg, depthWrite: false, sizeAttenuation: false })
+    new THREE.SpriteMaterial({ map: bg, depthWrite: false, sizeAttenuation: true })
   )
   sprite.center.set(0.5, 0.5)
   sprite.scale.set(-vw, vh, 1) // negative x = horizontal flip (selfie mirror)

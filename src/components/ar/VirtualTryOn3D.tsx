@@ -61,9 +61,13 @@ export default function VirtualTryOn3D({ onClose, initialProductId }: VirtualTry
         streamRef.current = stream
         video.srcObject = stream
 
+        // Đợi metadata (để videoWidth/videoHeight có giá trị) rồi mới play
         await new Promise<void>(res => {
-          video.oncanplay = () => { video.play(); res() }
+          if (video.readyState >= 1) { video.play(); res(); return }
+          video.onloadedmetadata = () => { video.play(); res() }
         })
+        // Đợi thêm 1 frame để browser bắt đầu decode
+        await new Promise<void>(res => requestAnimationFrame(() => res()))
         if (!mounted) return
 
         // Step 1: 3D scene
@@ -193,9 +197,10 @@ export default function VirtualTryOn3D({ onClose, initialProductId }: VirtualTry
         ref={containerRef}
         className="flex-1 relative overflow-hidden [&_canvas]:w-full [&_canvas]:h-full [&_canvas]:object-cover"
       >
+        {/* Video ẩn bằng visibility (không dùng display:none để trình duyệt vẫn decode frames) */}
         <video
           ref={videoRef}
-          className="hidden"
+          style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }}
           autoPlay
           playsInline
           muted

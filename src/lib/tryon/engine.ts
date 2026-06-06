@@ -80,6 +80,14 @@ export function initializeThreejs(
   bg = bgTex
   renderer = createRenderer(video)
   container.appendChild(renderer.domElement)
+  // Override Three.js inline size so canvas fills the container via CSS
+  Object.assign(renderer.domElement.style, {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+  })
 
   scene = new THREE.Scene()
   scene.add(sprite)
