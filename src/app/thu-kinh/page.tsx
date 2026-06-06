@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, Suspense, lazy } from 'react'
+import { useState, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -12,7 +13,14 @@ import type { FaceLandmarkPoint } from '@/types/ar'
 import { MERGED_PRODUCTS } from '@/data/products'
 import { openZaloDefault } from '@/lib/zalo'
 
-const VirtualTryOn3D = lazy(() => import('@/components/ar/VirtualTryOn3D'))
+const VirtualTryOn3D = dynamic(() => import('@/components/ar/VirtualTryOn3D'), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 bg-black flex items-center justify-center">
+      <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin"/>
+    </div>
+  ),
+})
 
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
@@ -114,13 +122,7 @@ function ThuKinhContent() {
 
       {/* ── LIVE TRY-ON 3D ── */}
       {step === 'live-tryon' && (
-        <Suspense fallback={
-          <div className="fixed inset-0 bg-black flex items-center justify-center">
-            <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin"/>
-          </div>
-        }>
-          <VirtualTryOn3D onClose={() => setStep('intro')} />
-        </Suspense>
+        <VirtualTryOn3D onClose={() => setStep('intro')} />
       )}
 
       {/* ── INTRO ── */}

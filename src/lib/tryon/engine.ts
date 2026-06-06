@@ -127,8 +127,8 @@ export function setGlassesImage(imageUrl: string): void {
 
 // ── Public: Load MediaPipe + Start Prediction Loop ────────────────────────────
 export async function initializeEngine(): Promise<void> {
-  // @ts-ignore — CDN dynamic import, no type declarations
-  const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.7/vision_bundle.mjs') as {
+  // @ts-ignore
+  const vision = await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.7/vision_bundle.mjs') as {
     FilesetResolver: { forVisionTasks(base: string): Promise<unknown> }
     FaceLandmarker: { createFromOptions(fileset: unknown, opts: unknown): Promise<unknown> }
   }

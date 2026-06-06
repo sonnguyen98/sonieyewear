@@ -85,12 +85,14 @@ export default function VirtualTryOn3D({ onClose, initialProductId }: VirtualTry
         setTimeout(() => { if (mounted) setIsLoading(false) }, 500)
       } catch (err) {
         if (!mounted) return
-        console.error('VirtualTryOn3D init error:', err)
         const msg = err instanceof Error ? err.message : String(err)
-        if (msg.includes('Permission') || msg.includes('NotAllowed')) {
+        console.error('[VirtualTryOn3D] init error:', msg, err)
+        if (msg.includes('Permission') || msg.includes('NotAllowed') || msg.includes('NotFoundError')) {
           setError('Vui lòng cho phép truy cập camera để sử dụng tính năng này.')
+        } else if (msg.includes('network') || msg.includes('fetch') || msg.includes('Failed to fetch')) {
+          setError('Lỗi mạng khi tải mô hình AI. Kiểm tra kết nối và thử lại.')
         } else {
-          setError('Không thể khởi động. Vui lòng thử lại.')
+          setError(`Không thể khởi động. Vui lòng thử lại. (${msg.slice(0, 80)})`)
         }
         setIsLoading(false)
       }
