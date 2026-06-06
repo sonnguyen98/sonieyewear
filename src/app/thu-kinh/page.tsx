@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -13,18 +12,9 @@ import type { FaceLandmarkPoint } from '@/types/ar'
 import { MERGED_PRODUCTS } from '@/data/products'
 import { openZaloDefault } from '@/lib/zalo'
 
-const VirtualTryOn3D = dynamic(() => import('@/components/ar/VirtualTryOn3D'), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 bg-black flex items-center justify-center">
-      <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin"/>
-    </div>
-  ),
-})
-
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 
-type Step = 'intro' | 'live-tryon' | 'capture' | 'analyzing' | 'result'
+type Step = 'intro' | 'capture' | 'analyzing' | 'result'
 
 function ThuKinhContent() {
   const router = useRouter()
@@ -120,11 +110,6 @@ function ThuKinhContent() {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* ── LIVE TRY-ON 3D ── */}
-      {step === 'live-tryon' && (
-        <VirtualTryOn3D onClose={() => setStep('intro')} />
-      )}
-
       {/* ── INTRO ── */}
       {step === 'intro' && (
         <div className="max-w-lg mx-auto px-4 py-12 text-center">
@@ -158,24 +143,13 @@ function ThuKinhContent() {
             ))}
           </div>
 
-          {/* CTA chính: thử kính 3D trực tiếp */}
-          <button onClick={() => setStep('live-tryon')}
-            className="w-full bg-brand-black hover:bg-gray-800 text-white font-bold py-4 rounded-2xl text-base shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 mb-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-              <circle cx="6" cy="12" r="4"/><circle cx="18" cy="12" r="4"/>
-              <path strokeLinecap="round" d="M10 12h4M2 12h0M22 12h0"/>
-            </svg>
-            Thử Kính Trực Tiếp (3D)
-          </button>
-
-          {/* Phân tích khuôn mặt AI */}
           <button onClick={() => setStep('capture')}
             className="w-full bg-brand-zalo hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-base shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            Phân Tích Khuôn Mặt (AI)
+            Bắt Đầu Phân Tích
           </button>
 
           <p className="text-xs text-brand-muted mt-4">
