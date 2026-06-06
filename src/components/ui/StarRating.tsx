@@ -8,6 +8,9 @@ interface StarRatingProps {
 }
 
 export default function StarRating({ rating, reviewCount, size = 'sm', className }: StarRatingProps) {
+  // Ẩn hoàn toàn khi chưa có review thật
+  if (!reviewCount || reviewCount === 0) return null
+
   return (
     <div className={cn('flex items-center gap-1', className)}>
       <div className="flex">

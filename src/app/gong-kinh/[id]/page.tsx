@@ -130,13 +130,8 @@ export default function ProductDetailPage({ params }: PageProps) {
           {/* Price */}
           <div className="flex items-baseline gap-3">
             <span className="text-2xl sm:text-3xl font-black text-brand-black">{formatVND(discountedPrice)}</span>
-            {originalPrice && (
-              <>
-                <span className="text-base text-gray-400 line-through">{formatVND(originalPrice)}</span>
-                <span className="text-sm font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-                  -{Math.round((1 - discountedPrice / originalPrice) * 100)}%
-                </span>
-              </>
+            {originalPrice && originalPrice > discountedPrice && (
+              <span className="text-base text-gray-400 line-through">{formatVND(originalPrice)}</span>
             )}
           </div>
 
@@ -181,6 +176,23 @@ export default function ProductDetailPage({ params }: PageProps) {
                 ⚠️ Màu <strong>{selectedColor.name}</strong> hiện đã hết hàng. Vui lòng chọn màu khác hoặc liên hệ để đặt trước.
               </p>
             )}
+          </div>
+
+          {/* Frame size code */}
+          <div className="flex items-center gap-3 py-3 border-t border-b border-brand-border">
+            <div>
+              <p className="text-xs text-brand-muted mb-0.5">Kích thước gọng</p>
+              <p className="text-base font-bold text-brand-black tracking-widest">
+                {product.specs.lensWidth}–{product.specs.bridgeWidth}–{product.specs.templeLength}
+              </p>
+            </div>
+            <div className="h-8 w-px bg-brand-border"/>
+            <a
+              href="/soni-share/do-kinh-cu"
+              className="text-xs text-brand-muted underline underline-offset-2 hover:text-brand-black transition-colors leading-snug"
+            >
+              Cách đo gọng kính cũ<br/>để so sánh →
+            </a>
           </div>
 
           {/* ── URGENCY CTA ── */}
@@ -282,6 +294,26 @@ export default function ProductDetailPage({ params }: PageProps) {
       <div className="mt-8 bg-brand-light rounded-2xl p-6">
         <h3 className="text-base font-bold mb-3 text-brand-black">Mô Tả Sản Phẩm</h3>
         <p className="text-sm text-brand-muted leading-relaxed">{product.description}</p>
+      </div>
+
+      {/* Reviews */}
+      <div className="mt-10">
+        <h3 className="text-base font-bold text-brand-black mb-4">Đánh giá từ khách hàng</h3>
+        {product.reviewCount > 0 ? (
+          <div className="flex items-center gap-3 bg-brand-light rounded-xl p-4">
+            <StarRating rating={product.rating} reviewCount={product.reviewCount} size="md" />
+          </div>
+        ) : (
+          <div className="rounded-xl border border-brand-border p-6 text-center">
+            <p className="text-sm font-semibold text-brand-black mb-1">Chưa có đánh giá</p>
+            <p className="text-xs text-brand-muted mb-4 max-w-xs mx-auto">
+              Sau khi nhận hàng, bạn sẽ nhận được lời mời để lại đánh giá kèm ảnh qua Zalo — giúp khách hàng tiếp theo có thêm thông tin thật.
+            </p>
+            <p className="text-xs text-brand-muted">
+              Review kèm ảnh được tặng thêm ưu đãi nhỏ cho lần mua sau.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Related */}
