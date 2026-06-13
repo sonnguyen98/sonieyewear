@@ -1,129 +1,100 @@
-/**
- * Google Apps Script — Nhận đơn hàng từ website kinhmatsoni.com
- *
- * CÁCH DÙNG:
- * 1. Mở Google Sheet bạn muốn lưu đơn → Extensions → Apps Script
- * 2. Xoá hết code mặc định, dán toàn bộ file này vào
- * 3. Sửa SHEET_NAME bên dưới nếu sheet của bạn tên khác
- * 4. Deploy → New deployment → Type: Web app
- *      - Execute as: Me
- *      - Who has access: Anyone   (KHÔNG phải "Anyone with Google account")
- * 5. Copy URL Web app → dán vào .env.local biến GOOGLE_APPS_SCRIPT_URL
- *
- * MỖI LẦN SỬA CODE: phải Deploy → Manage deployments → Edit (cây bút) → Version: New version → Deploy
- *   nếu không, URL cũ vẫn chạy code cũ.
- */
-
-const SHEET_NAME = 'Đơn hàng'  // <- đổi tên sheet nếu cần
-const CUSTOMER_SHEET_NAME = 'Khách Hàng'  // <- sheet danh sách khách hàng (chăm sóc/bán lại)
-
-// Header cột — sẽ tự tạo nếu sheet trống
-const HEADERS = [
-  'Thời gian',
-  'Mã đơn',
-  'Họ tên',
-  'SĐT',
-  'Địa chỉ',
-  'Sản phẩm',
-  'Màu',
-  'Tròng kính',
-  'Số tiền',
-  'Hình thức TT',
-  'Ghi chú',
-  'Affiliate',
-  'Trạng thái TT',
-  'Mã GD',
-  'Thời gian TT',
-]
-
-const CUSTOMER_HEADERS = [
-  'SĐT',
-  'Họ tên',
-  'Email',
-  'Ngày tạo',
-  'Cập nhật lúc',
-]
-
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents)
-    const ss = SpreadsheetApp.getActiveSpreadsheet()
-    let sheet = ss.getSheetByName(SHEET_NAME)
-    if (!sheet) {
-      sheet = ss.insertSheet(SHEET_NAME)
-      sheet.appendRow(HEADERS)
-      sheet.setFrozenRows(1)
-    }
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(HEADERS)
-      sheet.setFrozenRows(1)
-    }
+    var raw = e.postData ? e.postData.contents : ''
+    var d = raw ? JSON.parse(raw) : {}
+    var ss = SpreadsheetApp.getActiveSpreadsheet()
 
-    if (data.action === 'newOrder') {
-      sheet.appendRow([
-        new Date(),
-        data.orderCode || '',
-        data.name || '',
-        data.phone || '',
-        data.address || '',
-        data.product || '',
-        data.color || '',
-        data.lens || '',
-        data.payAmount || data.orderAmount || 0,
-        data.paymentType || data.payment || '',
-        data.note || '',
-        data.affiliateCode || '',
-        'Chưa thanh toán',
-        '',
-        '',
-      ])
-      return ok({ ok: true, action: 'newOrder', code: data.orderCode })
-    }
-
-    if (data.action === 'markPaid') {
-      const code = data.orderCode
-      const values = sheet.getDataRange().getValues()
-      // Tìm hàng có mã đơn ở cột B (index 1)
-      for (let i = 1; i < values.length; i++) {
-        if (values[i][1] === code) {
-          sheet.getRange(i + 1, 13).setValue('Đã thanh toán')   // cột "Trạng thái TT"
-          sheet.getRange(i + 1, 14).setValue(data.transactionRef || '')
-          sheet.getRange(i + 1, 15).setValue(data.paidAt || new Date())
-          return ok({ ok: true, action: 'markPaid', code })
+    if (d.action === 'markPaid') {
+      var sheet = getSheet(ss)
+      var rows = sheet.getDataRange().getValues()
+      for (var i = 1; i < rows.length; i++) {
+        if (String(rows[i][2]) === String(d.orderCode)) {
+          var rowNum = i + 1
+          sheet.getRange('A' + rowNum).setValue('✅ Đã thanh toán')
+          sheet.getRange('A' + rowNum).setBackground('#d4edda').setFontColor('#155724').setFontWeight('bold')
+          sheet.getRange('L' + rowNum).setValue(d.transactionRef || '')
+          break
         }
       }
-      return ok({ ok: false, reason: 'order_not_found', code })
+      return ok()
     }
 
-    if (data.action === 'syncCustomer') {
-      const custSheet = getOrCreateCustomerSheet(ss)
-      upsertCustomerRow(custSheet, data)
-      return ok({ ok: true, action: 'syncCustomer', phone: data.phone })
+    if (d.action === 'affiliateWithdraw') {
+      var aSheet = ss.getSheetByName('Affiliate') || ss.insertSheet('Affiliate')
+      if (aSheet.getLastRow() === 0) {
+        aSheet.appendRow(['Thời gian','Tên','SĐT','Mã','Số tiền','Ngân hàng','STK','Chủ TK'])
+        aSheet.getRange(1,1,1,8).setFontWeight('bold').setBackground('#333').setFontColor('#fff')
+      }
+      aSheet.appendRow([
+        new Date().toLocaleString('vi-VN'),
+        d.affiliateName||'', d.affiliatePhone||'', d.affiliateCode||'',
+        d.amount||'', d.bankName||'', d.bankAccount||'', d.bankOwner||''
+      ])
+      return ok()
     }
 
-    if (data.action === 'syncAllCustomers') {
-      const custSheet = getOrCreateCustomerSheet(ss)
-      const customers = data.customers || []
-      customers.forEach(c => upsertCustomerRow(custSheet, c))
-      return ok({ ok: true, action: 'syncAllCustomers', count: customers.length })
+    if (d.action === 'syncCustomer') {
+      var cSheet = getCustomerSheet(ss)
+      upsertCustomerRow(cSheet, d)
+      return ok()
     }
 
-    return ok({ ok: false, reason: 'unknown_action', action: data.action })
-  } catch (err) {
-    return ok({ ok: false, error: String(err) })
+    if (d.action === 'syncAllCustomers') {
+      var cSheet = getCustomerSheet(ss)
+      var list = d.customers || []
+      for (var j = 0; j < list.length; j++) upsertCustomerRow(cSheet, list[j])
+      return ok()
+    }
+
+    // Đơn hàng mới
+    var sheet = getSheet(ss)
+    var img = saveImage(d)
+    var lastRow = sheet.getLastRow() + 1
+
+    sheet.getRange(lastRow, 1).setValue('⏳ Chờ TT')
+    sheet.getRange(lastRow, 2).setValue(new Date().toLocaleString('vi-VN'))
+    sheet.getRange(lastRow, 3).setValue(String(d.orderCode || ''))
+    sheet.getRange(lastRow, 4).setValue(String(d.name || ''))
+    sheet.getRange(lastRow, 5).setValue(String(d.phone || ''))
+    sheet.getRange(lastRow, 6).setValue(String(d.address || ''))
+    sheet.getRange(lastRow, 7).setValue(String(d.product || '') + (d.color ? ' (' + String(d.color) + ')' : ''))
+    sheet.getRange(lastRow, 8).setValue(String(d.lens || 'Chỉ Gọng'))
+    sheet.getRange(lastRow, 9).setValue(String(d.total || ''))
+    sheet.getRange(lastRow, 10).setValue(String(d.payment || ''))
+    sheet.getRange(lastRow, 11).setValue(img || String(d.prescription || ''))
+    sheet.getRange(lastRow, 12).setValue('')
+
+    return ok()
+
+  } catch(err) {
+    Logger.log('ERROR: ' + err.message)
+    return ContentService.createTextOutput('{"err":"' + err.message + '"}').setMimeType(ContentService.MimeType.JSON)
   }
 }
 
-// ── Sheet "Khách Hàng" — danh sách khách hàng để chăm sóc/bán lại ────────────
-function getOrCreateCustomerSheet(ss) {
-  let sheet = ss.getSheetByName(CUSTOMER_SHEET_NAME)
+function getSheet(ss) {
+  var sheet = ss.getSheetByName('Đơn Hàng')
   if (!sheet) {
-    sheet = ss.insertSheet(CUSTOMER_SHEET_NAME)
-    sheet.appendRow(CUSTOMER_HEADERS)
+    sheet = ss.insertSheet('Đơn Hàng')
+    sheet.appendRow([
+      'Trạng thái TT','Thời gian','Mã đơn','Họ tên','SĐT',
+      'Địa chỉ','Sản phẩm & Màu','Tròng kính','Tổng tiền',
+      'Hình thức TT','Đơn thuốc','Mã GD'
+    ])
+    sheet.getRange(1,1,1,12).setBackground('#1a1a1a').setFontColor('#ffffff').setFontWeight('bold')
+    sheet.setColumnWidth(1, 160)
     sheet.setFrozenRows(1)
   }
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(CUSTOMER_HEADERS)
+  return sheet
+}
+
+// ── Sheet "Khách Hàng" — danh sách khách hàng để chăm sóc/bán lại ────────────
+function getCustomerSheet(ss) {
+  var sheet = ss.getSheetByName('Khách Hàng')
+  if (!sheet) {
+    sheet = ss.insertSheet('Khách Hàng')
+    sheet.appendRow(['SĐT','Họ tên','Email','Ngày tạo','Cập nhật lúc'])
+    sheet.getRange(1,1,1,5).setBackground('#1a1a1a').setFontColor('#ffffff').setFontWeight('bold')
     sheet.setFrozenRows(1)
   }
   return sheet
@@ -131,31 +102,45 @@ function getOrCreateCustomerSheet(ss) {
 
 // Tìm hàng theo SĐT (cột A) — có thì cập nhật, chưa có thì thêm mới
 function upsertCustomerRow(sheet, c) {
-  const values = sheet.getDataRange().getValues()
-  for (let i = 1; i < values.length; i++) {
-    if (values[i][0] === c.phone) {
-      if (c.name) sheet.getRange(i + 1, 2).setValue(c.name)
-      if (c.email) sheet.getRange(i + 1, 3).setValue(c.email)
-      sheet.getRange(i + 1, 5).setValue(new Date())
+  var rows = sheet.getDataRange().getValues()
+  var now = new Date().toLocaleString('vi-VN')
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(c.phone)) {
+      var rowNum = i + 1
+      if (c.name) sheet.getRange(rowNum, 2).setValue(String(c.name))
+      if (c.email) sheet.getRange(rowNum, 3).setValue(String(c.email))
+      sheet.getRange(rowNum, 5).setValue(now)
       return
     }
   }
-  sheet.appendRow([
-    c.phone || '',
-    c.name || '',
-    c.email || '',
-    c.createdAt ? new Date(c.createdAt) : new Date(),
-    new Date(),
-  ])
+  var lastRow = sheet.getLastRow() + 1
+  sheet.getRange(lastRow, 1).setValue(String(c.phone || ''))
+  sheet.getRange(lastRow, 2).setValue(String(c.name || ''))
+  sheet.getRange(lastRow, 3).setValue(String(c.email || ''))
+  sheet.getRange(lastRow, 4).setValue(c.createdAt ? new Date(c.createdAt).toLocaleString('vi-VN') : now)
+  sheet.getRange(lastRow, 5).setValue(now)
 }
 
-function doGet() {
-  // Cho test bằng trình duyệt — mở URL trên browser sẽ thấy "ok"
-  return ok({ ok: true, msg: 'Apps Script đang hoạt động. Dùng POST để gửi đơn.' })
+function saveImage(d) {
+  if (!d.prescriptionImage || String(d.prescriptionImage).indexOf('data:image') !== 0) return ''
+  try {
+    var parts = d.prescriptionImage.split(',')
+    var mime = d.prescriptionImage.split(';')[0].split(':')[1]
+    var blob = Utilities.newBlob(Utilities.base64Decode(parts[1]), mime, 'don-thuoc-' + d.phone + '.jpg')
+    var iter = DriveApp.getFoldersByName('SONi Đơn Thuốc')
+    var folder = iter.hasNext() ? iter.next() : DriveApp.createFolder('SONi Đơn Thuốc')
+    var file = folder.createFile(blob)
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
+    return file.getUrl()
+  } catch(e) { return '' }
 }
 
-function ok(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON)
+function ok() {
+  return ContentService.createTextOutput('{"success":true}').setMimeType(ContentService.MimeType.JSON)
+}
+
+function requestPermissions() {
+  SpreadsheetApp.getActiveSpreadsheet()
+  DriveApp.getRootFolder()
+  Logger.log('OK')
 }
