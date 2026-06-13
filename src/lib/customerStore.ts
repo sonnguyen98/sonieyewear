@@ -25,6 +25,18 @@ export async function findCustomerByPhone(phone: string): Promise<Customer | nul
   return list.find(c => c.phone === phone) ?? null
 }
 
+// ── Xoá ──────────────────────────────────────────────────────────────────────
+export async function deleteCustomers(ids: string[]): Promise<number> {
+  return withLock('customer:write', async () => {
+    const list = await getAllCustomers()
+    const idSet = new Set(ids)
+    const remaining = list.filter(c => !idSet.has(c.id))
+    const removed = list.length - remaining.length
+    if (removed > 0) await kvSet(KV_KEYS.customers, 'customers.json', remaining)
+    return removed
+  })
+}
+
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // ── Truy cập bằng số điện thoại (không cần mật khẩu) ─────────────────────────

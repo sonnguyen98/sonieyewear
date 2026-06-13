@@ -1916,6 +1916,33 @@ function CustomersSection() {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDeleteNoRx() {
+    const noRx = customers.filter(c => c.prescriptions.length === 0)
+    if (noRx.length === 0) return
+    if (!confirm(`Xoá ${noRx.length} tài khoản chưa có đơn kính? Hành động này không thể hoàn tác.`)) return
+
+    setDeleting(true)
+    try {
+      const r = await fetch('/api/admin/customers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: noRx.map(c => c.id) }),
+      })
+      const data = await r.json()
+      if (r.ok) {
+        const removedIds = new Set(noRx.map(c => c.id))
+        setCustomers(prev => prev.filter(c => !removedIds.has(c.id)))
+        setSyncMsg(`Đã xoá ${data.removed} tài khoản không có đơn kính`)
+      } else {
+        setSyncMsg(data.error || 'Lỗi xoá tài khoản')
+      }
+    } catch {
+      setSyncMsg('Lỗi xoá tài khoản')
+    }
+    setDeleting(false)
+  }
 
   async function handleSyncSheet() {
     setSyncing(true); setSyncMsg('')
@@ -1943,6 +1970,7 @@ function CustomersSection() {
   )
 
   const totalRx = customers.reduce((s, c) => s + c.prescriptions.length, 0)
+  const noRxCount = customers.filter(c => c.prescriptions.length === 0).length
 
   return (
     <div>
@@ -1984,6 +2012,13 @@ function CustomersSection() {
           className="flex items-center gap-2 border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex-shrink-0 disabled:opacity-60"
         >
           {syncing ? 'Đang đồng bộ...' : '🔄 Đồng bộ Google Sheet'}
+        </button>
+        <button
+          onClick={handleDeleteNoRx}
+          disabled={deleting || noRxCount === 0}
+          className="flex items-center gap-2 border border-red-200 text-red-600 rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-red-50 transition-colors flex-shrink-0 disabled:opacity-40"
+        >
+          {deleting ? 'Đang xoá...' : `🗑 Xoá KH chưa có đơn (${noRxCount})`}
         </button>
       </div>
       {syncMsg && <p className="text-xs text-gray-500 mb-4">{syncMsg}</p>}
