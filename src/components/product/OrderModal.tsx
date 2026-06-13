@@ -666,7 +666,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
 
   const headerTitle =
     step === 'main' ? 'Chọn Loại Tròng' :
-    step === 'don-trong' ? 'Đơn Tròng' :
+    step === 'don-trong' ? 'Mua Gọng + Lắp Tròng' :
     step === 'don-trong-detail' ? (selectedCategory?.name ?? 'Chọn Tròng') :
     step === 'da-trong' ? 'Hai Tròng / Đa Tròng' :
     step === 'checkout' ? 'Thông Tin Đặt Hàng' :
@@ -768,7 +768,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                 </div>
               </button>
 
-              {/* Đơn Tròng */}
+              {/* Mua Gọng + Lắp Tròng */}
               <button onClick={() => setStep('don-trong')}
                 className="w-full flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group text-left">
                 <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100 mt-0.5">
@@ -780,12 +780,12 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-bold text-brand-black text-sm">Đơn Tròng</p>
+                    <p className="font-bold text-brand-black text-sm">Mua Gọng + Lắp Tròng</p>
                     <svg className="w-4 h-4 text-brand-muted flex-shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <p className="text-xs text-brand-muted mt-0.5">5 loại tròng — từ {formatVND(300000)}</p>
+                  <p className="text-xs text-brand-muted mt-0.5">5 loại tròng — từ {formatVND(99000)}</p>
                   <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
                     <p className="text-xs font-semibold text-gray-500">👤 Dành cho:</p>
                     <p className="text-xs text-brand-muted leading-relaxed">Người cận, viễn hoặc loạn thị ở một khoảng cách — đọc sách, dùng máy tính hoặc nhìn xa.</p>

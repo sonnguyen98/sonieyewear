@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCustomerIdFromRequest } from '@/lib/customerAuth'
-import { findCustomerById, stripPassword } from '@/lib/customerStore'
+import { findCustomerById } from '@/lib/customerStore'
 
 export async function GET(req: NextRequest) {
   const customerId = await getCustomerIdFromRequest(req)
@@ -11,5 +11,5 @@ export async function GET(req: NextRequest) {
   if (!customer)
     return NextResponse.json({ error: 'Tài khoản không tồn tại' }, { status: 404 })
 
-  return NextResponse.json({ customer: stripPassword(customer) })
+  return NextResponse.json({ customer })
 }

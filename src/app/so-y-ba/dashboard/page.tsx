@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-interface Customer { id: string; name: string; email: string; phone: string; createdAt: string }
+interface Customer { id: string; name?: string; email?: string; phone: string; createdAt: string }
 interface EyeData { sph: number; cyl: number; axis: number; add?: number }
 interface Prescription {
   id: string; examDate: string; clinicName?: string
@@ -230,7 +230,7 @@ export default function DashboardPage() {
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">Sổ Y Bạ Khúc Xạ</p>
-            <p className="text-xs text-gray-400">Xin chào, {customer?.name}</p>
+            <p className="text-xs text-gray-400">Xin chào, {customer?.name || customer?.phone}</p>
           </div>
           <button onClick={handleLogout} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Đăng xuất</button>
         </div>

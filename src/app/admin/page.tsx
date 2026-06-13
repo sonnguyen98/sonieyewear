@@ -1862,7 +1862,7 @@ interface AdminRx {
   right: AdminEye; left: AdminEye; pd?: number; notes?: string; imageUrl?: string; createdAt: string
 }
 interface AdminCustomer {
-  id: string; name: string; email: string; phone: string; createdAt: string; dob?: string
+  id: string; name?: string; email?: string; phone: string; createdAt: string; dob?: string
   prescriptions: AdminRx[]
 }
 
@@ -1873,7 +1873,7 @@ function downloadCsv(customers: AdminCustomer[]) {
   const rows = [
     ['Họ tên', 'Email', 'Số điện thoại', 'Ngày sinh', 'Ngày đăng ký', 'Số đơn kính'],
     ...customers.map(c => [
-      c.name, c.email, c.phone, c.dob ?? '', fmtDate(c.createdAt), String(c.prescriptions.length),
+      c.name ?? '', c.email ?? '', c.phone, c.dob ?? '', fmtDate(c.createdAt), String(c.prescriptions.length),
     ]),
   ]
   const csv = rows.map(r => r.map(v => `"${v.replace(/"/g, '""')}"`).join(',')).join('\n')
@@ -1923,8 +1923,8 @@ function CustomersSection() {
   }, [])
 
   const filtered = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase()) ||
+    (c.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.email ?? '').toLowerCase().includes(search.toLowerCase()) ||
     c.phone.includes(search)
   )
 
@@ -1982,18 +1982,18 @@ function CustomersSection() {
                 className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
               >
                 <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 font-black text-sm flex items-center justify-center flex-shrink-0">
-                  {c.name.charAt(0).toUpperCase()}
+                  {(c.name || c.phone).charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-bold text-sm text-gray-900">{c.name}</p>
+                    <p className="font-bold text-sm text-gray-900">{c.name || 'Chưa có tên'}</p>
                     {c.prescriptions.length > 0 && (
                       <span className="text-[10px] bg-blue-50 text-blue-600 font-bold px-2 py-0.5 rounded-full">
                         {c.prescriptions.length} đơn kính
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">{c.email} · {c.phone}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">{c.email ? `${c.email} · ` : ''}{c.phone}</p>
                 </div>
                 <div className="text-right flex-shrink-0 hidden sm:block">
                   <p className="text-xs text-gray-400">Đăng ký</p>
@@ -2010,7 +2010,7 @@ function CustomersSection() {
                 <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/50 space-y-4">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { label: 'Email', value: c.email },
+                      { label: 'Email', value: c.email || '—' },
                       { label: 'SĐT', value: c.phone },
                       { label: 'Ngày sinh', value: c.dob ? fmtDate(c.dob) : '—' },
                       { label: 'Đăng ký', value: fmtDate(c.createdAt) },

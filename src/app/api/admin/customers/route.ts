@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/adminAuth'
-import { getAllCustomers, stripPassword } from '@/lib/customerStore'
+import { getAllCustomers } from '@/lib/customerStore'
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
 import type { Prescription } from '@/lib/prescriptionStore'
 
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   const data = customers.map(c => ({
-    ...stripPassword(c),
+    ...c,
     prescriptions: (rxMap.get(c.id) ?? []).sort((a, b) => b.examDate.localeCompare(a.examDate)),
   }))
 

@@ -3,25 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-type Tab = 'login' | 'register'
-
 export default function SoYBaPage() {
   const router = useRouter()
-  const [tab, setTab] = useState<Tab>('login')
   const [checking, setChecking] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Form state — login
-  const [loginPhone, setLoginPhone] = useState('')
-  const [loginPassword, setLoginPassword] = useState('')
-
-  // Form state — register
-  const [regName, setRegName] = useState('')
-  const [regEmail, setRegEmail] = useState('')
-  const [regPhone, setRegPhone] = useState('')
-  const [regPassword, setRegPassword] = useState('')
-  const [regDob, setRegDob] = useState('')
+  const [phone, setPhone] = useState('')
+  const [name, setName] = useState('')
 
   // Nếu đã đăng nhập → chuyển thẳng vào dashboard
   useEffect(() => {
@@ -31,27 +20,13 @@ export default function SoYBaPage() {
     }).catch(() => setChecking(false))
   }, [router])
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleAccess(e: React.FormEvent) {
     e.preventDefault()
     setError(''); setLoading(true)
-    const r = await fetch('/api/customer/login', {
+    const r = await fetch('/api/customer/access', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: loginPhone, password: loginPassword }),
-    })
-    const data = await r.json()
-    setLoading(false)
-    if (!r.ok) { setError(data.error); return }
-    router.push('/so-y-ba/dashboard')
-  }
-
-  async function handleRegister(e: React.FormEvent) {
-    e.preventDefault()
-    setError(''); setLoading(true)
-    const r = await fetch('/api/customer/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: regName, email: regEmail, phone: regPhone, password: regPassword, dob: regDob || undefined }),
+      body: JSON.stringify({ phone, name: name || undefined }),
     })
     const data = await r.json()
     setLoading(false)
@@ -90,102 +65,34 @@ export default function SoYBaPage() {
 
         {/* Card */}
         <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl shadow-gray-200/60 p-6">
-          {/* Tabs */}
-          <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">
-            {(['login', 'register'] as Tab[]).map(t => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setError('') }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-all ${tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                {t === 'login' ? 'Đăng nhập' : 'Đăng ký'}
-              </button>
-            ))}
-          </div>
-
-          {/* Login form */}
-          {tab === 'login' && (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Số điện thoại</label>
-                <input
-                  type="tel" required value={loginPhone} onChange={e => setLoginPhone(e.target.value)}
-                  placeholder="0912 345 678"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Mật khẩu</label>
-                <input
-                  type="password" required value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                />
-              </div>
-              {error && <p className="text-red-500 text-xs bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
-              <button
-                type="submit" disabled={loading}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-60 text-sm"
-              >
-                {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-              </button>
-            </form>
-          )}
-
-          {/* Register form */}
-          {tab === 'register' && (
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Họ và tên</label>
-                <input
-                  type="text" required value={regName} onChange={e => setRegName(e.target.value)}
-                  placeholder="Nguyễn Văn A"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email</label>
-                <input
-                  type="email" required value={regEmail} onChange={e => setRegEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Số điện thoại</label>
-                <input
-                  type="tel" required value={regPhone} onChange={e => setRegPhone(e.target.value)}
-                  placeholder="0912 345 678"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Mật khẩu</label>
-                <input
-                  type="password" required minLength={6} value={regPassword} onChange={e => setRegPassword(e.target.value)}
-                  placeholder="Tối thiểu 6 ký tự"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Ngày sinh <span className="font-normal text-gray-400">(không bắt buộc)</span></label>
-                <input
-                  type="date" value={regDob} onChange={e => setRegDob(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
-                />
-              </div>
-              {error && <p className="text-red-500 text-xs bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
-              <button
-                type="submit" disabled={loading}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-60 text-sm"
-              >
-                {loading ? 'Đang đăng ký...' : 'Tạo tài khoản miễn phí'}
-              </button>
-              <p className="text-[11px] text-gray-400 text-center leading-relaxed">
-                Bằng cách đăng ký, bạn đồng ý cho SONi Kính lưu trữ thông tin thị lực để phục vụ tốt hơn.
-              </p>
-            </form>
-          )}
+          <form onSubmit={handleAccess} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Số điện thoại</label>
+              <input
+                type="tel" required value={phone} onChange={e => setPhone(e.target.value)}
+                placeholder="0912 345 678"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Họ và tên <span className="font-normal text-gray-400">(nếu là lần đầu)</span></label>
+              <input
+                type="text" value={name} onChange={e => setName(e.target.value)}
+                placeholder="Nguyễn Văn A"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+              />
+            </div>
+            {error && <p className="text-red-500 text-xs bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+            <button
+              type="submit" disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-60 text-sm"
+            >
+              {loading ? 'Đang vào...' : 'Vào Sổ Y Bạ'}
+            </button>
+            <p className="text-[11px] text-gray-400 text-center leading-relaxed">
+              Chỉ cần số điện thoại — không cần mật khẩu. Lần sau quay lại, nhập đúng số này để xem lại thông tin của bạn.
+            </p>
+          </form>
         </div>
 
         {/* Benefits */}
