@@ -15,6 +15,7 @@
  */
 
 const SHEET_NAME = 'Đơn hàng'  // <- đổi tên sheet nếu cần
+const CUSTOMER_SHEET_NAME = 'Khách Hàng'  // <- sheet danh sách khách hàng (chăm sóc/bán lại)
 
 // Header cột — sẽ tự tạo nếu sheet trống
 const HEADERS = [
@@ -33,6 +34,14 @@ const HEADERS = [
   'Trạng thái TT',
   'Mã GD',
   'Thời gian TT',
+]
+
+const CUSTOMER_HEADERS = [
+  'SĐT',
+  'Họ tên',
+  'Email',
+  'Ngày tạo',
+  'Cập nhật lúc',
 ]
 
 function doPost(e) {
@@ -86,10 +95,58 @@ function doPost(e) {
       return ok({ ok: false, reason: 'order_not_found', code })
     }
 
+    if (data.action === 'syncCustomer') {
+      const custSheet = getOrCreateCustomerSheet(ss)
+      upsertCustomerRow(custSheet, data)
+      return ok({ ok: true, action: 'syncCustomer', phone: data.phone })
+    }
+
+    if (data.action === 'syncAllCustomers') {
+      const custSheet = getOrCreateCustomerSheet(ss)
+      const customers = data.customers || []
+      customers.forEach(c => upsertCustomerRow(custSheet, c))
+      return ok({ ok: true, action: 'syncAllCustomers', count: customers.length })
+    }
+
     return ok({ ok: false, reason: 'unknown_action', action: data.action })
   } catch (err) {
     return ok({ ok: false, error: String(err) })
   }
+}
+
+// ── Sheet "Khách Hàng" — danh sách khách hàng để chăm sóc/bán lại ────────────
+function getOrCreateCustomerSheet(ss) {
+  let sheet = ss.getSheetByName(CUSTOMER_SHEET_NAME)
+  if (!sheet) {
+    sheet = ss.insertSheet(CUSTOMER_SHEET_NAME)
+    sheet.appendRow(CUSTOMER_HEADERS)
+    sheet.setFrozenRows(1)
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(CUSTOMER_HEADERS)
+    sheet.setFrozenRows(1)
+  }
+  return sheet
+}
+
+// Tìm hàng theo SĐT (cột A) — có thì cập nhật, chưa có thì thêm mới
+function upsertCustomerRow(sheet, c) {
+  const values = sheet.getDataRange().getValues()
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][0] === c.phone) {
+      if (c.name) sheet.getRange(i + 1, 2).setValue(c.name)
+      if (c.email) sheet.getRange(i + 1, 3).setValue(c.email)
+      sheet.getRange(i + 1, 5).setValue(new Date())
+      return
+    }
+  }
+  sheet.appendRow([
+    c.phone || '',
+    c.name || '',
+    c.email || '',
+    c.createdAt ? new Date(c.createdAt) : new Date(),
+    new Date(),
+  ])
 }
 
 function doGet() {

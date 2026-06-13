@@ -3,6 +3,9 @@ import { createOrder } from '@/lib/orderStore'
 import { deductStock } from '@/lib/stock'
 import { createAffiliateCommission } from '@/lib/affiliateStore'
 import { applyRateLimit, limiters, getClientIp } from '@/lib/ratelimit'
+import { findOrCreateCustomerByPhone } from '@/lib/customerStore'
+import { createPrescription } from '@/lib/prescriptionStore'
+import { postToSheet } from '@/lib/googleSheet'
 
 // Google Apps Script trả 302 redirect — Node.js tự đổi POST→GET làm mất body.
 // Dùng redirect:'manual' → lấy Location header → POST lại thủ công giữ body.
@@ -89,6 +92,36 @@ export async function POST(req: NextRequest) {
         })
       } catch (err) {
         console.error('[Order] affiliate commission error:', err)
+      }
+    }
+
+    // Cập nhật/tạo khách hàng trong Sổ Y Bạ (nếu có SĐT) — đồng bộ tên/email + lưu số độ
+    if (body.phone) {
+      try {
+        const customer = await findOrCreateCustomerByPhone(body.phone, body.name, body.email)
+
+        if (body.rxRight && body.rxLeft) {
+          await createPrescription({
+            customerId: customer.id,
+            examDate: new Date().toISOString().slice(0, 10),
+            clinicName: 'SONi Kính',
+            right: body.rxRight,
+            left: body.rxLeft,
+            ...(body.pd !== undefined ? { pd: body.pd } : {}),
+            notes: `Đơn hàng ${body.orderCode}`,
+          })
+        }
+
+        // Đồng bộ thông tin khách hàng lên Google Sheet
+        await postToSheet({
+          action: 'syncCustomer',
+          phone: customer.phone,
+          name: customer.name ?? '',
+          email: customer.email ?? '',
+          createdAt: customer.createdAt,
+        })
+      } catch (err) {
+        console.error('[Order] lưu Sổ Y Bạ error:', err)
       }
     }
 

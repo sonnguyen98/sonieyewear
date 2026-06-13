@@ -1914,6 +1914,20 @@ function CustomersSection() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
+
+  async function handleSyncSheet() {
+    setSyncing(true); setSyncMsg('')
+    try {
+      const r = await fetch('/api/admin/customers/sync-sheet', { method: 'POST' })
+      const data = await r.json()
+      setSyncMsg(r.ok ? `Đã đồng bộ ${data.count} khách hàng lên Google Sheet` : (data.error || 'Lỗi đồng bộ'))
+    } catch {
+      setSyncMsg('Lỗi đồng bộ')
+    }
+    setSyncing(false)
+  }
 
   useEffect(() => {
     fetch('/api/admin/customers')
@@ -1964,7 +1978,15 @@ function CustomersSection() {
         >
           ⬇ Export CSV
         </button>
+        <button
+          onClick={handleSyncSheet}
+          disabled={syncing}
+          className="flex items-center gap-2 border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex-shrink-0 disabled:opacity-60"
+        >
+          {syncing ? 'Đang đồng bộ...' : '🔄 Đồng bộ Google Sheet'}
+        </button>
       </div>
+      {syncMsg && <p className="text-xs text-gray-500 mb-4">{syncMsg}</p>}
 
       {loading ? (
         <div className="text-center py-16 text-gray-400">Đang tải...</div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { invalidateStockCache } from '@/hooks/useStock'
 import Image from 'next/image'
 import type { Product } from '@/types/product'
+import type { EyeData } from '@/lib/prescriptionStore'
 import { formatVND } from '@/lib/utils'
 
 interface OrderModalProps {
@@ -52,6 +53,7 @@ interface EyeRx {
 interface CheckoutForm {
   name: string
   phone: string
+  email: string
   address: string
   note: string
   payment: string
@@ -176,6 +178,44 @@ interface EyeRxLocal { sph: string; cyl: string; axis: string }
 
 // SPH mặc định = Plano để dropdown tự scroll đến giữa khi mở
 const DEFAULT_EYE: EyeRxLocal = { sph: '0.00 (Plano)', cyl: '0.00 (Không loạn)', axis: '' }
+
+// ── Chuyển đổi giữa dropdown (string) ↔ số liệu lưu Sổ Y Bạ ──────────────────
+function rxToEyeData(rx: EyeRxLocal, add: string): EyeData {
+  return {
+    sph: rx.sph.startsWith('0.00') ? 0 : parseFloat(rx.sph),
+    cyl: rx.cyl.startsWith('0.00') ? 0 : parseFloat(rx.cyl),
+    axis: rx.axis ? parseInt(rx.axis, 10) : 0,
+    ...(add ? { add: parseFloat(add) } : {}),
+  }
+}
+
+function eyeDataToRx(eye: EyeData): EyeRxLocal {
+  return {
+    sph: eye.sph === 0 ? '0.00 (Plano)' : (eye.sph > 0 ? '+' : '') + eye.sph.toFixed(2),
+    cyl: eye.cyl === 0 ? '0.00 (Không loạn)' : eye.cyl.toFixed(2),
+    axis: eye.cyl !== 0 && eye.axis ? String(eye.axis) : '',
+  }
+}
+
+function addToOption(add?: number): string {
+  return add !== undefined ? add.toFixed(2) : ''
+}
+
+function pdToOption(pd?: number): string {
+  return pd !== undefined ? pd.toFixed(1) + ' mm' : ''
+}
+
+function parsePdOption(pd: string): number | undefined {
+  return pd ? parseFloat(pd) : undefined
+}
+
+function fmtRxDate(s: string): string {
+  return new Date(s + 'T00:00:00').toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function isDefaultRx(rx: EyeRxLocal): boolean {
+  return rx.sph === DEFAULT_EYE.sph && rx.cyl === DEFAULT_EYE.cyl && rx.axis === DEFAULT_EYE.axis
+}
 
 function RxRow({ label, sub, rx, onChange }: { label: string; sub: string; rx: EyeRxLocal; onChange: (r: EyeRxLocal) => void }) {
   const sel = 'border border-brand-border rounded-lg text-xs text-center outline-none focus:border-brand-black transition-colors bg-white w-full py-2 px-0.5 cursor-pointer'
@@ -508,7 +548,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
       .catch(() => {})
   }, [])
   const [form, setForm] = useState<CheckoutForm>({
-    name: '', phone: '', address: '', note: '', payment: '',
+    name: '', phone: '', email: '', address: '', note: '', payment: '',
     rxMode: 'form',
     rxRight: { ...emptyEye }, rxLeft: { ...emptyEye }, rxAdd: '',
     pd: '',
@@ -519,7 +559,35 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
   const [submitError, setSubmitError] = useState('')
   const [orderCode, setOrderCode] = useState('')
   const [paymentConfirmed, setPaymentConfirmed] = useState(false)
+  const [rxNotice, setRxNotice] = useState<{ examDate: string } | null>(null)
 
+  // Khi khách nhập SĐT hợp lệ → tự tra số độ gần nhất từ Sổ Y Bạ
+  useEffect(() => {
+    const phone = form.phone.trim()
+    if (!/^0\d{9}$/.test(phone)) { setRxNotice(null); return }
+
+    const timer = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/prescription/lookup?phone=${phone}`)
+        const data = await r.json()
+        if (!data.found) { setRxNotice(null); return }
+
+        setRxNotice({ examDate: data.examDate })
+        setForm(f => {
+          if (!isDefaultRx(f.rxRight) || !isDefaultRx(f.rxLeft)) return f
+          return {
+            ...f,
+            rxRight: eyeDataToRx(data.right),
+            rxLeft: eyeDataToRx(data.left),
+            rxAdd: addToOption(data.right?.add ?? data.left?.add),
+            pd: pdToOption(data.pd),
+          }
+        })
+      } catch {}
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [form.phone])
 
   const basePrice = product.basePrice
   const totalPrice = basePrice + (selectedLens?.price ?? 0)
@@ -558,6 +626,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
     const e: Partial<CheckoutForm> = {}
     if (!form.name.trim()) e.name = 'Vui lòng nhập họ tên'
     if (!form.phone.trim() || !/^0\d{9}$/.test(form.phone.trim())) e.phone = 'Số điện thoại không hợp lệ'
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Email không hợp lệ'
     if (!form.address.trim()) e.address = 'Vui lòng nhập địa chỉ'
     if (!form.payment) e.payment = 'Vui lòng chọn phương thức thanh toán'
 
@@ -613,6 +682,15 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
         : `MP: SPH ${form.rxRight.sph||'?'} / CYL ${form.rxRight.cyl||'?'} / Trục ${form.rxRight.axis||'?'} | MT: SPH ${form.rxLeft.sph||'?'} / CYL ${form.rxLeft.cyl||'?'} / Trục ${form.rxLeft.axis||'?'}${form.rxAdd ? ` | ADD ${form.rxAdd}` : ''}${form.pd ? ` | PD: ${form.pd}` : ''}`
       : 'Không cần (chỉ gọng)'
 
+    // Tự điền số độ → kèm số liệu để lưu vào Sổ Y Bạ của khách
+    const rxData = (selectedLens && form.rxMode === 'form')
+      ? {
+          rxRight: rxToEyeData(form.rxRight, form.rxAdd),
+          rxLeft: rxToEyeData(form.rxLeft, form.rxAdd),
+          pd: parsePdOption(form.pd),
+        }
+      : {}
+
     try {
       const orderRes = await fetch('/api/order', {
         method: 'POST',
@@ -621,6 +699,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
           orderCode: code,
           name: form.name,
           phone: form.phone,
+          email: form.email,
           address: form.address,
           note: form.note,
           product: product.name,
@@ -636,6 +715,7 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
           payAmount,
           prescription: rxText,
           prescriptionImage: form.rxMode === 'image' ? form.rxImageBase64 : '',
+          ...rxData,
           variantIds: [selectedColor.id], // Chỉ trừ tồn kho màu đã chọn
           affiliateCode: typeof window !== 'undefined' ? (localStorage.getItem('affiliateRef') ?? '') : '',
           orderAmount: discountedTotal,
@@ -1021,6 +1101,15 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                 </div>
 
                 <div>
+                  <input
+                    type="email" placeholder="Email (nếu là lần đầu, để lưu vào Sổ Y Bạ)" value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors ${errors.email ? 'border-red-400 bg-red-50' : 'border-brand-border focus:border-brand-black'}`}
+                  />
+                  {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+                </div>
+
+                <div>
                   <textarea
                     placeholder="Địa chỉ giao hàng * (Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành)" value={form.address} rows={2}
                     onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
@@ -1056,6 +1145,15 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                         📷 Chụp/upload ảnh
                       </button>
                     </div>
+
+                    {/* Thông báo số độ gần nhất từ Sổ Y Bạ */}
+                    {rxNotice && form.rxMode === 'form' && (
+                      <div className="px-4 pb-2">
+                        <p className="text-[11px] text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 leading-relaxed">
+                          📋 Đây là số độ bạn đã cắt gần nhất vào <strong>{fmtRxDate(rxNotice.examDate)}</strong>. Đã tự điền sẵn — nếu mắt thay đổi, vui lòng chỉnh lại bên dưới.
+                        </p>
+                      </div>
+                    )}
 
                     {/* Form chọn độ — dropdown */}
                     {form.rxMode === 'form' && (
@@ -1157,6 +1255,21 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* CTA → Sổ Y Bạ */}
+                {selectedLens && (
+                  <a href="/so-y-ba" target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl px-4 py-3 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base flex-shrink-0">📖</span>
+                      <span className="text-xs font-semibold text-blue-700">Xem lịch sử & biểu đồ độ mắt trong Sổ Y Bạ</span>
+                    </div>
+                    <svg className="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </a>
                 )}
 
                 {/* Ghi chú thêm */}

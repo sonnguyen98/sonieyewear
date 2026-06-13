@@ -11,6 +11,7 @@ export default function SoYBaPage() {
 
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
 
   // Nếu đã đăng nhập → chuyển thẳng vào dashboard
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function SoYBaPage() {
     const r = await fetch('/api/customer/access', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, name: name || undefined }),
+      body: JSON.stringify({ phone, name: name || undefined, email: email || undefined }),
     })
     const data = await r.json()
     setLoading(false)
@@ -79,6 +80,14 @@ export default function SoYBaPage() {
               <input
                 type="text" value={name} onChange={e => setName(e.target.value)}
                 placeholder="Nguyễn Văn A"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email <span className="font-normal text-gray-400">(nếu là lần đầu)</span></label>
+              <input
+                type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="ban@email.com"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
               />
             </div>

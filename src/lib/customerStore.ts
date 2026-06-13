@@ -25,20 +25,39 @@ export async function findCustomerByPhone(phone: string): Promise<Customer | nul
   return list.find(c => c.phone === phone) ?? null
 }
 
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 // ── Truy cập bằng số điện thoại (không cần mật khẩu) ─────────────────────────
-export async function findOrCreateCustomerByPhone(phone: string, name?: string): Promise<Customer> {
+// Nếu khách đã tồn tại, bổ sung tên/email còn thiếu (không ghi đè giá trị đã có).
+export async function findOrCreateCustomerByPhone(phone: string, name?: string, email?: string): Promise<Customer> {
   return withLock('customer:write', async () => {
     const list = await getAllCustomers()
     const trimmedPhone = phone.trim()
+    const trimmedName = name?.trim()
+    const trimmedEmail = email?.trim().toLowerCase()
+    const validEmail = trimmedEmail && EMAIL_RE.test(trimmedEmail) ? trimmedEmail : undefined
 
-    const existing = list.find(c => c.phone === trimmedPhone)
-    if (existing) return existing
+    const idx = list.findIndex(c => c.phone === trimmedPhone)
+    if (idx !== -1) {
+      const existing = list[idx]
+      const updated: Customer = {
+        ...existing,
+        ...(trimmedName && !existing.name ? { name: trimmedName } : {}),
+        ...(validEmail && !existing.email ? { email: validEmail } : {}),
+      }
+      if (updated.name !== existing.name || updated.email !== existing.email) {
+        list[idx] = updated
+        await kvSet(KV_KEYS.customers, 'customers.json', list)
+      }
+      return updated
+    }
 
     const customer: Customer = {
       id: 'cust-' + Date.now(),
       phone: trimmedPhone,
       createdAt: new Date().toISOString(),
-      ...(name?.trim() ? { name: name.trim() } : {}),
+      ...(trimmedName ? { name: trimmedName } : {}),
+      ...(validEmail ? { email: validEmail } : {}),
     }
 
     await kvSet(KV_KEYS.customers, 'customers.json', [...list, customer])
