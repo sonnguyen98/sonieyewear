@@ -51,14 +51,14 @@ export default function LuuDoKinhLanding() {
               <div>
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-sm text-gray-500">Mắt phải</span>
-                  <span className="text-sm font-bold text-gray-900">Cận 2.25 độ <span className="text-gray-400 font-normal">+ loạn 0.50</span></span>
+                  <span className="text-sm font-bold text-gray-900">Cận 2.25 độ + loạn 0.50</span>
                 </div>
                 <div className="text-[10px] text-gray-300 text-right font-mono">SPH -2.25 · CYL -0.50</div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-sm text-gray-500">Mắt trái</span>
-                  <span className="text-sm font-bold text-gray-900">Cận 2.00 độ <span className="text-gray-400 font-normal">+ loạn 0.25</span></span>
+                  <span className="text-sm font-bold text-gray-900">Cận 2.00 độ + loạn 0.25</span>
                 </div>
                 <div className="text-[10px] text-gray-300 text-right font-mono">SPH -2.00 · CYL -0.25</div>
               </div>
