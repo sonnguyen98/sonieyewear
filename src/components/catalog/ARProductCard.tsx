@@ -116,9 +116,6 @@ export default function ARProductCard({ product, facePhoto, faceLandmarks }: ARP
         <p className="text-xs font-semibold text-brand-black line-clamp-1">{product.name}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs font-bold text-brand-black">{formatVND(discountedPrice)}</span>
-          {product.originalPrice && (
-            <span className="text-[10px] text-gray-400 line-through">{formatVND(product.basePrice)}</span>
-          )}
         </div>
         {/* Color swatches */}
         <div className="flex gap-1 mt-1.5">

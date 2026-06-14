@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: 'Làm sao biết kính cắt đúng không?',
-    a: 'SONi quay video quá trình cắt kính và gửi qua Zalo trước khi đóng gói — bạn thấy tận mắt đúng gọng, đúng tròng, đúng độ. Nếu không hài lòng, SONi làm lại miễn phí.',
+    a: 'Trước khi cắt, SONi nhắn Zalo xác nhận lại toa độ, PD, loại tròng với bạn — đúng mới làm. Khi kính giao về, nếu sai độ hoặc sai loại tròng so với toa đã chốt, SONi nhận lại và làm mới miễn phí.',
   },
   {
     q: 'Tôi không biết số PD của mình thì sao?',

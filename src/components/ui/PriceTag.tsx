@@ -8,7 +8,7 @@ interface PriceTagProps {
   className?: string
 }
 
-export default function PriceTag({ price, originalPrice, size = 'md', className }: PriceTagProps) {
+export default function PriceTag({ price, size = 'md', className }: PriceTagProps) {
   return (
     <div className={cn('flex items-center gap-2 flex-wrap', className)}>
       <span
@@ -20,17 +20,6 @@ export default function PriceTag({ price, originalPrice, size = 'md', className 
       >
         {formatVND(price)}
       </span>
-      {originalPrice && originalPrice > price && (
-        <span
-          className={cn('text-brand-muted line-through', {
-            'text-xs': size === 'sm',
-            'text-sm': size === 'md',
-            'text-base': size === 'lg',
-          })}
-        >
-          {formatVND(originalPrice)}
-        </span>
-      )}
     </div>
   )
 }

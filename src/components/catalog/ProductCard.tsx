@@ -7,7 +7,6 @@ import type { Product } from '@/types/product'
 import { VI } from '@/constants/vietnamese'
 import { buildZaloOrderMessage, openZalo } from '@/lib/zalo'
 import Badge from '@/components/ui/Badge'
-import StarRating from '@/components/ui/StarRating'
 import PriceTag from '@/components/ui/PriceTag'
 import Button from '@/components/ui/Button'
 import { useStock } from '@/hooks/useStock'
@@ -125,12 +124,6 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
 
         {/* Info */}
         <div className="p-3">
-          {product.reviewCount > 0 && (
-            <div className="flex items-center justify-between mb-1">
-              <StarRating rating={product.rating} reviewCount={product.reviewCount} />
-            </div>
-          )}
-
           <h3 className="text-sm font-semibold text-brand-black line-clamp-1 mb-0.5">{product.name}</h3>
           <p className="text-xs text-brand-muted mb-2">
             {VI.catalog.materials[product.material]} • {VI.catalog.frameShapes[product.shape]}

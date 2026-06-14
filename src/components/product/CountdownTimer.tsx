@@ -3,20 +3,33 @@
 import { useState, useEffect } from 'react'
 
 const INITIAL_SECONDS = 30 * 60
+const STORAGE_KEY = 'soni_promo_deadline'
 
 export default function CountdownTimer() {
-  const [seconds, setSeconds] = useState(INITIAL_SECONDS)
+  // Khởi tạo = 0 để tránh hydration mismatch (server không có localStorage).
+  const [seconds, setSeconds] = useState(0)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSeconds(s => (s > 0 ? s - 1 : 0))
-    }, 1000)
+    // Lấy deadline đã lưu hoặc tạo mới = now + 30 phút.
+    const now = Date.now()
+    let deadline = Number(localStorage.getItem(STORAGE_KEY) || 0)
+    if (!deadline || deadline <= now) {
+      deadline = now + INITIAL_SECONDS * 1000
+      localStorage.setItem(STORAGE_KEY, String(deadline))
+    }
+
+    const tick = () => {
+      const remaining = Math.max(0, Math.floor((deadline - Date.now()) / 1000))
+      setSeconds(remaining)
+    }
+    tick()
+    const interval = setInterval(tick, 1000)
     return () => clearInterval(interval)
   }, [])
 
   const mins = Math.floor(seconds / 60).toString().padStart(2, '0')
   const secs = (seconds % 60).toString().padStart(2, '0')
-  const isUrgent = seconds < 5 * 60
+  const isUrgent = seconds > 0 && seconds < 5 * 60
 
   return (
     <div className="flex items-center gap-1.5">

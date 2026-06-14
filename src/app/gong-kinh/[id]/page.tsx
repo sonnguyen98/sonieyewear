@@ -10,7 +10,6 @@ import CountdownTimer from '@/components/product/CountdownTimer'
 import SpecsTable from '@/components/product/SpecsTable'
 import RelatedProducts from '@/components/product/RelatedProducts'
 import Badge from '@/components/ui/Badge'
-import StarRating from '@/components/ui/StarRating'
 import Button from '@/components/ui/Button'
 import { VI } from '@/constants/vietnamese'
 import { formatVND } from '@/lib/utils'
@@ -83,7 +82,6 @@ export default function ProductDetailPage({ params }: PageProps) {
   const selectedColorInStock = getVariantStock(selectedColor.id, selectedColor.inStock).inStock
 
   const discountedPrice = product!.basePrice
-  const originalPrice = product!.originalPrice
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -119,20 +117,14 @@ export default function ProductDetailPage({ params }: PageProps) {
             <Badge variant="muted">{product.brand}</Badge>
           </div>
 
-          {/* Name + Rating */}
+          {/* Name */}
           <div>
             <h1 className="text-display-md font-black text-brand-black leading-tight">{product.name}</h1>
-            <div className="mt-2">
-              <StarRating rating={product.rating} reviewCount={product.reviewCount} size="md" />
-            </div>
           </div>
 
           {/* Price */}
           <div className="flex items-baseline gap-3">
             <span className="text-2xl sm:text-3xl font-black text-brand-black">{formatVND(discountedPrice)}</span>
-            {originalPrice && originalPrice > discountedPrice && (
-              <span className="text-base text-gray-400 line-through">{formatVND(originalPrice)}</span>
-            )}
           </div>
 
           {/* Color picker — chọn màu đổi ảnh gallery */}
@@ -290,21 +282,15 @@ export default function ProductDetailPage({ params }: PageProps) {
       {/* Reviews */}
       <div className="mt-10">
         <h3 className="text-base font-bold text-brand-black mb-4">Đánh giá từ khách hàng</h3>
-        {product.reviewCount > 0 ? (
-          <div className="flex items-center gap-3 bg-brand-light rounded-xl p-4">
-            <StarRating rating={product.rating} reviewCount={product.reviewCount} size="md" />
-          </div>
-        ) : (
-          <div className="rounded-xl border border-brand-border p-6 text-center">
-            <p className="text-sm font-semibold text-brand-black mb-1">Chưa có đánh giá</p>
-            <p className="text-xs text-brand-muted mb-4 max-w-xs mx-auto">
-              Sau khi nhận hàng, bạn sẽ nhận được lời mời để lại đánh giá kèm ảnh qua Zalo — giúp khách hàng tiếp theo có thêm thông tin thật.
-            </p>
-            <p className="text-xs text-brand-muted">
-              Review kèm ảnh được tặng thêm ưu đãi nhỏ cho lần mua sau.
-            </p>
-          </div>
-        )}
+        <div className="rounded-xl border border-brand-border p-6 text-center">
+          <p className="text-sm font-semibold text-brand-black mb-1">Chưa có đánh giá</p>
+          <p className="text-xs text-brand-muted mb-4 max-w-xs mx-auto">
+            Sau khi nhận hàng, bạn sẽ nhận được lời mời để lại đánh giá kèm ảnh qua Zalo — giúp khách hàng tiếp theo có thêm thông tin thật.
+          </p>
+          <p className="text-xs text-brand-muted">
+            Review kèm ảnh được tặng thêm ưu đãi nhỏ cho lần mua sau.
+          </p>
+        </div>
       </div>
 
       {/* Related */}
