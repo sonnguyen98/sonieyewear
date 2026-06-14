@@ -15,7 +15,7 @@ export default function Footer() {
               <Image src="/images/logo.png" alt="SONi Eyewear" width={140} height={56} className="h-12 w-auto object-contain"/>
             </div>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Kính mắt thời trang, công nghệ AR thử kính tại nhà. Phục vụ thị trường Việt Nam.
+              <span className="font-bold text-gray-700">SONi — Cắt Kính Online.</span> Đo độ tại nhà, thử kính bằng AR, giao kính đã cắt tận tay. Không cần ra tiệm.
             </p>
           </div>
 

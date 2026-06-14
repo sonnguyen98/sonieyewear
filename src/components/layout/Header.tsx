@@ -40,8 +40,8 @@ export default function Header() {
             <span style={{ color: '#5A5A5A' }}>N</span>
             <span style={{ color: '#1E4D78' }}>i</span>
           </span>
-          <span className="text-xs sm:text-sm font-semibold tracking-[0.15em] uppercase hidden xs:block" style={{ color: '#7A7A7A' }}>
-            eyewear
+          <span className="text-[10px] sm:text-xs font-semibold tracking-[0.08em] sm:tracking-[0.1em] uppercase hidden xs:block leading-tight" style={{ color: '#7A7A7A' }}>
+            Cắt Kính<br className="sm:hidden"/> Online
           </span>
         </Link>
 

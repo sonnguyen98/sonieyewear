@@ -18,15 +18,15 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Kính Mắt SONi — Kính Đẹp Đúng Mốt Nét Như SONi',
-    template: '%s | Kính Mắt SONi',
+    default: 'SONi — Cắt Kính Online | Đo Mắt, Thử Kính, Giao Tận Nhà',
+    template: '%s | SONi — Cắt Kính Online',
   },
   description:
-    'Kính Mắt SONi — Gọng kính thời trang chính hãng. Tư vấn gọng phù hợp khuôn mặt bằng AI. Giảm 20% khi đặt hàng. Giao hàng toàn quốc.',
-  keywords: ['kính mắt', 'gọng kính', 'kính cận', 'kính mắt soni', 'kinhmatsoni', 'Việt Nam'],
+    'SONi — Thương hiệu Cắt Kính Online. Thử kính bằng AR, tư vấn gọng phù hợp khuôn mặt bằng AI, giao kính đã cắt tận nhà toàn quốc. Không cần ra tiệm.',
+  keywords: ['cắt kính online', 'kính mắt online', 'soni eyewear', 'soni cắt kính', 'gọng kính', 'kính cận online', 'thử kính ảo', 'Việt Nam'],
   openGraph: {
-    title: 'Kính Mắt SONi — Kính Đẹp Đúng Mốt',
-    description: 'Tư vấn gọng kính phù hợp khuôn mặt bằng AI. Giảm 20% mọi đơn hàng.',
+    title: 'SONi — Cắt Kính Online',
+    description: 'Thương hiệu Cắt Kính Online — Thử kính AR, giao tận nhà. Không cần ra tiệm.',
     locale: 'vi_VN',
     type: 'website',
   },
