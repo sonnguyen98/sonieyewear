@@ -84,12 +84,15 @@ export default function SoYBaPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Email <span className="font-normal text-gray-400">(nếu là lần đầu)</span></label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Email <span className="font-normal text-gray-400">(để SONi nhắc khám mắt định kỳ)</span>
+              </label>
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="ban@email.com"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
               />
+              <p className="text-[10px] text-gray-400 mt-1">💡 Có email — SONi gửi bản backup Sổ Y Bạ, lỡ mất SĐT vẫn tra được.</p>
             </div>
             {error && <p className="text-red-500 text-xs bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <button

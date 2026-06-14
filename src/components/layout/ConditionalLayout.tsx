@@ -8,10 +8,10 @@ import MobileNav from './MobileNav'
 import ZaloFloatingButton from '@/components/ui/ZaloFloatingButton'
 import AffiliateTracker from '@/components/ui/AffiliateTracker'
 
-// LP routes (/lp/*) tự lo nav + footer + CTA — không render chrome của site chính.
+// LP routes (/lp/*) và landing thu lead (/luu-do-kinh/*) tự lo nav + footer + CTA — không render chrome của site chính.
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? ''
-  const isBareRoute = pathname.startsWith('/lp/')
+  const isBareRoute = pathname.startsWith('/lp/') || pathname.startsWith('/luu-do-kinh')
 
   if (isBareRoute) {
     return (
