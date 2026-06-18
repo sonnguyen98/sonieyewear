@@ -5,6 +5,7 @@ import Image from 'next/image'
 import type { LandingPageContent } from '@/types/landingPage'
 import type { Product } from '@/types/product'
 import OrderModal from '@/components/product/OrderModal'
+import type { LandingPagePreset } from '@/types/landingPage'
 import { formatVND, cn } from '@/lib/utils'
 
 // Map accent → full Tailwind classes (Tailwind JIT cần thấy đầy đủ chuỗi)
@@ -63,6 +64,7 @@ interface Props {
 
 export default function LandingPageView({ content, product }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
+  const [modalPreset, setModalPreset] = useState<LandingPagePreset | undefined>(undefined)
   const [showStickyCta, setShowStickyCta] = useState(false)
   const accent = ACCENT[content.accent ?? 'orange']
   const heroImage = content.heroImage ?? product.images?.[0] ?? product.colorVariants?.[0]?.imageUrl ?? ''
@@ -74,7 +76,14 @@ export default function LandingPageView({ content, product }: Props) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const openOrder = () => setModalOpen(true)
+  const openOrder = (preset?: LandingPagePreset) => {
+    setModalPreset(preset)
+    setModalOpen(true)
+  }
+  const closeOrder = () => {
+    setModalOpen(false)
+    setModalPreset(undefined)
+  }
 
   return (
     <div className="bg-white text-brand-black">
@@ -85,7 +94,7 @@ export default function LandingPageView({ content, product }: Props) {
             SONi <span className={accent.text}>Kính</span>
           </a>
           <button
-            onClick={openOrder}
+            onClick={() => openOrder()}
             className={cn(
               'hidden sm:flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-xl shadow',
               accent.bg, accent.bgHover
@@ -117,7 +126,7 @@ export default function LandingPageView({ content, product }: Props) {
             </p>
 
             <button
-              onClick={openOrder}
+              onClick={() => openOrder()}
               className={cn(
                 'w-full sm:w-auto text-white font-bold text-base sm:text-lg px-8 py-4 rounded-2xl shadow-xl transition-all active:scale-95',
                 accent.bg, accent.bgHover
@@ -379,7 +388,7 @@ export default function LandingPageView({ content, product }: Props) {
                 </ul>
 
                 <button
-                  onClick={openOrder}
+                  onClick={() => openOrder(pkg.preset)}
                   className={cn(
                     'w-full font-bold py-3.5 rounded-xl transition-all active:scale-95',
                     pkg.highlighted
@@ -432,7 +441,7 @@ export default function LandingPageView({ content, product }: Props) {
             {content.finalCta.subtitle}
           </p>
           <button
-            onClick={openOrder}
+            onClick={() => openOrder()}
             className="w-full sm:w-auto bg-white text-brand-black font-extrabold text-base sm:text-lg px-10 py-4 rounded-2xl shadow-xl active:scale-95 hover:bg-gray-100 transition-all"
           >
             {content.finalCta.ctaText} →
@@ -466,7 +475,7 @@ export default function LandingPageView({ content, product }: Props) {
         )}
       >
         <button
-          onClick={openOrder}
+          onClick={() => openOrder()}
           className={cn('w-full text-white font-bold py-4 rounded-xl shadow-lg active:scale-95', accent.bg, accent.bgHover)}
         >
           {content.hero.ctaText} — Giảm 30%
@@ -481,7 +490,7 @@ export default function LandingPageView({ content, product }: Props) {
 
       {/* ───────────── ORDER MODAL ───────────── */}
       {modalOpen && (
-        <OrderModal product={product} onClose={() => setModalOpen(false)} />
+        <OrderModal product={product} preset={modalPreset} onClose={closeOrder} />
       )}
     </div>
   )

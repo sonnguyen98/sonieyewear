@@ -184,6 +184,7 @@ const lp: LandingPageContent = {
           'Đổi trả 7 ngày miễn phí',
         ],
         ctaText: 'Chọn gói này',
+        preset: { type: 'no-lens' },
       },
       {
         name: 'Gọng + Tròng cận',
@@ -200,6 +201,7 @@ const lp: LandingPageContent = {
         ctaText: 'Chọn gói phổ biến',
         highlighted: true,
         badge: 'Tiết kiệm 510k',
+        preset: { type: 'lens-category', categoryId: 'blue' },
       },
       {
         name: 'Combo trọn bộ cao cấp',
@@ -215,6 +217,7 @@ const lp: LandingPageContent = {
           'Bảo hành 18 tháng',
         ],
         ctaText: 'Chọn gói cao cấp',
+        preset: { type: 'lens-category', categoryId: 'mong' },
       },
     ],
     footnote:

@@ -5,12 +5,15 @@ import { invalidateStockCache } from '@/hooks/useStock'
 import Image from 'next/image'
 import type { Product } from '@/types/product'
 import type { EyeData } from '@/lib/prescriptionStore'
+import type { LandingPagePreset } from '@/types/landingPage'
 import { formatVND } from '@/lib/utils'
 
 interface OrderModalProps {
   product: Product
   selectedColorId?: string
   onClose: () => void
+  // Mở thẳng vào một bước cụ thể (dùng cho LP - khi khách bấm chọn gói)
+  preset?: LandingPagePreset
 }
 
 type Step = 'main' | 'don-trong' | 'don-trong-detail' | 'da-trong' | 'checkout' | 'summary' | 'success'
@@ -505,7 +508,7 @@ function LensIcon({ icon }: { icon: string }) {
   )
 }
 
-export default function OrderModal({ product, selectedColorId, onClose }: OrderModalProps) {
+export default function OrderModal({ product, selectedColorId, onClose, preset }: OrderModalProps) {
   const selectedColor = product.colorVariants.find(v => v.id === selectedColorId) ?? product.colorVariants[0]
   const [step, setStep] = useState<Step>('main')
   const modalRef = useRef<HTMLDivElement>(null)
@@ -518,7 +521,37 @@ export default function OrderModal({ product, selectedColorId, onClose }: OrderM
   const [selectedCategory, setSelectedCategory] = useState<LensCategoryGroup | null>(null)
   const [donTrongCats, setDonTrongCats] = useState<LensCategoryGroup[]>(DON_TRONG_CATEGORIES)
   const [daTrong, setDaTrong] = useState<LensOption[]>(DA_TRONG)
+  const [presetApplied, setPresetApplied] = useState(false)
   const emptyEye: EyeRx = DEFAULT_EYE
+
+  // Khi mở từ LP với preset → nhảy thẳng đến bước phù hợp.
+  // Với 'lens-category' phải chờ donTrongCats nạp xong từ API (có thể có danh mục động).
+  useEffect(() => {
+    if (!preset || presetApplied) return
+    if (preset.type === 'no-lens') {
+      setSelectedLens(null)
+      setStep('checkout')
+      setPresetApplied(true)
+      return
+    }
+    if (preset.type === 'da-trong') {
+      setStep('da-trong')
+      setPresetApplied(true)
+      return
+    }
+    const cat = donTrongCats.find(c => c.id === preset.categoryId)
+    if (cat) {
+      setSelectedCategory(cat)
+      if (cat.variants.length === 1) {
+        const v = cat.variants[0]
+        setSelectedLens({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, icon: cat.icon, badge: v.badge, features: v.features })
+        setStep('checkout')
+      } else {
+        setStep('don-trong-detail')
+      }
+      setPresetApplied(true)
+    }
+  }, [preset, presetApplied, donTrongCats])
 
   useEffect(() => {
     fetch('/api/lens-products')

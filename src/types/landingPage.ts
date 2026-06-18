@@ -1,6 +1,15 @@
 // Schema cho landing page chạy ads — mỗi mẫu gọng 1 file content
 // Cấu trúc theo skill trangbanhang: hero → vấn đề → giải pháp → bằng chứng → khử rủi ro → giá → FAQ → CTA cuối
 
+// Khi khách bấm "Đặt hàng" từ thẻ giá, OrderModal mở thẳng đến bước phù hợp với gói đó.
+// - 'no-lens'      → bỏ qua chọn tròng, đi thẳng bước điền thông tin thanh toán
+// - 'lens-category'→ đi vào danh sách variants của một nhóm tròng cụ thể (vd: 'blue', 'mong')
+// - 'da-trong'     → đi vào màn chọn đa tròng
+export type LandingPagePreset =
+  | { type: 'no-lens' }
+  | { type: 'lens-category'; categoryId: string }
+  | { type: 'da-trong' }
+
 export interface LandingPageContent {
   // Liên kết tới sản phẩm trên hệ thống (id từ /api/products)
   productId: string
@@ -70,6 +79,7 @@ export interface LandingPageContent {
       ctaText: string
       highlighted?: boolean
       badge?: string
+      preset?: LandingPagePreset
     }[]
     footnote?: string
   }
