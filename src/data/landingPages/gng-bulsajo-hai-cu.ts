@@ -201,7 +201,7 @@ const lp: LandingPageContent = {
         ctaText: 'Chọn gói phổ biến',
         highlighted: true,
         badge: 'Tiết kiệm 510k',
-        preset: { type: 'lens-list' },
+        preset: { type: 'lens-category', categoryId: 'blue' },
       },
       {
         name: 'Combo trọn bộ cao cấp',
@@ -217,7 +217,7 @@ const lp: LandingPageContent = {
           'Bảo hành 18 tháng',
         ],
         ctaText: 'Chọn gói cao cấp',
-        preset: { type: 'lens-list' },
+        preset: { type: 'lens-category', categoryId: 'mong' },
       },
     ],
     footnote:
