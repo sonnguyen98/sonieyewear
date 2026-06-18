@@ -558,6 +558,15 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
     }
   }, [preset, presetApplied, donTrongCats])
 
+  // /api/lens-products load sau khi mount nên selectedCategory ban đầu dùng static fallback (ít variants hơn).
+  // Khi data API về, đồng bộ selectedCategory với phiên bản mới để hiện đầy đủ các mức.
+  useEffect(() => {
+    if (!selectedCategory) return
+    const fresh = donTrongCats.find(c => c.id === selectedCategory.id)
+    if (fresh && fresh !== selectedCategory) setSelectedCategory(fresh)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [donTrongCats])
+
   useEffect(() => {
     fetch('/api/lens-products')
       .then(r => r.json())
