@@ -3,10 +3,12 @@
 
 // Khi khách bấm "Đặt hàng" từ thẻ giá, OrderModal mở thẳng đến bước phù hợp với gói đó.
 // - 'no-lens'      → bỏ qua chọn tròng, đi thẳng bước điền thông tin thanh toán
+// - 'lens-list'    → vào màn hình chọn nhóm tròng (đầy đủ Trắng/Xanh/Đổi màu/Phân cực/Mỏng)
 // - 'lens-category'→ đi vào danh sách variants của một nhóm tròng cụ thể (vd: 'blue', 'mong')
 // - 'da-trong'     → đi vào màn chọn đa tròng
 export type LandingPagePreset =
   | { type: 'no-lens' }
+  | { type: 'lens-list' }
   | { type: 'lens-category'; categoryId: string }
   | { type: 'da-trong' }
 

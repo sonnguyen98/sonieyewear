@@ -539,6 +539,11 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
       setPresetApplied(true)
       return
     }
+    if (preset.type === 'lens-list') {
+      setStep('don-trong')
+      setPresetApplied(true)
+      return
+    }
     const cat = donTrongCats.find(c => c.id === preset.categoryId)
     if (cat) {
       setSelectedCategory(cat)
