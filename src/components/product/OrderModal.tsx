@@ -522,6 +522,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   const [donTrongCats, setDonTrongCats] = useState<LensCategoryGroup[]>(DON_TRONG_CATEGORIES)
   const [daTrong, setDaTrong] = useState<LensOption[]>(DA_TRONG)
   const [presetApplied, setPresetApplied] = useState(false)
+  const [lensDataLoaded, setLensDataLoaded] = useState(false)
   const emptyEye: EyeRx = DEFAULT_EYE
 
   // Khi mở từ LP với preset → nhảy thẳng đến bước phù hợp.
@@ -534,6 +535,8 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
       setPresetApplied(true)
       return
     }
+    // Các bước phụ thuộc data tròng từ API → chờ load xong để hiện đủ các mức
+    if (!lensDataLoaded) return
     if (preset.type === 'da-trong') {
       setStep('da-trong')
       setPresetApplied(true)
@@ -556,16 +559,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
       }
       setPresetApplied(true)
     }
-  }, [preset, presetApplied, donTrongCats])
-
-  // /api/lens-products load sau khi mount nên selectedCategory ban đầu dùng static fallback (ít variants hơn).
-  // Khi data API về, đồng bộ selectedCategory với phiên bản mới để hiện đầy đủ các mức.
-  useEffect(() => {
-    if (!selectedCategory) return
-    const fresh = donTrongCats.find(c => c.id === selectedCategory.id)
-    if (fresh && fresh !== selectedCategory) setSelectedCategory(fresh)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [donTrongCats])
+  }, [preset, presetApplied, donTrongCats, lensDataLoaded])
 
   useEffect(() => {
     fetch('/api/lens-products')
@@ -593,6 +587,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         }
       })
       .catch(() => {})
+      .finally(() => setLensDataLoaded(true))
   }, [])
   const [form, setForm] = useState<CheckoutForm>({
     name: '', phone: '', email: '', address: '', note: '', payment: '',
