@@ -135,9 +135,11 @@ export default function LandingPageView({ content, product }: Props) {
                 <span className={accent.text}>{content.hero.titleHighlight}</span>
               )}
             </h1>
-            <p className="text-base sm:text-lg text-brand-muted leading-relaxed">
-              {content.hero.subtitle}
-            </p>
+            {content.hero.subtitle && (
+              <p className="text-base sm:text-lg text-brand-muted leading-relaxed">
+                {content.hero.subtitle}
+              </p>
+            )}
             <div className="flex flex-wrap gap-3 pt-2">
               <button
                 onClick={() => scrollTo(content.hero.ctaPrimary.targetId)}
@@ -166,15 +168,19 @@ export default function LandingPageView({ content, product }: Props) {
                 </a>
               )}
             </div>
-            <p className="text-xs text-brand-muted">🛡️ {content.hero.ctaMicrocopy}</p>
-            <ul className="grid grid-cols-2 sm:grid-cols-2 gap-2 pt-2 text-sm">
-              {content.hero.trustStrip.map((t, i) => (
-                <li key={i} className="flex items-start gap-2 text-brand-black">
-                  <span className={cn('flex-shrink-0 mt-0.5 font-bold', accent.text)}>✓</span>
-                  <span className="leading-snug">{t}</span>
-                </li>
-              ))}
-            </ul>
+            {content.hero.ctaMicrocopy && (
+              <p className="text-xs text-brand-muted">🛡️ {content.hero.ctaMicrocopy}</p>
+            )}
+            {content.hero.trustStrip && content.hero.trustStrip.length > 0 && (
+              <ul className="grid grid-cols-2 sm:grid-cols-2 gap-2 pt-2 text-sm">
+                {content.hero.trustStrip.map((t, i) => (
+                  <li key={i} className="flex items-start gap-2 text-brand-black">
+                    <span className={cn('flex-shrink-0 mt-0.5 font-bold', accent.text)}>✓</span>
+                    <span className="leading-snug">{t}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Phải — Ảnh model */}
@@ -190,9 +196,6 @@ export default function LandingPageView({ content, product }: Props) {
                   priority
                 />
               )}
-            </div>
-            <div className={cn('absolute -bottom-4 right-4 px-4 py-2 rounded-full font-bold text-white text-sm shadow-xl', accent.bg)}>
-              -30% Hôm nay
             </div>
           </div>
         </div>
@@ -220,28 +223,51 @@ export default function LandingPageView({ content, product }: Props) {
             {content.gifts.items.map((g, i) => (
               <div
                 key={i}
-                className={cn(
-                  'rounded-3xl p-6 sm:p-7 flex flex-col border-2 transition-all hover:shadow-xl',
-                  accent.bgSoft, accent.border
-                )}
+                className="rounded-2xl overflow-hidden shadow-lg border border-brand-border bg-white flex flex-col"
               >
-                <div className="text-4xl mb-3">{g.icon ?? '🎁'}</div>
-                <h3 className="font-extrabold text-lg mb-2">{g.name}</h3>
-                <p className="text-sm text-brand-muted leading-relaxed mb-4 flex-1">{g.desc}</p>
-                {g.value && (
-                  <p className={cn('text-xs font-bold mb-4 inline-block', accent.text)}>
-                    {g.value}
-                  </p>
-                )}
-                <button
-                  onClick={() => scrollTo(g.ctaTargetId)}
-                  className={cn(
-                    'w-full py-3 rounded-xl font-bold text-white shadow transition active:scale-95',
-                    accent.bg, accent.bgHover
+                {/* Image area / illustration */}
+                <div className={cn('aspect-[4/3] relative flex items-center justify-center', accent.bgSoft)}>
+                  {g.image ? (
+                    <Image
+                      src={g.image}
+                      alt={g.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  ) : (
+                    <span className="text-7xl select-none">{g.icon ?? '🎁'}</span>
                   )}
-                >
-                  {g.ctaText} →
-                </button>
+                </div>
+
+                {/* Gradient title bar */}
+                <div className={cn('py-3 px-4 text-center text-white font-extrabold text-base sm:text-lg uppercase tracking-wide bg-gradient-to-r', accent.gradient)}>
+                  {g.name}
+                </div>
+
+                {/* Body */}
+                <div className="p-5 sm:p-6 flex flex-col flex-1">
+                  {g.desc && (
+                    <p className="text-sm text-brand-black leading-relaxed text-center mb-4 flex-1">
+                      {g.desc}
+                    </p>
+                  )}
+                  {g.value && (
+                    <p className="text-center text-base sm:text-lg font-bold mb-5">
+                      <span className="text-brand-black">Giá trị: </span>
+                      <span className={accent.text}>{g.value}</span>
+                    </p>
+                  )}
+                  <button
+                    onClick={() => scrollTo(g.ctaTargetId)}
+                    className={cn(
+                      'w-full py-3.5 rounded-xl font-extrabold text-white shadow-lg active:scale-95 transition uppercase tracking-wide text-sm sm:text-base',
+                      accent.bg, accent.bgHover
+                    )}
+                  >
+                    {g.ctaText} →
+                  </button>
+                </div>
               </div>
             ))}
           </div>

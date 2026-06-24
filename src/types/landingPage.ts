@@ -44,13 +44,13 @@ export interface LandingPageContent {
     eyebrow?: string
     title: string
     titleHighlight?: string
-    subtitle: string
+    subtitle?: string
     // CTA chính cứng — luôn cuộn tới 1 section
     ctaPrimary: { text: string; targetId: LpTargetId }
     // CTA phụ mềm (optional) — vd "AI tư vấn dáng gọng"
     ctaSecondary?: { text: string; href?: string; targetId?: LpTargetId }
-    ctaMicrocopy: string
-    trustStrip: string[]
+    ctaMicrocopy?: string
+    trustStrip?: string[]
   }
 
   // SECTION 2 — 3 Quà tặng tặng kèm
