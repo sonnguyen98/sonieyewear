@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import type { LandingPageContent } from '@/types/landingPage'
+import type { LandingPageContent, LandingPagePreset, LpTargetId } from '@/types/landingPage'
 import type { Product } from '@/types/product'
 import OrderModal from '@/components/product/OrderModal'
-import type { LandingPagePreset } from '@/types/landingPage'
 import { formatVND, cn } from '@/lib/utils'
 
-// Map accent → full Tailwind classes (Tailwind JIT cần thấy đầy đủ chuỗi)
+// Map accent → full Tailwind classes (JIT cần thấy đầy đủ chuỗi)
 const ACCENT = {
   orange: {
     bg: 'bg-orange-500',
@@ -20,42 +19,38 @@ const ACCENT = {
     gradient: 'from-orange-500 to-amber-500',
   },
   red: {
-    bg: 'bg-red-500',
-    bgHover: 'hover:bg-red-600',
-    bgSoft: 'bg-red-50',
-    text: 'text-red-600',
-    border: 'border-red-500',
-    ring: 'ring-red-300',
+    bg: 'bg-red-500', bgHover: 'hover:bg-red-600', bgSoft: 'bg-red-50',
+    text: 'text-red-600', border: 'border-red-500', ring: 'ring-red-300',
     gradient: 'from-red-500 to-rose-500',
   },
   blue: {
-    bg: 'bg-blue-600',
-    bgHover: 'hover:bg-blue-700',
-    bgSoft: 'bg-blue-50',
-    text: 'text-blue-600',
-    border: 'border-blue-600',
-    ring: 'ring-blue-300',
+    bg: 'bg-blue-600', bgHover: 'hover:bg-blue-700', bgSoft: 'bg-blue-50',
+    text: 'text-blue-600', border: 'border-blue-600', ring: 'ring-blue-300',
     gradient: 'from-blue-600 to-cyan-500',
   },
   green: {
-    bg: 'bg-emerald-600',
-    bgHover: 'hover:bg-emerald-700',
-    bgSoft: 'bg-emerald-50',
-    text: 'text-emerald-600',
-    border: 'border-emerald-600',
-    ring: 'ring-emerald-300',
+    bg: 'bg-emerald-600', bgHover: 'hover:bg-emerald-700', bgSoft: 'bg-emerald-50',
+    text: 'text-emerald-600', border: 'border-emerald-600', ring: 'ring-emerald-300',
     gradient: 'from-emerald-600 to-teal-500',
   },
   gold: {
-    bg: 'bg-amber-500',
-    bgHover: 'hover:bg-amber-600',
-    bgSoft: 'bg-amber-50',
-    text: 'text-amber-700',
-    border: 'border-amber-500',
-    ring: 'ring-amber-300',
+    bg: 'bg-amber-500', bgHover: 'hover:bg-amber-600', bgSoft: 'bg-amber-50',
+    text: 'text-amber-700', border: 'border-amber-500', ring: 'ring-amber-300',
     gradient: 'from-amber-500 to-yellow-500',
   },
 } as const
+
+// Màu xen kẽ cho avatar personas
+const PERSONA_COLORS = [
+  'bg-orange-100 text-orange-700',
+  'bg-blue-100 text-blue-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-rose-100 text-rose-700',
+  'bg-violet-100 text-violet-700',
+  'bg-amber-100 text-amber-700',
+  'bg-cyan-100 text-cyan-700',
+  'bg-pink-100 text-pink-700',
+]
 
 interface Props {
   content: LandingPageContent
@@ -66,9 +61,9 @@ export default function LandingPageView({ content, product }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [modalPreset, setModalPreset] = useState<LandingPagePreset | undefined>(undefined)
   const [showStickyCta, setShowStickyCta] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number | null>(0)
   const accent = ACCENT[content.accent ?? 'orange']
   const heroImage = content.heroImage ?? product.images?.[0] ?? product.colorVariants?.[0]?.imageUrl ?? ''
-  const storyImage = content.storyImage
 
   useEffect(() => {
     const onScroll = () => setShowStickyCta(window.scrollY > 400)
@@ -85,67 +80,104 @@ export default function LandingPageView({ content, product }: Props) {
     setModalPreset(undefined)
   }
 
+  // Cuộn smooth tới section
+  const scrollTo = (id: LpTargetId) => {
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="bg-white text-brand-black">
-      {/* ───────────── NAV ───────────── */}
+      {/* ═══════════════ 0. TOP NAV ═══════════════ */}
       <nav className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-brand-border">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <a href="/" className="font-extrabold text-lg tracking-tight">
-            SONi <span className={accent.text}>Kính</span>
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+          <a href="/" className="font-extrabold text-lg tracking-tight flex-shrink-0">
+            SONi <span className={accent.text}>Cắt Kính Online</span>
           </a>
-          <button
-            onClick={() => openOrder()}
-            className={cn(
-              'hidden sm:flex items-center gap-2 text-sm font-bold text-white px-4 py-2 rounded-xl shadow',
-              accent.bg, accent.bgHover
-            )}
+          {content.navAnchors && content.navAnchors.length > 0 && (
+            <div className="hidden lg:flex items-center gap-5 text-sm font-medium text-brand-muted">
+              {content.navAnchors.map(a => (
+                <button
+                  key={a.targetId}
+                  onClick={() => scrollTo(a.targetId)}
+                  className="hover:text-brand-black transition"
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <a
+            href="https://zalo.me/0869308231"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn('px-4 py-2 rounded-full font-bold text-white text-sm shadow transition', accent.bg, accent.bgHover)}
           >
-            Đặt hàng — Giảm 30%
-          </button>
+            💬 Zalo SONi
+          </a>
         </div>
       </nav>
 
-      {/* ───────────── HERO ───────────── */}
+      {/* ═══════════════ 1. HERO ═══════════════ */}
       <section className="relative overflow-hidden">
-        <div className={cn('absolute inset-0 bg-gradient-to-br opacity-[0.04]', accent.gradient)} />
-        <div className="max-w-6xl mx-auto px-4 pt-10 pb-14 lg:pt-16 lg:pb-20 grid lg:grid-cols-2 gap-10 items-center relative">
-          <div className="order-2 lg:order-1">
+        <div className={cn('absolute inset-0 opacity-50', accent.bgSoft)} />
+        <div className="relative max-w-6xl mx-auto px-4 py-10 md:py-16 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Trái — Text */}
+          <div className="order-2 lg:order-1 space-y-5">
             {content.hero.eyebrow && (
-              <span className={cn('inline-block text-xs font-bold tracking-widest uppercase mb-3 px-3 py-1 rounded-full', accent.bgSoft, accent.text)}>
+              <p className={cn('uppercase tracking-wider text-xs font-bold', accent.text)}>
                 {content.hero.eyebrow}
-              </span>
+              </p>
             )}
-            <h1 className="font-extrabold leading-[1.05] tracking-tight text-3xl sm:text-4xl lg:text-5xl mb-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight">
               {content.hero.title}{' '}
               {content.hero.titleHighlight && (
                 <span className={accent.text}>{content.hero.titleHighlight}</span>
               )}
             </h1>
-            <p className="text-base sm:text-lg text-brand-muted leading-relaxed mb-6 max-w-xl">
+            <p className="text-base sm:text-lg text-brand-muted leading-relaxed">
               {content.hero.subtitle}
             </p>
-
-            <button
-              onClick={() => openOrder()}
-              className={cn(
-                'w-full sm:w-auto text-white font-bold text-base sm:text-lg px-8 py-4 rounded-2xl shadow-xl transition-all active:scale-95',
-                accent.bg, accent.bgHover
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button
+                onClick={() => scrollTo(content.hero.ctaPrimary.targetId)}
+                className={cn(
+                  'px-6 py-4 rounded-2xl font-bold text-white shadow-lg transition active:scale-95',
+                  accent.bg, accent.bgHover
+                )}
+              >
+                {content.hero.ctaPrimary.text} →
+              </button>
+              {content.hero.ctaSecondary && (
+                <a
+                  href={content.hero.ctaSecondary.href ?? '#'}
+                  onClick={(e) => {
+                    if (content.hero.ctaSecondary?.targetId) {
+                      e.preventDefault()
+                      scrollTo(content.hero.ctaSecondary.targetId)
+                    }
+                  }}
+                  className={cn(
+                    'px-6 py-4 rounded-2xl font-bold border-2 transition',
+                    accent.border, accent.text, 'hover:bg-brand-light'
+                  )}
+                >
+                  🤖 {content.hero.ctaSecondary.text}
+                </a>
               )}
-            >
-              {content.hero.ctaText} →
-            </button>
-            <p className="text-xs text-brand-muted mt-3">🛡️ {content.hero.ctaMicrocopy}</p>
-
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {content.hero.trustStrip.map((item) => (
-                <div key={item} className="flex items-start gap-2 text-xs text-brand-muted">
-                  <span className={accent.text}>✓</span>
-                  <span className="font-medium">{item}</span>
-                </div>
-              ))}
             </div>
+            <p className="text-xs text-brand-muted">🛡️ {content.hero.ctaMicrocopy}</p>
+            <ul className="grid grid-cols-2 sm:grid-cols-2 gap-2 pt-2 text-sm">
+              {content.hero.trustStrip.map((t, i) => (
+                <li key={i} className="flex items-start gap-2 text-brand-black">
+                  <span className={cn('flex-shrink-0 mt-0.5 font-bold', accent.text)}>✓</span>
+                  <span className="leading-snug">{t}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
+          {/* Phải — Ảnh model */}
           <div className="order-1 lg:order-2 relative">
             <div className="aspect-[4/5] rounded-3xl overflow-hidden bg-brand-light shadow-2xl">
               {heroImage && (
@@ -159,196 +191,292 @@ export default function LandingPageView({ content, product }: Props) {
                 />
               )}
             </div>
-            <div className={cn('absolute -bottom-4 -right-4 sm:bottom-6 sm:right-6 px-4 py-2 rounded-2xl shadow-lg text-white font-extrabold text-sm sm:text-base', accent.bg)}>
+            <div className={cn('absolute -bottom-4 right-4 px-4 py-2 rounded-full font-bold text-white text-sm shadow-xl', accent.bg)}>
               -30% Hôm nay
             </div>
           </div>
         </div>
       </section>
 
-      {/* ───────────── STORY — VẤN ĐỀ ───────────── */}
-      <section className="bg-brand-light py-16 lg:py-24">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-center leading-tight mb-4">
-            {renderTitleWithItalic(content.story.title)}
-          </h2>
-          <p className="text-base sm:text-lg text-brand-muted text-center leading-relaxed mb-12 italic">
-            {content.story.intro}
-          </p>
-
-          {/* Breaking point card */}
-          <div className={cn('rounded-3xl border-l-4 bg-white shadow-md p-6 sm:p-8 mb-12', accent.border)}>
-            <p className={cn('text-xs font-bold uppercase tracking-widest mb-2', accent.text)}>
-              {content.story.breakingPoint.timeLabel}
-            </p>
-            <p className="text-base sm:text-lg leading-relaxed text-brand-black">
-              {content.story.breakingPoint.text}
-            </p>
+      {/* ═══════════════ 2. GIFTS ═══════════════ */}
+      <section id="gifts" className="py-14 md:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-10">
+            {content.gifts.eyebrow && (
+              <p className={cn('uppercase tracking-wider text-xs font-bold mb-2', accent.text)}>
+                {content.gifts.eyebrow}
+              </p>
+            )}
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3">
+              {content.gifts.title}
+            </h2>
+            {content.gifts.subtitle && (
+              <p className="text-base text-brand-muted max-w-2xl mx-auto leading-relaxed">
+                {content.gifts.subtitle}
+              </p>
+            )}
           </div>
-
-          {/* Timeline */}
-          <div className="relative pl-10">
-            <div className={cn('absolute left-3 top-2 bottom-2 w-0.5', accent.bg, 'opacity-30')} />
-            {content.story.timeline.map((step, i) => (
-              <div key={i} className="relative mb-8 last:mb-0">
-                <div
+          <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
+            {content.gifts.items.map((g, i) => (
+              <div
+                key={i}
+                className={cn(
+                  'rounded-3xl p-6 sm:p-7 flex flex-col border-2 transition-all hover:shadow-xl',
+                  accent.bgSoft, accent.border
+                )}
+              >
+                <div className="text-4xl mb-3">{g.icon ?? '🎁'}</div>
+                <h3 className="font-extrabold text-lg mb-2">{g.name}</h3>
+                <p className="text-sm text-brand-muted leading-relaxed mb-4 flex-1">{g.desc}</p>
+                {g.value && (
+                  <p className={cn('text-xs font-bold mb-4 inline-block', accent.text)}>
+                    {g.value}
+                  </p>
+                )}
+                <button
+                  onClick={() => scrollTo(g.ctaTargetId)}
                   className={cn(
-                    'absolute -left-10 top-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow',
-                    step.isClimax ? 'bg-red-500 ring-4 ring-red-200 animate-pulse' : accent.bg
+                    'w-full py-3 rounded-xl font-bold text-white shadow transition active:scale-95',
+                    accent.bg, accent.bgHover
                   )}
                 >
-                  {i + 1}
-                </div>
-                <div className={cn('rounded-2xl bg-white shadow-sm p-5', step.isClimax && 'ring-2 ring-red-200')}>
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <span className={cn('text-xs font-bold px-2 py-0.5 rounded', accent.bgSoft, accent.text)}>
-                      {step.time}
-                    </span>
-                    <span className="font-bold text-sm sm:text-base">
-                      {step.isClimax && '⚡ '}{step.label}
-                    </span>
-                  </div>
-                  <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{step.text}</p>
-                </div>
+                  {g.ctaText} →
+                </button>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Villain reframe */}
-          <div className="mt-12 bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-brand-border">
-            <p className="text-base sm:text-lg text-brand-muted leading-relaxed mb-4">
-              {content.story.villain.myth}
-            </p>
-            <p className="text-base sm:text-xl font-bold leading-relaxed text-brand-black">
-              {content.story.villain.truth}
-            </p>
+      {/* ═══════════════ 3. PAIN ↔ SOLUTION Q&A ═══════════════ */}
+      <section id="pain-solution" className="py-14 md:py-20 bg-brand-light">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3">
+              {content.painSolutionQA.title}
+            </h2>
+            {content.painSolutionQA.subtitle && (
+              <p className="text-base text-brand-muted max-w-2xl mx-auto leading-relaxed">
+                {content.painSolutionQA.subtitle}
+              </p>
+            )}
           </div>
 
-          {/* Twist */}
-          <p className="mt-8 text-center text-base sm:text-lg text-brand-black italic leading-relaxed">
-            {content.story.twist}
-          </p>
+          <div className="space-y-12">
+            {content.painSolutionQA.items.map((qa, i) => (
+              <div key={i} className="bg-white rounded-3xl p-5 sm:p-8 shadow-md">
+                {/* Q — Nỗi đau */}
+                <div className="flex items-start gap-3 mb-4">
+                  <span className={cn('flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-white', accent.bg)}>?</span>
+                  <h3 className="text-lg sm:text-xl font-bold leading-snug mt-1">
+                    {qa.pain.question}
+                  </h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-5 md:gap-7">
+                  {/* Trái — Pain text + image */}
+                  <div>
+                    <p className="text-sm sm:text-base text-brand-muted leading-relaxed mb-3">
+                      {qa.pain.text}
+                    </p>
+                    {qa.pain.image && (
+                      <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-brand-light relative">
+                        <Image
+                          src={qa.pain.image}
+                          alt={`Vấn đề ${i + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 400px"
+                        />
+                        <span className="absolute top-3 left-3 bg-black/70 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                          Trước
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Phải — Solution text + image */}
+                  <div className={cn('rounded-2xl p-5', accent.bgSoft)}>
+                    <p className={cn('text-xs font-bold uppercase tracking-wider mb-2', accent.text)}>
+                      ✓ SONi giải quyết
+                    </p>
+                    <h4 className="font-extrabold text-base sm:text-lg mb-2 leading-snug">
+                      {qa.solution.title}
+                    </h4>
+                    <p className="text-sm sm:text-base leading-relaxed mb-3">
+                      {qa.solution.text}
+                    </p>
+                    {qa.solution.image && (
+                      <div className="rounded-xl overflow-hidden aspect-[4/3] bg-white relative">
+                        <Image
+                          src={qa.solution.image}
+                          alt={`Giải pháp ${i + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 400px"
+                        />
+                        <span className={cn('absolute top-3 left-3 text-white text-xs font-bold px-2.5 py-1 rounded-full', accent.bg)}>
+                          Sau
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
 
-          {/* Story image — chuyển cảnh sang giải pháp */}
-          {storyImage && (
-            <div className="mt-10 rounded-3xl overflow-hidden shadow-xl max-w-xl mx-auto">
-              <Image
-                src={storyImage}
-                alt="Người đeo gọng Bulsajo"
-                width={1200}
-                height={1500}
-                className="w-full h-auto object-cover"
-              />
+            {/* AI Suggestion — câu hỏi đặc biệt */}
+            {content.painSolutionQA.aiSuggestion && (
+              <div className={cn('rounded-3xl p-6 sm:p-10 text-center text-white bg-gradient-to-r', accent.gradient)}>
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <span className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center font-extrabold">?</span>
+                  <h3 className="text-lg sm:text-xl font-bold">{content.painSolutionQA.aiSuggestion.question}</h3>
+                </div>
+                <p className="text-sm sm:text-base mb-6 max-w-2xl mx-auto opacity-95 leading-relaxed">
+                  {content.painSolutionQA.aiSuggestion.text}
+                </p>
+                {content.painSolutionQA.aiSuggestion.ctaHref ? (
+                  <a
+                    href={content.painSolutionQA.aiSuggestion.ctaHref}
+                    className="inline-block bg-white text-brand-black font-extrabold px-7 py-4 rounded-2xl shadow-lg hover:scale-105 transition"
+                  >
+                    🤖 {content.painSolutionQA.aiSuggestion.ctaText}
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => content.painSolutionQA.aiSuggestion?.ctaTargetId && scrollTo(content.painSolutionQA.aiSuggestion.ctaTargetId)}
+                    className="bg-white text-brand-black font-extrabold px-7 py-4 rounded-2xl shadow-lg hover:scale-105 transition"
+                  >
+                    🤖 {content.painSolutionQA.aiSuggestion.ctaText}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ 4. TEAM + 5 BƯỚC + TẦM QUAN TRỌNG ═══════════════ */}
+      <section id="team" className="py-14 md:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            {content.team.eyebrow && (
+              <p className={cn('uppercase tracking-wider text-xs font-bold mb-2', accent.text)}>
+                {content.team.eyebrow}
+              </p>
+            )}
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3 max-w-3xl mx-auto leading-tight">
+              {content.team.title}
+            </h2>
+            {content.team.subtitle && (
+              <p className="text-base text-brand-muted max-w-3xl mx-auto leading-relaxed">
+                {content.team.subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* 5 bước — timeline dọc */}
+          <div className="relative max-w-3xl mx-auto">
+            {/* Đường nối dọc */}
+            <div className={cn('absolute left-6 sm:left-7 top-7 bottom-7 w-0.5', accent.bgSoft)} />
+            <div className="space-y-5">
+              {content.team.steps.map(s => (
+                <div key={s.num} className="relative flex items-start gap-4 sm:gap-5">
+                  <div className={cn(
+                    'flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-extrabold text-white text-lg sm:text-xl shadow-md z-10',
+                    accent.bg
+                  )}>
+                    {s.num}
+                  </div>
+                  <div className="flex-1 bg-white rounded-2xl border border-brand-border p-4 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      {s.icon && <span className="text-xl">{s.icon}</span>}
+                      <h3 className="font-extrabold text-base sm:text-lg">{s.title}</h3>
+                    </div>
+                    <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tầm quan trọng cắt kính cận */}
+          {content.team.importanceBlock && (
+            <div className={cn('mt-12 rounded-3xl p-6 sm:p-10 max-w-3xl mx-auto', accent.bgSoft)}>
+              <h3 className="text-xl sm:text-2xl font-extrabold mb-3 leading-snug">
+                {content.team.importanceBlock.title}
+              </h3>
+              <p className="text-sm sm:text-base text-brand-black leading-relaxed mb-5">
+                {content.team.importanceBlock.text}
+              </p>
+              {content.team.importanceBlock.ctaText && content.team.importanceBlock.ctaTargetId && (
+                <button
+                  onClick={() => content.team.importanceBlock?.ctaTargetId && scrollTo(content.team.importanceBlock.ctaTargetId)}
+                  className={cn(
+                    'px-6 py-3.5 rounded-xl font-bold text-white shadow transition active:scale-95',
+                    accent.bg, accent.bgHover
+                  )}
+                >
+                  {content.team.importanceBlock.ctaText} →
+                </button>
+              )}
             </div>
           )}
         </div>
       </section>
 
-      {/* ───────────── SOLUTION ───────────── */}
-      <section className="py-16 lg:py-24">
+      {/* ═══════════════ 5. PERSONAS ═══════════════ */}
+      <section id="personas" className="py-14 md:py-20 bg-brand-light">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12 max-w-2xl mx-auto">
-            <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl mb-3">
-              {content.solution.title}
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3">
+              {content.personas.title}
             </h2>
-            <p className="text-base sm:text-lg text-brand-muted leading-relaxed">
-              {content.solution.subtitle}
-            </p>
+            {content.personas.subtitle && (
+              <p className="text-base text-brand-muted max-w-3xl mx-auto leading-relaxed">
+                {content.personas.subtitle}
+              </p>
+            )}
           </div>
-
-          <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
-            {content.solution.items.map((item) => (
-              <div key={item.featureLabel} className="bg-white border border-brand-border rounded-3xl p-6 sm:p-7 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="text-4xl mb-3">{item.icon}</div>
-                <p className={cn('text-[11px] font-bold uppercase tracking-widest mb-2', accent.text)}>
-                  {item.featureLabel}
-                </p>
-                <h3 className="font-extrabold text-lg sm:text-xl mb-2 leading-tight">
-                  {item.benefitTitle}
-                </h3>
-                <p className="text-sm sm:text-base text-brand-muted leading-relaxed">
-                  {item.mechanism}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ───────────── PROOF ───────────── */}
-      <section className="bg-brand-light py-16 lg:py-24">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-center mb-10">
-            {content.proof.title}
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            {content.proof.stats.map((s) => (
-              <div key={s.label} className="bg-white rounded-2xl p-5 text-center shadow-sm">
-                <div className={cn('text-3xl sm:text-4xl font-extrabold mb-1', accent.text)}>{s.value}</div>
-                <div className="text-xs sm:text-sm text-brand-muted leading-snug">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
-            {content.proof.testimonials.map((t, i) => (
-              <div key={i} className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm relative">
-                {t.isPlaceholder && (
-                  <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-800">
-                    MẪU
-                  </span>
-                )}
-                <div className="flex gap-1 mb-3">
-                  {Array.from({ length: 5 }).map((_, i2) => (
-                    <span key={i2} className={i2 < t.rating ? 'text-yellow-400' : 'text-gray-200'}>★</span>
-                  ))}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {content.personas.items.map((p, i) => (
+              <div key={i} className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-brand-border flex flex-col">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={cn(
+                    'flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-extrabold text-lg sm:text-xl',
+                    PERSONA_COLORS[i % PERSONA_COLORS.length]
+                  )}>
+                    {p.initial}
+                  </div>
+                  <div className="leading-tight">
+                    <p className="font-extrabold text-sm sm:text-base">{p.name} · {p.age} tuổi</p>
+                    <p className="text-xs text-brand-muted">{p.role}</p>
+                    <p className="text-xs text-brand-muted">{p.location}</p>
+                  </div>
                 </div>
-                <p className="text-sm text-brand-black leading-relaxed mb-4 italic">"{t.text}"</p>
-                <div className="text-xs">
-                  <p className="font-bold text-brand-black">{t.name}</p>
-                  <p className="text-brand-muted">{t.role}</p>
-                </div>
+                <p className="text-sm leading-relaxed italic text-brand-black flex-1">
+                  &ldquo;{p.quote}&rdquo;
+                </p>
               </div>
             ))}
           </div>
-
-          {content.proof.placeholderNote && (
-            <p className="text-center text-xs text-brand-muted mt-6 max-w-xl mx-auto italic">
-              {content.proof.placeholderNote}
+          {content.personas.note && (
+            <p className="text-center text-xs text-brand-muted mt-8 max-w-2xl mx-auto leading-relaxed">
+              {content.personas.note}
             </p>
           )}
         </div>
       </section>
 
-      {/* ───────────── GUARANTEES ───────────── */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-5xl mx-auto px-4">
-          <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-center mb-10">
-            {content.guarantees.title}
-          </h2>
-
-          <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
-            {content.guarantees.items.map((g) => (
-              <div key={g.title} className={cn('rounded-2xl p-5 sm:p-6 border', accent.bgSoft, accent.border)}>
-                <div className="text-3xl mb-2">{g.icon}</div>
-                <h3 className="font-extrabold text-base sm:text-lg mb-1.5">{g.title}</h3>
-                <p className="text-sm text-brand-muted leading-relaxed">{g.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ───────────── PRICING ───────────── */}
-      <section className="bg-brand-light py-16 lg:py-24">
+      {/* ═══════════════ 6. PRICING ═══════════════ */}
+      <section id="pricing" className="py-14 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-10 max-w-2xl mx-auto">
-            <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl mb-3">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3">
               {content.pricing.title}
             </h2>
             {content.pricing.subtitle && (
-              <p className="text-base text-brand-muted leading-relaxed">{content.pricing.subtitle}</p>
+              <p className="text-base text-brand-muted leading-relaxed max-w-2xl mx-auto">
+                {content.pricing.subtitle}
+              </p>
             )}
           </div>
 
@@ -364,7 +492,7 @@ export default function LandingPageView({ content, product }: Props) {
                 )}
               >
                 {pkg.badge && (
-                  <span className={cn('absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold text-white px-3 py-1 rounded-full shadow', accent.bg)}>
+                  <span className={cn('absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold text-white px-3 py-1 rounded-full shadow whitespace-nowrap', accent.bg)}>
                     {pkg.badge}
                   </span>
                 )}
@@ -403,106 +531,125 @@ export default function LandingPageView({ content, product }: Props) {
           </div>
 
           {content.pricing.footnote && (
-            <p className="text-center text-sm text-brand-muted mt-8 max-w-2xl mx-auto">
+            <p className="text-center text-sm text-brand-muted mt-8 max-w-3xl mx-auto leading-relaxed">
               {content.pricing.footnote}
             </p>
           )}
         </div>
       </section>
 
-      {/* ───────────── FAQ ───────────── */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl text-center mb-10">
-            {content.faq.title}
-          </h2>
-          <div className="space-y-3">
-            {content.faq.items.map((item, i) => (
-              <details key={i} className="group bg-brand-light rounded-2xl p-5 sm:p-6 cursor-pointer">
-                <summary className="font-bold text-base sm:text-lg flex justify-between items-start gap-4 list-none">
-                  <span>{item.q}</span>
-                  <span className={cn('flex-shrink-0 transition-transform group-open:rotate-45 text-2xl leading-none', accent.text)}>+</span>
-                </summary>
-                <p className="mt-3 text-sm sm:text-base text-brand-muted leading-relaxed">{item.a}</p>
-              </details>
+      {/* ═══════════════ 7. GUARANTEES ═══════════════ */}
+      <section id="guarantees" className={cn('py-14 md:py-20', accent.bgSoft)}>
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3">
+              {content.guarantees.title}
+            </h2>
+            {content.guarantees.subtitle && (
+              <p className="text-base text-brand-muted leading-relaxed">{content.guarantees.subtitle}</p>
+            )}
+          </div>
+          <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
+            {content.guarantees.items.map((g, i) => (
+              <div key={i} className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm">
+                <div className="text-3xl mb-2">{g.icon}</div>
+                <h3 className="font-extrabold text-base sm:text-lg mb-2 leading-snug">{g.title}</h3>
+                <p className="text-sm text-brand-muted leading-relaxed">{g.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ───────────── FINAL CTA ───────────── */}
-      <section className={cn('py-16 lg:py-24 text-white relative overflow-hidden', accent.bg)}>
-        <div className="absolute inset-0 bg-gradient-to-br opacity-30 from-black to-transparent" />
-        <div className="max-w-3xl mx-auto px-4 text-center relative">
-          <h2 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl leading-tight mb-4">
-            {content.finalCta.title}
+      {/* ═══════════════ 8. FAQ ═══════════════ */}
+      <section id="faq" className="py-14 md:py-20 bg-white">
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-8 text-center">
+            {content.faq.title}
           </h2>
-          <p className="text-base sm:text-lg leading-relaxed mb-8 opacity-95">
-            {content.finalCta.subtitle}
-          </p>
-          <button
-            onClick={() => openOrder()}
-            className="w-full sm:w-auto bg-white text-brand-black font-extrabold text-base sm:text-lg px-10 py-4 rounded-2xl shadow-xl active:scale-95 hover:bg-gray-100 transition-all"
-          >
-            {content.finalCta.ctaText} →
-          </button>
-          <p className="text-xs mt-3 opacity-90">{content.finalCta.microcopy}</p>
+          <div className="space-y-3">
+            {content.faq.items.map((item, i) => {
+              const isOpen = openFaq === i
+              return (
+                <div key={i} className="bg-brand-light rounded-2xl border border-brand-border">
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                    className="w-full flex items-start justify-between gap-4 p-5 text-left"
+                  >
+                    <span className="font-bold text-sm sm:text-base leading-snug pr-2">{item.q}</span>
+                    <span className={cn('flex-shrink-0 text-2xl font-light transition-transform', accent.text, isOpen ? 'rotate-45' : '')}>
+                      +
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 text-sm sm:text-base text-brand-muted leading-relaxed whitespace-pre-line">
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
 
-      {/* ───────────── FOOTER ───────────── */}
-      <footer className="bg-brand-black text-white py-10">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="font-extrabold text-lg mb-2">SONi Kính</p>
-          <p className="text-xs text-gray-400 mb-4">
-            Kính mắt cao cấp · Đổi trả 7 ngày · Bảo hành 12 tháng · Giao hàng toàn quốc
+      {/* ═══════════════ 9. FINAL CTA ═══════════════ */}
+      <section id="final-cta" className={cn('py-16 md:py-24 text-white bg-gradient-to-br', accent.gradient)}>
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-5 leading-tight">
+            {content.finalCta.title}
+          </h2>
+          <p className="text-base sm:text-lg mb-8 opacity-95 leading-relaxed">
+            {content.finalCta.subtitle}
           </p>
-          <div className="flex justify-center gap-4 text-xs text-gray-400">
-            <a href="/" className="hover:text-white">Trang chủ</a>
-            <span>·</span>
-            <a href="/chinh-sach" className="hover:text-white">Chính sách</a>
-            <span>·</span>
-            <a href="/he-thong" className="hover:text-white">Hệ thống cửa hàng</a>
+          <button
+            onClick={() => scrollTo('pricing')}
+            className="bg-white text-brand-black font-extrabold text-base sm:text-lg px-8 py-4 rounded-2xl shadow-2xl hover:scale-105 transition"
+          >
+            {content.finalCta.ctaText} →
+          </button>
+          <p className="text-xs opacity-90 mt-4">🛡️ {content.finalCta.microcopy}</p>
+        </div>
+      </section>
+
+      {/* ═══════════════ FOOTER ═══════════════ */}
+      <footer className="py-8 bg-brand-black text-white">
+        <div className="max-w-6xl mx-auto px-4 text-center text-sm">
+          <p className="font-extrabold text-lg mb-2">SONi <span className={accent.text}>Cắt Kính Online</span></p>
+          <p className="text-brand-muted text-xs">
+            Khúc xạ viên 10 năm kinh nghiệm · Hàng ngàn chiếc kính đã cắt online · Bảo hành chính hãng · COD toàn quốc
+          </p>
+          <div className="flex justify-center gap-4 mt-4 text-xs">
+            <a href="/" className="text-brand-muted hover:text-white">Trang chủ</a>
+            <a href="/chinh-sach" className="text-brand-muted hover:text-white">Chính sách</a>
+            <a href="https://zalo.me/0869308231" target="_blank" rel="noopener noreferrer" className="text-brand-muted hover:text-white">Zalo SONi</a>
           </div>
         </div>
       </footer>
 
-      {/* ───────────── STICKY MOBILE CTA ───────────── */}
-      <div
-        className={cn(
-          'fixed bottom-0 inset-x-0 z-40 p-3 bg-white border-t border-brand-border shadow-2xl transition-transform sm:hidden',
-          showStickyCta ? 'translate-y-0' : 'translate-y-full'
-        )}
-      >
-        <button
-          onClick={() => openOrder()}
-          className={cn('w-full text-white font-bold py-4 rounded-xl shadow-lg active:scale-95', accent.bg, accent.bgHover)}
-        >
-          {content.hero.ctaText} — Giảm 30%
-        </button>
-        <p className="text-center text-[10px] text-brand-muted mt-1.5">
-          {content.hero.ctaMicrocopy}
-        </p>
-      </div>
+      {/* ═══════════════ STICKY BOTTOM CTA (MOBILE) ═══════════════ */}
+      {showStickyCta && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white border-t border-brand-border shadow-2xl p-3 pb-safe">
+          <button
+            onClick={() => scrollTo('pricing')}
+            className={cn(
+              'w-full font-extrabold py-4 rounded-xl text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2',
+              accent.bg, accent.bgHover
+            )}
+          >
+            <span>Mua ngay — Giảm 30%</span>
+            <span className="text-lg">→</span>
+          </button>
+          <p className="text-center text-[10px] text-brand-muted mt-1.5">
+            {content.hero.ctaMicrocopy}
+          </p>
+        </div>
+      )}
 
-      {/* Padding để sticky CTA không che footer trên mobile */}
-      <div className="h-24 sm:hidden" />
-
-      {/* ───────────── ORDER MODAL ───────────── */}
+      {/* ═══════════════ ORDER MODAL ═══════════════ */}
       {modalOpen && (
         <OrderModal product={product} preset={modalPreset} onClose={closeOrder} />
       )}
     </div>
   )
-}
-
-/** Render tiêu đề có *italic* — dùng cú pháp markdown *text* */
-function renderTitleWithItalic(title: string) {
-  const parts = title.split(/(\*[^*]+\*)/g)
-  return parts.map((part, i) => {
-    if (part.startsWith('*') && part.endsWith('*')) {
-      return <em key={i} className="italic font-extrabold">{part.slice(1, -1)}</em>
-    }
-    return <span key={i}>{part}</span>
-  })
 }
