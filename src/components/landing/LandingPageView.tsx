@@ -52,6 +52,72 @@ const PERSONA_COLORS = [
   'bg-pink-100 text-pink-700',
 ]
 
+type AccentMap = typeof ACCENT[keyof typeof ACCENT]
+
+interface ColorGalleryProps {
+  title?: string
+  colors: { id: string; name: string; hex: string; image: string; inStock: boolean }[]
+  accent: AccentMap
+  selected: number
+  onSelect: (i: number) => void
+}
+
+function ColorGallery({ title, colors, accent, selected, onSelect }: ColorGalleryProps) {
+  const item = colors[selected]
+  if (!item) return null
+
+  return (
+    <section className="py-10 md:py-16 bg-white">
+      <div className="max-w-3xl mx-auto px-4">
+        {title && (
+          <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-6">{title}</h2>
+        )}
+
+        <div className="relative aspect-[4/3] bg-gray-50 rounded-2xl overflow-hidden mb-5">
+          <Image
+            key={item.image}
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-contain p-4 transition-opacity duration-300"
+            sizes="(max-width: 768px) 100vw, 720px"
+          />
+          {!item.inStock && (
+            <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+              <span className="bg-gray-800 text-white text-sm font-bold px-4 py-2 rounded-full">Hết hàng</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-center gap-3">
+          {colors.map((c, i) => (
+            <button
+              key={c.id}
+              onClick={() => onSelect(i)}
+              className={cn(
+                'flex flex-col items-center gap-1.5 px-3 py-2 rounded-xl transition-all',
+                selected === i ? 'bg-gray-100 ring-2 ' + accent.ring : 'hover:bg-gray-50',
+                !c.inStock && 'opacity-40'
+              )}
+            >
+              <span
+                className={cn(
+                  'w-8 h-8 rounded-full border-2 transition-all',
+                  selected === i ? accent.border : 'border-gray-200'
+                )}
+                style={{ backgroundColor: c.hex }}
+              />
+              <span className={cn('text-xs font-semibold', selected === i ? 'text-brand-black' : 'text-brand-muted')}>
+                {c.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 interface Props {
   content: LandingPageContent
   product: Product
@@ -61,6 +127,7 @@ export default function LandingPageView({ content, product }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [modalPreset, setModalPreset] = useState<LandingPagePreset | undefined>(undefined)
   const [showStickyCta, setShowStickyCta] = useState(false)
+  const [selectedColorIdx, setSelectedColorIdx] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const accent = ACCENT[content.accent ?? 'orange']
   const heroImage = content.heroImage ?? product.images?.[0] ?? product.colorVariants?.[0]?.imageUrl ?? ''
@@ -129,22 +196,24 @@ export default function LandingPageView({ content, product }: Props) {
                 {content.hero.eyebrow}
               </p>
             )}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight">
-              {content.hero.title}{' '}
+            <div className="space-y-3">
+              <p className={cn('text-base sm:text-lg font-bold tracking-wide uppercase', accent.text)}>{content.hero.title}</p>
               {content.hero.titleHighlight && (
-                <span className={accent.text}>{content.hero.titleHighlight}</span>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-snug text-brand-black">
+                  {content.hero.titleHighlight}
+                </h1>
               )}
-            </h1>
-            {content.hero.subtitle && (
-              <p className="text-base sm:text-lg text-brand-muted leading-relaxed">
-                {content.hero.subtitle}
-              </p>
-            )}
+              {content.hero.subtitle && (
+                <p className="text-base sm:text-lg text-brand-muted leading-relaxed pt-2">
+                  {content.hero.subtitle}
+                </p>
+              )}
+            </div>
             <div className="flex flex-wrap gap-3 pt-2">
               <button
                 onClick={() => scrollTo(content.hero.ctaPrimary.targetId)}
                 className={cn(
-                  'px-6 py-4 rounded-2xl font-bold text-white shadow-lg transition active:scale-95',
+                  'cta-pulse px-6 py-4 rounded-2xl font-bold text-white shadow-lg transition active:scale-95',
                   accent.bg, accent.bgHover
                 )}
               >
@@ -201,13 +270,30 @@ export default function LandingPageView({ content, product }: Props) {
         </div>
       </section>
 
+      {/* ═══════════════ COLOR GALLERY ═══════════════ */}
+      {content.showColorGallery && product.colorVariants.length > 1 && (
+        <ColorGallery
+          title={content.colorGalleryTitle}
+          colors={product.colorVariants.map(cv => ({
+            id: cv.id,
+            name: cv.name,
+            hex: cv.hex,
+            image: content.colorImageOverrides?.[cv.id] ?? cv.imageUrl,
+            inStock: cv.inStock,
+          }))}
+          accent={accent}
+          selected={selectedColorIdx}
+          onSelect={setSelectedColorIdx}
+        />
+      )}
+
       {/* ═══════════════ 2. GIFTS ═══════════════ */}
       <section id="gifts" className="py-14 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-10">
             {content.gifts.eyebrow && (
-              <p className={cn('uppercase tracking-wider text-xs font-bold mb-2', accent.text)}>
-                {content.gifts.eyebrow}
+              <p className={cn('uppercase tracking-widest text-sm sm:text-base font-extrabold mb-3 inline-block px-5 py-1.5 rounded-full', accent.bgSoft, accent.text)}>
+                🎁 {content.gifts.eyebrow}
               </p>
             )}
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3">
@@ -248,20 +334,36 @@ export default function LandingPageView({ content, product }: Props) {
                 {/* Body */}
                 <div className="p-5 sm:p-6 flex flex-col flex-1">
                   {g.desc && (
-                    <p className="text-sm text-brand-black leading-relaxed text-center mb-4 flex-1">
+                    <p className="text-sm text-brand-black leading-relaxed text-center mb-3">
                       {g.desc}
                     </p>
                   )}
+                  {g.bullets && g.bullets.length > 0 && (
+                    <ul className="space-y-2.5 mb-4 text-left">
+                      {g.bullets.map((b, bi) => (
+                        <li key={bi} className="text-xs sm:text-sm text-brand-muted leading-relaxed pl-1">
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {g.subdesc && (
+                    <p className="text-xs text-brand-muted leading-relaxed text-center mb-3 italic">
+                      {g.subdesc}
+                    </p>
+                  )}
+                  <div className="flex-1" />
                   {g.value && (
-                    <p className="text-center text-base sm:text-lg font-bold mb-5">
-                      <span className="text-brand-black">Giá trị: </span>
-                      <span className={accent.text}>{g.value}</span>
+                    <p className="text-center text-base sm:text-lg font-bold mb-4">
+                      <span className="text-brand-muted text-sm">Giá trị: </span>
+                      <span className={cn('line-through opacity-60', accent.text)}>{g.value}</span>
+                      <span className={cn('ml-2 font-extrabold text-lg', accent.text)}>MIỄN PHÍ</span>
                     </p>
                   )}
                   <button
                     onClick={() => scrollTo(g.ctaTargetId)}
                     className={cn(
-                      'w-full py-3.5 rounded-xl font-extrabold text-white shadow-lg active:scale-95 transition uppercase tracking-wide text-sm sm:text-base',
+                      'cta-pulse w-full py-3.5 rounded-xl font-extrabold text-white shadow-lg active:scale-95 transition uppercase tracking-wide text-sm sm:text-base',
                       accent.bg, accent.bgHover
                     )}
                   >
@@ -276,87 +378,85 @@ export default function LandingPageView({ content, product }: Props) {
 
       {/* ═══════════════ 3. PAIN ↔ SOLUTION Q&A ═══════════════ */}
       <section id="pain-solution" className="py-14 md:py-20 bg-brand-light">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="max-w-2xl mx-auto px-4">
+          {/* Heading */}
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4 leading-tight">
               {content.painSolutionQA.title}
             </h2>
             {content.painSolutionQA.subtitle && (
-              <p className="text-base text-brand-muted max-w-2xl mx-auto leading-relaxed">
+              <p className={cn('inline-block text-base sm:text-lg font-bold px-5 py-2 rounded-full', accent.bgSoft, accent.text)}>
                 {content.painSolutionQA.subtitle}
               </p>
             )}
           </div>
 
-          <div className="space-y-12">
+          {/* Cards */}
+          <div className="space-y-8">
             {content.painSolutionQA.items.map((qa, i) => (
-              <div key={i} className="bg-white rounded-3xl p-5 sm:p-8 shadow-md">
-                {/* Q — Nỗi đau */}
-                <div className="flex items-start gap-3 mb-4">
-                  <span className={cn('flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-white', accent.bg)}>?</span>
-                  <h3 className="text-lg sm:text-xl font-bold leading-snug mt-1">
+              <div key={i} className="bg-white rounded-3xl shadow-lg overflow-hidden">
+                {/* Câu hỏi */}
+                <div className={cn('px-6 py-4 text-center bg-gradient-to-r text-white', accent.gradient)}>
+                  <h3 className="text-lg sm:text-xl font-extrabold">
                     {qa.pain.question}
                   </h3>
                 </div>
-                <div className="grid md:grid-cols-2 gap-5 md:gap-7">
-                  {/* Trái — Pain text + image */}
-                  <div>
-                    <p className="text-sm sm:text-base text-brand-muted leading-relaxed mb-3">
-                      {qa.pain.text}
-                    </p>
-                    {qa.pain.image && (
-                      <div className="rounded-2xl overflow-hidden aspect-[4/3] bg-brand-light relative">
-                        <Image
-                          src={qa.pain.image}
-                          alt={`Vấn đề ${i + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 400px"
-                        />
-                        <span className="absolute top-3 left-3 bg-black/70 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                          Trước
+
+                <div className="p-5 sm:p-6">
+                  {/* Before */}
+                  {qa.pain.image && (
+                    <div className="mb-2">
+                      <div className="rounded-2xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] bg-gray-100 relative">
+                        <Image src={qa.pain.image} alt={qa.pain.text} fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
+                        <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+                          TRƯỚC
                         </span>
                       </div>
-                    )}
-                  </div>
-                  {/* Phải — Solution text + image */}
+                      <p className="text-center text-sm text-brand-muted mt-2 italic">{qa.pain.text}</p>
+                    </div>
+                  )}
+
+                  {/* Arrow */}
+                  <div className={cn('flex justify-center py-3 text-3xl font-bold', accent.text)}>↓</div>
+
+                  {/* After */}
+                  {qa.solution.image && (
+                    <div className="mb-5">
+                      <div className="rounded-2xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] bg-gray-100 relative">
+                        <Image src={qa.solution.image} alt={qa.solution.text} fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
+                        <span className={cn('absolute top-3 left-3 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow', accent.bg)}>
+                          SAU
+                        </span>
+                      </div>
+                      <p className={cn('text-center text-sm font-semibold mt-2', accent.text)}>{qa.solution.text}</p>
+                    </div>
+                  )}
+
+                  {/* Solution bullets */}
                   <div className={cn('rounded-2xl p-5', accent.bgSoft)}>
-                    <p className={cn('text-xs font-bold uppercase tracking-wider mb-2', accent.text)}>
-                      ✓ SONi giải quyết
-                    </p>
-                    <h4 className="font-extrabold text-base sm:text-lg mb-2 leading-snug">
+                    <p className={cn('text-sm font-extrabold mb-3', accent.text)}>
                       {qa.solution.title}
-                    </h4>
-                    <p className="text-sm sm:text-base leading-relaxed mb-3">
-                      {qa.solution.text}
                     </p>
-                    {qa.solution.image && (
-                      <div className="rounded-xl overflow-hidden aspect-[4/3] bg-white relative">
-                        <Image
-                          src={qa.solution.image}
-                          alt={`Giải pháp ${i + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 400px"
-                        />
-                        <span className={cn('absolute top-3 left-3 text-white text-xs font-bold px-2.5 py-1 rounded-full', accent.bg)}>
-                          Sau
-                        </span>
-                      </div>
+                    {qa.solution.bullets && (
+                      <ul className="space-y-2.5">
+                        {qa.solution.bullets.map((b, bi) => (
+                          <li key={bi} className="flex items-start gap-2.5 text-sm sm:text-base font-medium text-brand-black">
+                            <span className={cn('flex-shrink-0 mt-0.5 font-bold', accent.text)}>✓</span>
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* AI Suggestion — câu hỏi đặc biệt */}
+            {/* AI Suggestion */}
             {content.painSolutionQA.aiSuggestion && (
-              <div className={cn('rounded-3xl p-6 sm:p-10 text-center text-white bg-gradient-to-r', accent.gradient)}>
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <span className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center font-extrabold">?</span>
-                  <h3 className="text-lg sm:text-xl font-bold">{content.painSolutionQA.aiSuggestion.question}</h3>
-                </div>
-                <p className="text-sm sm:text-base mb-6 max-w-2xl mx-auto opacity-95 leading-relaxed">
+              <div className={cn('rounded-3xl p-6 sm:p-8 text-center text-white bg-gradient-to-r', accent.gradient)}>
+                <h3 className="text-lg sm:text-xl font-extrabold mb-2">{content.painSolutionQA.aiSuggestion.question}</h3>
+                <p className="text-sm sm:text-base mb-5 opacity-95">
                   {content.painSolutionQA.aiSuggestion.text}
                 </p>
                 {content.painSolutionQA.aiSuggestion.ctaHref ? (
@@ -383,7 +483,8 @@ export default function LandingPageView({ content, product }: Props) {
       {/* ═══════════════ 4. TEAM + 5 BƯỚC + TẦM QUAN TRỌNG ═══════════════ */}
       <section id="team" className="py-14 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
+          {/* Heading */}
+          <div className="text-center mb-10">
             {content.team.eyebrow && (
               <p className={cn('uppercase tracking-wider text-xs font-bold mb-2', accent.text)}>
                 {content.team.eyebrow}
@@ -393,38 +494,73 @@ export default function LandingPageView({ content, product }: Props) {
               {content.team.title}
             </h2>
             {content.team.subtitle && (
-              <p className="text-base text-brand-muted max-w-3xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg text-brand-muted max-w-2xl mx-auto leading-relaxed">
                 {content.team.subtitle}
+              </p>
+            )}
+
+            {/* Rating */}
+            {content.team.rating && (
+              <div className="mt-6 inline-flex flex-col items-center gap-1">
+                <p className="text-2xl tracking-wider">⭐⭐⭐⭐⭐</p>
+                <p className="text-lg sm:text-xl font-extrabold">
+                  {content.team.rating.score}{' '}
+                  <span className="text-sm sm:text-base font-medium text-brand-muted">{content.team.rating.text}</span>
+                </p>
+              </div>
+            )}
+
+            {content.team.tagline && (
+              <p className={cn('mt-4 text-sm sm:text-base font-medium italic', accent.text)}>
+                {content.team.tagline}
               </p>
             )}
           </div>
 
-          {/* 5 bước — timeline dọc */}
-          <div className="relative max-w-3xl mx-auto">
-            {/* Đường nối dọc */}
-            <div className={cn('absolute left-6 sm:left-7 top-7 bottom-7 w-0.5', accent.bgSoft)} />
-            <div className="space-y-5">
-              {content.team.steps.map(s => (
-                <div key={s.num} className="relative flex items-start gap-4 sm:gap-5">
-                  <div className={cn(
-                    'flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-extrabold text-white text-lg sm:text-xl shadow-md z-10',
-                    accent.bg
-                  )}>
-                    {s.num}
-                  </div>
-                  <div className="flex-1 bg-white rounded-2xl border border-brand-border p-4 sm:p-5 shadow-sm">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      {s.icon && <span className="text-xl">{s.icon}</span>}
-                      <h3 className="font-extrabold text-base sm:text-lg">{s.title}</h3>
-                    </div>
-                    <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{s.desc}</p>
-                  </div>
+          {/* Gallery grid */}
+          {content.team.gallery && content.team.gallery.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {content.team.gallery.map((img, i) => (
+                <div key={i} className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-gray-100 relative group">
+                  <Image
+                    src={img.src}
+                    alt={img.alt}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 33vw, 280px"
+                  />
                 </div>
               ))}
             </div>
-          </div>
+          )}
 
-          {/* Tầm quan trọng cắt kính cận */}
+          {/* Legacy: 5 bước quy trình */}
+          {content.team.steps && content.team.steps.length > 0 && !content.team.gallery && (
+            <div className="relative max-w-3xl mx-auto">
+              <div className={cn('absolute left-6 sm:left-7 top-7 bottom-7 w-0.5', accent.bgSoft)} />
+              <div className="space-y-5">
+                {content.team.steps.map(s => (
+                  <div key={s.num} className="relative flex items-start gap-4 sm:gap-5">
+                    <div className={cn(
+                      'flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-extrabold text-white text-lg sm:text-xl shadow-md z-10',
+                      accent.bg
+                    )}>
+                      {s.num}
+                    </div>
+                    <div className="flex-1 bg-white rounded-2xl border border-brand-border p-4 sm:p-5 shadow-sm">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        {s.icon && <span className="text-xl">{s.icon}</span>}
+                        <h3 className="font-extrabold text-base sm:text-lg">{s.title}</h3>
+                      </div>
+                      <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Importance block */}
           {content.team.importanceBlock && (
             <div className={cn('mt-12 rounded-3xl p-6 sm:p-10 max-w-3xl mx-auto', accent.bgSoft)}>
               <h3 className="text-xl sm:text-2xl font-extrabold mb-3 leading-snug">
@@ -437,7 +573,7 @@ export default function LandingPageView({ content, product }: Props) {
                 <button
                   onClick={() => content.team.importanceBlock?.ctaTargetId && scrollTo(content.team.importanceBlock.ctaTargetId)}
                   className={cn(
-                    'px-6 py-3.5 rounded-xl font-bold text-white shadow transition active:scale-95',
+                    'cta-pulse px-6 py-3.5 rounded-xl font-bold text-white shadow transition active:scale-95',
                     accent.bg, accent.bgHover
                   )}
                 >
@@ -467,17 +603,24 @@ export default function LandingPageView({ content, product }: Props) {
               <div key={i} className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-brand-border flex flex-col">
                 <div className="flex items-center gap-3 mb-3">
                   <div className={cn(
-                    'flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-extrabold text-lg sm:text-xl',
-                    PERSONA_COLORS[i % PERSONA_COLORS.length]
+                    'flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden',
+                    !p.avatar && PERSONA_COLORS[i % PERSONA_COLORS.length]
                   )}>
-                    {p.initial}
+                    {p.avatar ? (
+                      <Image src={p.avatar} alt={p.name} width={56} height={56} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="w-full h-full flex items-center justify-center font-extrabold text-lg sm:text-xl">
+                        {p.initial}
+                      </span>
+                    )}
                   </div>
                   <div className="leading-tight">
                     <p className="font-extrabold text-sm sm:text-base">{p.name} · {p.age} tuổi</p>
                     <p className="text-xs text-brand-muted">{p.role}</p>
-                    <p className="text-xs text-brand-muted">{p.location}</p>
+                    {p.location && <p className="text-xs text-brand-muted">{p.location}</p>}
                   </div>
                 </div>
+                <p className="text-yellow-500 text-xs mb-1.5">⭐⭐⭐⭐⭐</p>
                 <p className="text-sm leading-relaxed italic text-brand-black flex-1">
                   &ldquo;{p.quote}&rdquo;
                 </p>
@@ -546,7 +689,7 @@ export default function LandingPageView({ content, product }: Props) {
                   className={cn(
                     'w-full font-bold py-3.5 rounded-xl transition-all active:scale-95',
                     pkg.highlighted
-                      ? cn('text-white shadow-lg', accent.bg, accent.bgHover)
+                      ? cn('cta-pulse text-white shadow-lg', accent.bg, accent.bgHover)
                       : cn('border-2 hover:text-white', accent.border, accent.text, accent.bgHover)
                   )}
                 >
@@ -659,7 +802,7 @@ export default function LandingPageView({ content, product }: Props) {
           <button
             onClick={() => scrollTo('pricing')}
             className={cn(
-              'w-full font-extrabold py-4 rounded-xl text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2',
+              'cta-pulse w-full font-extrabold py-4 rounded-xl text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2',
               accent.bg, accent.bgHover
             )}
           >
@@ -674,7 +817,14 @@ export default function LandingPageView({ content, product }: Props) {
 
       {/* ═══════════════ ORDER MODAL ═══════════════ */}
       {modalOpen && (
-        <OrderModal product={product} preset={modalPreset} onClose={closeOrder} />
+        <OrderModal
+          product={product}
+          preset={modalPreset}
+          selectedColorId={content.showColorGallery
+            ? product.colorVariants[selectedColorIdx]?.id
+            : undefined}
+          onClose={closeOrder}
+        />
       )}
     </div>
   )

@@ -10,6 +10,7 @@ import { analyzeFaceShape, getRecommendedFrameShapes } from '@/lib/faceShapeAnal
 import type { FaceAnalysisResult } from '@/lib/faceShapeAnalysis'
 import type { FaceLandmarkPoint } from '@/types/ar'
 import { MERGED_PRODUCTS } from '@/data/products'
+import { getAllLandingPages } from '@/data/landingPages'
 import { openZaloDefault } from '@/lib/zalo'
 
 const fmt = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
@@ -87,7 +88,10 @@ function ThuKinhContent() {
 
       setAnalysis(result)
 
-      // Fetch sản phẩm phù hợp
+      // Chỉ đề xuất sản phẩm CÓ landing page
+      const landingPages = getAllLandingPages()
+      const lpProductIds = new Set(landingPages.map(lp => lp.productId))
+
       let allProducts = MERGED_PRODUCTS
       try {
         const pr = await fetch('/api/products')
@@ -95,9 +99,10 @@ function ThuKinhContent() {
         if (Array.isArray(d) && d.length > 0) allProducts = d
       } catch {}
 
+      const productsWithLP = allProducts.filter(p => lpProductIds.has(p.id))
       const rShapes = result.recommendedShapes
-      const filtered = allProducts.filter(p => rShapes.includes(p.shape)).slice(0, 5)
-      setRecommended(filtered.length >= 2 ? filtered : allProducts.slice(0, 5))
+      const filtered = productsWithLP.filter(p => rShapes.includes(p.shape))
+      setRecommended(filtered.length > 0 ? filtered.slice(0, 5) : productsWithLP.slice(0, 5))
       setStep('result')
 
     } catch (e) {
@@ -292,29 +297,27 @@ function ThuKinhContent() {
             {recommended.map((product, idx) => {
               const thumb = product.images?.[0] ?? product.colorVariants[0]?.imageUrl
               const discounted = Math.round(product.basePrice * 0.8)
+              const lp = getAllLandingPages().find(l => l.productId === product.id)
+              const href = lp ? `/lp/${lp.slug}` : `/gong-kinh/${product.id}`
               return (
                 <div key={product.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                  {/* Badge top */}
                   {idx === 0 && (
                     <div className="bg-amber-400 text-amber-900 text-[10px] font-black text-center py-1">
                       ⭐ PHÙ HỢP NHẤT
                     </div>
                   )}
-                  {/* Ảnh lớn */}
-                  <Link href={`/gong-kinh/${product.id}`} className="block">
+                  <Link href={href} className="block">
                     <div className="relative aspect-square bg-gray-50">
                       <Image src={thumb} alt={product.name} fill className="object-contain p-3" sizes="(max-width: 640px) 50vw, 300px"/>
                     </div>
                   </Link>
-                  {/* Info */}
                   <div className="p-3 flex flex-col flex-1">
                     <p className="font-bold text-xs text-brand-black line-clamp-2 mb-1 leading-tight">{product.name}</p>
                     <div className="flex items-center gap-1.5 mb-2">
                       <span className="text-sm font-black text-brand-black">{fmt(discounted)}</span>
                       <span className="text-[10px] text-red-500 font-bold">-20%</span>
                     </div>
-                    {/* CTA mua hàng ngay */}
-                    <Link href={`/gong-kinh/${product.id}`}
+                    <Link href={href}
                       className="mt-auto w-full bg-brand-zalo hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl text-center transition-all active:scale-95 block">
                       Đặt Hàng Ngay
                     </Link>
@@ -326,9 +329,9 @@ function ThuKinhContent() {
 
           {/* CTA chính + Zalo */}
           <div className="space-y-2.5">
-            <Link href={`/gong-kinh?shape=${analysis.recommendedShapes[0]}`}
+            <Link href="/gong-kinh"
               className="w-full bg-brand-zalo hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-base shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
-              Xem Thêm Gọng Phù Hợp →
+              Xem Thêm Gọng Kính →
             </Link>
             <button onClick={openZaloDefault}
               className="w-full bg-white border-2 border-brand-zalo text-brand-zalo font-bold py-3 rounded-2xl text-sm flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors active:scale-95">

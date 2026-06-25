@@ -1,7 +1,17 @@
 import type { LandingPageContent } from '@/types/landingPage'
-
-// Content theo đúng phác thảo user — KHÔNG sáng tạo thêm copy.
-// User sẽ điền/sửa từng phần sau khi xem skeleton.
+import {
+  DEFAULT_NAV_ANCHORS,
+  DEFAULT_GIFTS,
+  DEFAULT_PERSONAS,
+  DEFAULT_GUARANTEES,
+  DEFAULT_FAQ,
+  DEFAULT_FINAL_CTA,
+  DEFAULT_SOCIAL_PROOF_TITLE,
+  DEFAULT_SOCIAL_PROOF_SUBTITLE,
+  DEFAULT_SOCIAL_PROOF_RATING,
+  DEFAULT_SOCIAL_PROOF_TAGLINE,
+  pickProofGallery,
+} from './shared-defaults'
 
 const lp: LandingPageContent = {
   productId: 'sp1777199378306',
@@ -11,145 +21,102 @@ const lp: LandingPageContent = {
   accent: 'orange',
   heroImage: '/images/landing-pages/bulsajo/hero.png',
 
-  navAnchors: [
-    { label: 'Quà tặng', targetId: 'gifts' },
-    { label: 'Nỗi đau & Giải pháp', targetId: 'pain-solution' },
-    { label: 'Quy trình SONi', targetId: 'team' },
-    { label: 'Bảng giá', targetId: 'pricing' },
-    { label: 'Câu hỏi thường gặp', targetId: 'faq' },
-  ],
+  navAnchors: DEFAULT_NAV_ANCHORS,
 
-  // ───────── 1. HERO ─────────
+  // ───────── 1. HERO (riêng từng LP) ─────────
   hero: {
-    title: 'Gọng Bulsajo Hai Cầu',
-    subtitle: '[Lợi ích của sản phẩm — bạn điền sau]',
+    title: 'Bulsajo Hai Cầu',
+    titleHighlight: 'Đeo nhẹ cả ngày – nhìn trẻ hơn chỉ trong 5 giây',
+    subtitle:
+      'Khung Titan nhẹ bẫng — đeo từ sáng tới tối mà quên luôn là đang đeo kính, không tì đỏ sống mũi. Dáng 2 cầu lên mặt sang và cá tính, kiểu kính không đụng hàng. Lớp màu bền đẹp như mới cả năm, khung cứng cáp không lo cong gãy, lại ôm khít khuôn mặt nên cúi xuống cũng không tụt — bạn cứ làm việc, vận động thoải mái, không phải đẩy kính suốt ngày.',
     ctaPrimary: { text: 'Mua Ngay', targetId: 'pricing' },
   },
 
-  // ───────── 2. QUÀ TẶNG ─────────
-  gifts: {
-    title: 'Mua Ngay Và Nhận 3 Quà Tặng Sau',
-    items: [
-      {
-        name: 'Bộ 3 Ebook',
-        desc: 'Giúp bạn không bị tăng độ cận thêm nữa.',
-        value: '[... VNĐ]',
-        ctaText: 'Mua Ngay',
-        ctaTargetId: 'pricing',
-      },
-      {
-        name: 'Sổ Y Bạ điện tử',
-        desc: '[Lợi ích — bạn điền sau]',
-        value: '[... VNĐ]',
-        ctaText: 'Mua Ngay',
-        ctaTargetId: 'pricing',
-      },
-      {
-        name: 'Bộ Kit vệ sinh kính toàn diện',
-        desc: '[Mô tả — bạn điền sau]',
-        value: '[... VNĐ]',
-        ctaText: 'Mua Ngay',
-        ctaTargetId: 'pricing',
-      },
-    ],
-  },
+  // ───────── MÀU SẮC (đồng bộ từ admin) ─────────
+  showColorGallery: true,
+  colorGalleryTitle: 'Chọn Màu Yêu Thích',
 
-  // ───────── 3. NỖI ĐAU ↔ GIẢI PHÁP ─────────
+  // ───────── 2. QUÀ TẶNG (dùng chung) ─────────
+  gifts: DEFAULT_GIFTS,
+
+  // ───────── 3. NỖI ĐAU ↔ GIẢI PHÁP (riêng từng LP) ─────────
   painSolutionQA: {
-    title: 'Lồng Ghép Nỗi Đau Và Giải Pháp',
+    title: 'Bạn Có Đang Gặp Những Tình Huống Này Mỗi Ngày Khi Đeo Kính?',
+    subtitle: 'Nếu câu trả lời là CÓ, đã đến lúc bạn cần một chiếc kính tốt hơn.',
     items: [
       {
         pain: {
-          question: '[Câu hỏi khơi gợi nỗi đau 1]',
-          text: '[Nội dung mô tả nỗi đau — bạn điền sau]',
+          question: 'Kính thường xuyên bị tuột xuống mặt?',
+          text: 'Người liên tục đẩy kính lên',
           image: '/images/landing-pages/bulsajo/before-1.png',
         },
         solution: {
-          title: '[Giải pháp 1]',
-          text: '[Nội dung giải pháp — bạn điền sau]',
+          title: 'Bulsajo Hai Cầu sẽ giúp bạn',
+          text: 'Người tự tin làm việc',
           image: '/images/landing-pages/bulsajo/after-1.png',
+          bullets: [
+            'Kính ôm mặt chắc chắn hơn',
+            'Không còn phải chỉnh kính liên tục',
+            'Tự tin hơn trong giao tiếp',
+          ],
         },
       },
       {
         pain: {
-          question: '[Câu hỏi khơi gợi nỗi đau 2]',
-          text: '[Nội dung mô tả nỗi đau — bạn điền sau]',
+          question: 'Đeo kính lâu bị đau tai, hằn đỏ sống mũi?',
+          text: 'Vết hằn đỏ trên mũi',
           image: '/images/landing-pages/bulsajo/before-2.png',
         },
         solution: {
-          title: '[Giải pháp 2]',
-          text: '[Nội dung giải pháp — bạn điền sau]',
+          title: 'Bulsajo Hai Cầu sẽ giúp bạn',
+          text: 'Đeo thoải mái cả ngày',
           image: '/images/landing-pages/bulsajo/after-2.png',
+          bullets: [
+            'Giảm áp lực lên tai và sống mũi',
+            'Đeo nhiều giờ vẫn thoải mái',
+            'Tập trung hơn vào công việc',
+          ],
+        },
+      },
+      {
+        pain: {
+          question: 'Chiếc kính hiện tại chưa thực sự phù hợp với bạn?',
+          text: 'Ngoại hình nhạt nhòa',
+          image: '/images/landing-pages/bulsajo/before-3.png',
+        },
+        solution: {
+          title: 'Bulsajo Hai Cầu sẽ giúp bạn',
+          text: 'Gương mặt sáng và có thần hơn',
+          image: '/images/landing-pages/bulsajo/after-3.png',
+          bullets: [
+            'Tôn lên đường nét khuôn mặt',
+            'Tăng sự tự tin khi xuất hiện',
+            'Nâng tầm hình ảnh cá nhân',
+          ],
         },
       },
     ],
     aiSuggestion: {
-      question: 'Khách hàng không biết có hợp dáng gọng này không, khuôn mặt khách hàng hình gì, hợp loại nào?',
-      text: 'Hãy nhờ sự tư vấn của AI phân tích kiểu dáng chuẩn mặt.',
+      question: 'Không biết khuôn mặt mình hợp dáng gọng nào?',
+      text: 'Hãy nhờ AI phân tích kiểu dáng chuẩn mặt — chỉ mất vài giây.',
       ctaText: 'AI Tư Vấn Dáng Gọng',
       ctaHref: '/thu-kinh',
     },
   },
 
-  // ───────── 4. ĐỘI NGŨ + 5 BƯỚC + TẦM QUAN TRỌNG ─────────
+  // ───────── 4. SOCIAL PROOF (dùng chung, ảnh riêng) ─────────
   team: {
-    title: 'Kỹ Thuật Viên 10 Năm Trong Nghề — Hàng Ngàn Chiếc Kính Đã Cắt Online Gửi Đến Tay Khách',
-    subtitle: 'SONi có quy trình bài bản 5 bước:',
-    steps: [
-      { num: 1, title: 'Nhận đơn', desc: '[Mô tả ngắn — bạn điền sau]' },
-      { num: 2, title: 'Kiểm tra thông số', desc: '[Mô tả ngắn — bạn điền sau]' },
-      { num: 3, title: 'Lắp ráp', desc: '[Mô tả ngắn — bạn điền sau]' },
-      { num: 4, title: 'Kiểm định', desc: '[Mô tả ngắn — bạn điền sau]' },
-      { num: 5, title: 'Giao và bảo hành', desc: '[Mô tả ngắn — bạn điền sau]' },
-    ],
-    importanceBlock: {
-      title: 'Cắt Kính Cận Rất Quan Trọng',
-      text: 'Kính của bạn sẽ được làm cá nhân hoá với máy móc hiện đại — không lo bị rơi mắt, lệch tâm, sai trục loạn, sai độ.',
-      ctaText: 'Mua Ngay',
-      ctaTargetId: 'pricing',
-    },
+    title: DEFAULT_SOCIAL_PROOF_TITLE,
+    subtitle: DEFAULT_SOCIAL_PROOF_SUBTITLE,
+    rating: DEFAULT_SOCIAL_PROOF_RATING,
+    tagline: DEFAULT_SOCIAL_PROOF_TAGLINE,
+    gallery: pickProofGallery('/images/landing-pages/bulsajo'),
   },
 
-  // ───────── 5. PERSONAS ─────────
-  personas: {
-    title: 'Lý Do Tại Sao Mọi Người Mua Gọng Và Cắt Kính Online Tại SONi',
-    items: [
-      {
-        initial: 'A',
-        name: 'Anh A',
-        age: 30,
-        role: 'Nhân viên văn phòng',
-        location: 'Nghệ An',
-        quote: '[Quote khách — bạn điền sau]',
-      },
-      {
-        initial: 'B',
-        name: 'Chị B',
-        age: 24,
-        role: 'Giáo viên',
-        location: '[Khu vực]',
-        quote: '[Quote khách — bạn điền sau]',
-      },
-      {
-        initial: 'C',
-        name: 'Chị C',
-        age: 28,
-        role: 'Công nhân tại Samsung',
-        location: 'Bắc Ninh',
-        quote: '[Quote khách — bạn điền sau]',
-      },
-      {
-        initial: 'H',
-        name: 'Em H',
-        age: 18,
-        role: 'Học sinh lớp 12',
-        location: '[Khu vực]',
-        quote: '[Quote khách — bạn điền sau]',
-      },
-    ],
-  },
+  // ───────── 5. PERSONAS (dùng chung) ─────────
+  personas: DEFAULT_PERSONAS,
 
-  // ───────── 6. BẢNG GIÁ ─────────
+  // ───────── 6. BẢNG GIÁ (riêng từng LP) ─────────
   pricing: {
     title: 'Mua Gọng Kính Bulsajo',
     subtitle: 'Bạn có thể đặt riêng gọng, hoặc đặt trọn bộ gọng + tròng để tiết kiệm chi phí.',
@@ -160,99 +127,61 @@ const lp: LandingPageContent = {
         price: 620000,
         originalPrice: 890000,
         features: [
-          'Sản phẩm',
-          'Bảo hành 12 tháng',
+          'Gọng kính Bulsajo chính hãng',
+          'Bảo hành gọng 12 tháng',
           'Đổi trả 7 ngày miễn phí',
-          'Quà tặng',
+          'Bộ quà tặng trị giá 797.000đ',
         ],
         ctaText: 'Mua Ngay',
         preset: { type: 'no-lens' },
       },
       {
-        name: 'Combo Trọn Bộ Trung Cấp',
+        name: 'Combo Cắt Kính Trung Cấp',
         tagline: 'Chỉ từ 750.000đ',
         price: 750000,
         features: [
-          'Trọn bộ gọng',
-          'Tròng chống ánh sáng xanh',
+          'Trọn bộ: Gọng Bulsajo + Tròng cắt theo độ',
+          'Tròng chống ánh sáng xanh — đỡ mỏi mắt khi dùng máy tính/điện thoại',
+          'Cắt chuẩn theo độ cận / loạn của bạn',
+          'Bảo hành chính hãng 12 tháng',
+          'Bộ quà tặng trị giá 797.000đ',
         ],
         ctaText: 'Mua Ngay',
         highlighted: true,
-        preset: { type: 'lens-category', categoryId: 'blue' },
+        badge: '⭐ Phổ biến nhất',
+        preset: {
+          type: 'lens-variants',
+          title: 'Chọn tròng Trung Cấp',
+          variantIds: ['trong-1777351205463', 'trong-blue', 'trong-1777351518112', 'trong-1777350715165'],
+        },
       },
       {
-        name: 'Combo Cao Cấp',
+        name: 'Combo Cắt Kính Cao Cấp',
         tagline: 'Chỉ từ 1.190.000đ',
         price: 1190000,
         features: [
-          '[Tính năng — bạn điền sau]',
+          'Trọn bộ: Gọng Bulsajo + Tròng cao cấp cắt theo độ',
+          'Miễn phí đổi độ trong 30 ngày',
+          'Tròng chiết suất cao — mỏng & nhẹ hơn, đỡ dày cộm cho người độ cao',
+          'Chống ánh sáng xanh + chống chói + hạn chế trầy xước',
+          'Cắt chuẩn theo độ cận / loạn của bạn',
+          'Bảo hành chính hãng 12 tháng',
+          'Bộ quà tặng trị giá 797.000đ',
         ],
         ctaText: 'Mua Ngay',
-        preset: { type: 'lens-category', categoryId: 'mong' },
+        preset: {
+          type: 'lens-variants',
+          title: 'Chọn tròng Cao Cấp',
+          variantIds: ['trong-1777351518112', 'trong-1777350715165', 'trong-1777351590911', 'trong-1777350853717', 'trong-1777351780295', 'trong-1777351004167'],
+        },
       },
     ],
   },
 
-  // ───────── 7. CAM KẾT ─────────
-  guarantees: {
-    title: 'Cam Kết Của SONi',
-    items: [
-      {
-        icon: '🛠️',
-        title: 'Làm sản phẩm cho khách hàng cẩn thận, chỉn chu',
-        desc: '',
-      },
-      {
-        icon: '🛡️',
-        title: 'Bảo hành 1 năm + Đổi độ miễn phí trong 30 ngày',
-        desc: '',
-      },
-      {
-        icon: '✅',
-        title: 'Sản phẩm chính hãng',
-        desc: '',
-      },
-    ],
-  },
-
-  // ───────── 8. FAQ ─────────
-  faq: {
-    title: 'Câu Hỏi Thường Gặp',
-    items: [
-      {
-        q: 'Shop có cắt kính cận không?',
-        a: 'Shop có cắt kính cận online, bạn đặt hàng và làm theo hướng dẫn. Khai báo thông số độ để SONi lên đơn.',
-      },
-      {
-        q: 'Tôi không biết độ của mình?',
-        a: 'Bạn cần đi đến cơ sở uy tín để đo mắt và lấy thông số độ của mình. Bạn cũng có thể lưu lại số độ vào Sổ Y Bạ của SONi để dùng cho những lần sau.',
-      },
-      {
-        q: 'Chiết suất là gì?',
-        a: '[Bạn điền câu trả lời sau]',
-      },
-      {
-        q: 'Độ của tôi phù hợp chiết suất nào?',
-        a: '[Bạn điền câu trả lời sau]',
-      },
-      {
-        q: 'Làm sao để tôi đổi trả hàng?',
-        a: 'Bạn liên hệ Zalo hỗ trợ của SONi 0869.30.82.31 để được hướng dẫn.',
-      },
-      {
-        q: 'Tôi cắt kính rồi mà không ưng có đổi được không?',
-        a: 'Nếu bạn không ưng, SONi hỗ trợ đổi sang sản phẩm khác chỉ với 30% chi phí.',
-      },
-    ],
-  },
-
-  // ───────── 9. FINAL CTA ─────────
-  finalCta: {
-    title: '[Tiêu đề chốt cuối — bạn điền sau]',
-    subtitle: '[Future fork — bạn điền sau]',
-    ctaText: 'Mua Ngay',
-    microcopy: '',
-  },
+  // ───────── 7–9. DÙNG CHUNG ─────────
+  guarantees: DEFAULT_GUARANTEES,
+  faq: DEFAULT_FAQ,
+  finalCta: DEFAULT_FINAL_CTA,
 }
 
 export default lp

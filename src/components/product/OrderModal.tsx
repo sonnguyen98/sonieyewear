@@ -524,42 +524,17 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   const [presetApplied, setPresetApplied] = useState(false)
   const [lensDataLoaded, setLensDataLoaded] = useState(false)
   const emptyEye: EyeRx = DEFAULT_EYE
+  const presetRef = useRef(preset)
+  presetRef.current = preset
 
-  // Khi mở từ LP với preset → nhảy thẳng đến bước phù hợp.
-  // Với 'lens-category' phải chờ donTrongCats nạp xong từ API (có thể có danh mục động).
+  // Preset no-lens: apply ngay, không cần chờ data
   useEffect(() => {
-    if (!preset || presetApplied) return
-    if (preset.type === 'no-lens') {
+    if (preset?.type === 'no-lens' && !presetApplied) {
       setSelectedLens(null)
       setStep('checkout')
       setPresetApplied(true)
-      return
     }
-    // Các bước phụ thuộc data tròng từ API → chờ load xong để hiện đủ các mức
-    if (!lensDataLoaded) return
-    if (preset.type === 'da-trong') {
-      setStep('da-trong')
-      setPresetApplied(true)
-      return
-    }
-    if (preset.type === 'lens-list') {
-      setStep('don-trong')
-      setPresetApplied(true)
-      return
-    }
-    const cat = donTrongCats.find(c => c.id === preset.categoryId)
-    if (cat) {
-      setSelectedCategory(cat)
-      if (cat.variants.length === 1) {
-        const v = cat.variants[0]
-        setSelectedLens({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, icon: cat.icon, badge: v.badge, features: v.features })
-        setStep('checkout')
-      } else {
-        setStep('don-trong-detail')
-      }
-      setPresetApplied(true)
-    }
-  }, [preset, presetApplied, donTrongCats, lensDataLoaded])
+  }, [preset, presetApplied])
 
   useEffect(() => {
     fetch('/api/lens-products')
@@ -578,12 +553,60 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         const cats: LensCategoryGroup[] = DON_GROUP_ORDER
           .filter(g => (groupMap[g]?.length ?? 0) > 0)
           .map(g => ({ id: g, ...(GROUP_META[g] ?? { name: g, icon: '🔵', desc: '' }), variants: groupMap[g] }))
+        const finalCats = cats.length > 0 ? cats : DON_TRONG_CATEGORIES
         if (cats.length > 0) setDonTrongCats(cats)
 
         // Đa tròng: flat list
         const daItems = items.filter(i => i.category === 'da-trong')
         if (daItems.length > 0) {
           setDaTrong(daItems.map(i => ({ id: i.id, name: i.name, desc: i.desc, price: i.price, icon: GROUP_META[i.categoryGroup ?? '']?.icon ?? '👁️', badge: i.badge || undefined, features: i.features })))
+        }
+
+        // Apply preset ngay sau khi data sẵn sàng
+        const p = presetRef.current
+        if (!p || p.type === 'no-lens') return
+
+        if (p.type === 'da-trong') {
+          setStep('da-trong')
+          setPresetApplied(true)
+          return
+        }
+        if (p.type === 'lens-list') {
+          setStep('don-trong')
+          setPresetApplied(true)
+          return
+        }
+        if (p.type === 'lens-variants') {
+          const allVariants = finalCats.flatMap(c => c.variants)
+          const matched = p.variantIds
+            .map(vid => allVariants.find(v => v.id === vid))
+            .filter((v): v is LensVariant => !!v)
+          if (matched.length > 0) {
+            setSelectedCategory({
+              id: '__lp-variants',
+              name: p.title ?? 'Chọn tròng kính',
+              icon: '🔵',
+              desc: '',
+              variants: matched,
+            })
+            setStep('don-trong-detail')
+            setPresetApplied(true)
+          }
+          return
+        }
+        if (p.type === 'lens-category') {
+          const cat = finalCats.find(c => c.id === p.categoryId)
+          if (cat) {
+            setSelectedCategory(cat)
+            if (cat.variants.length === 1) {
+              const v = cat.variants[0]
+              setSelectedLens({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, icon: cat.icon, badge: v.badge, features: v.features })
+              setStep('checkout')
+            } else {
+              setStep('don-trong-detail')
+            }
+            setPresetApplied(true)
+          }
         }
       })
       .catch(() => {})

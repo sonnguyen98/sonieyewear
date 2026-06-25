@@ -13,3 +13,11 @@ export function getLandingPage(slug: string): LandingPageContent | undefined {
 export function getAllLandingPageSlugs(): string[] {
   return Object.keys(REGISTRY)
 }
+
+export function getAllLandingPages(): LandingPageContent[] {
+  return Object.values(REGISTRY)
+}
+
+export function getLandingPageByProductId(productId: string): LandingPageContent | undefined {
+  return Object.values(REGISTRY).find(lp => lp.productId === productId)
+}

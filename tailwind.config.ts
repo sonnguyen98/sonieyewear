@@ -17,7 +17,7 @@ const config: Config = {
           white:  '#FAFAFA',
           gold:   '#D4A853',
           zalo:   '#0068FF',
-          muted:  '#6B7280',
+          muted:  '#4B5563',
           light:  '#F5F5F5',
           border: '#E5E7EB',
         },

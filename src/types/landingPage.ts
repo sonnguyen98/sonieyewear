@@ -11,6 +11,7 @@ export type LandingPagePreset =
   | { type: 'no-lens' }
   | { type: 'lens-list' }
   | { type: 'lens-category'; categoryId: string }
+  | { type: 'lens-variants'; variantIds: string[]; title?: string }
   | { type: 'da-trong' }
 
 // Mục tiêu nội bộ để CTA cuộn tới — id của section
@@ -53,6 +54,13 @@ export interface LandingPageContent {
     trustStrip?: string[]
   }
 
+  // SECTION — Chọn màu (hiển thị sau Hero)
+  // Nếu showColorGallery = true → tự lấy màu từ product.colorVariants (đồng bộ admin)
+  // imageOverrides: map colorVariantId → ảnh LP đẹp hơn (optional)
+  showColorGallery?: boolean
+  colorGalleryTitle?: string
+  colorImageOverrides?: Record<string, string>
+
   // SECTION 2 — 3 Quà tặng tặng kèm
   gifts: {
     eyebrow?: string
@@ -62,6 +70,8 @@ export interface LandingPageContent {
       icon?: string
       name: string
       desc: string
+      bullets?: string[]
+      subdesc?: string
       value?: string
       image?: string
       ctaText: string
@@ -74,8 +84,8 @@ export interface LandingPageContent {
     title: string
     subtitle?: string
     items: {
-      pain: { question: string; text: string; image?: string }
-      solution: { title: string; text: string; image?: string }
+      pain: { question: string; text: string; bullets?: string[]; image?: string }
+      solution: { title: string; text: string; bullets?: string[]; conclusion?: string; image?: string }
     }[]
     // Câu hỏi đặc biệt: không biết mặt mình hợp dáng gọng nào → AI tư vấn
     aiSuggestion?: {
@@ -87,13 +97,16 @@ export interface LandingPageContent {
     }
   }
 
-  // SECTION 4 — Đội ngũ + Quy trình 5 bước + Tầm quan trọng cắt kính cận
+  // SECTION 4 — Social proof + thư viện ảnh thực tế
   team: {
     eyebrow?: string
     title: string
     subtitle?: string
-    backgroundImage?: string
-    steps: { num: number; icon?: string; title: string; desc: string }[]
+    rating?: { score: string; text: string }
+    tagline?: string
+    gallery?: { src: string; alt: string }[]
+    // Legacy: 5 bước quy trình (optional, không dùng nếu có gallery)
+    steps?: { num: number; icon?: string; title: string; desc: string }[]
     importanceBlock?: {
       title: string
       text: string
@@ -108,6 +121,7 @@ export interface LandingPageContent {
     subtitle?: string
     items: {
       initial: string
+      avatar?: string
       name: string
       age: number
       role: string
