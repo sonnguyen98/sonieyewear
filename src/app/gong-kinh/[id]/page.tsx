@@ -14,6 +14,7 @@ import Button from '@/components/ui/Button'
 import { VI } from '@/constants/vietnamese'
 import { formatVND } from '@/lib/utils'
 import { useStock } from '@/hooks/useStock'
+import { useCart } from '@/lib/cartStore'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -28,11 +29,15 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [product, setProduct] = useState(staticProduct)
   const [fetchDone, setFetchDone] = useState(!!staticProduct)
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedColorId, setSelectedColorId] = useState(staticProduct?.colorVariants?.[0]?.id ?? '')
+  const [selectedColorId, setSelectedColorId] = useState(
+    () => (staticProduct?.colorVariants?.find(c => c.inStock) ?? staticProduct?.colorVariants?.[0])?.id ?? ''
+  )
   const [related, setRelated] = useState<typeof MERGED_PRODUCTS>(
     staticProduct ? getRelatedProducts(staticProduct, 4) : []
   )
   const { isProductAvailable, getProductQuantity, getVariantStock } = useStock()
+  const { addItem } = useCart()
+  const [addedToCart, setAddedToCart] = useState(false)
 
   useEffect(() => {
     fetch('/api/products')
@@ -43,7 +48,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           const found = data.find((p: { id: string; slug: string }) => p.id === id) ?? data.find((p: { id: string; slug: string }) => p.slug === id)
           if (found) {
             setProduct(found)
-            if (!staticProduct) setSelectedColorId(found.colorVariants?.[0]?.id ?? '')
+            if (!staticProduct) setSelectedColorId((found.colorVariants?.find((c: { inStock: boolean }) => c.inStock) ?? found.colorVariants?.[0])?.id ?? '')
             // Tính related từ toàn bộ data API (bao gồm sản phẩm mới từ admin)
             const rel = data
               .filter((p: { id: string; shape: string; material: string }) =>
@@ -233,6 +238,32 @@ export default function ProductDetailPage({ params }: PageProps) {
                 </svg>
                 Đặt Hàng Ngay (Giảm 20%)
               </button>
+              {isAvailable && selectedColorInStock && (
+                <button
+                  onClick={() => {
+                    const color = product.colorVariants.find(c => c.id === selectedColorId) ?? product.colorVariants[0]
+                    addItem({
+                      productId: product.id,
+                      productName: product.name,
+                      colorId: color.id,
+                      colorName: color.name,
+                      colorHex: color.hex,
+                      image: color.imageUrl || product.images?.[0] || '',
+                      price: Math.round(product.basePrice * 0.8),
+                      originalPrice: product.basePrice,
+                    })
+                    setAddedToCart(true)
+                    setTimeout(() => setAddedToCart(false), 2000)
+                  }}
+                  className="w-full font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-all text-sm border-2 border-brand-zalo text-brand-zalo hover:bg-blue-50 active:scale-95 mt-2"
+                >
+                  {addedToCart ? (
+                    <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> Đã thêm vào giỏ!</>
+                  ) : (
+                    <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg> Thêm Vào Giỏ Hàng</>
+                  )}
+                </button>
+              )}
               <p className="text-center text-xs text-brand-muted mt-2">
                 🛡️ Tư vấn miễn phí • Đổi trả trong 7 ngày
               </p>

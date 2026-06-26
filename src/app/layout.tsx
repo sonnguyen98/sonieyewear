@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Be_Vietnam_Pro } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/layout/ConditionalLayout'
+import CartProvider from '@/components/providers/CartProvider'
 
 const beVietnam = Be_Vietnam_Pro({
   subsets: ['vietnamese', 'latin'],
@@ -39,7 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi" className={beVietnam.variable}>
       <body className="font-sans antialiased bg-brand-white text-brand-black" suppressHydrationWarning>
-        <ConditionalLayout>{children}</ConditionalLayout>
+        <CartProvider>
+          <ConditionalLayout>{children}</ConditionalLayout>
+        </CartProvider>
       </body>
     </html>
   )
