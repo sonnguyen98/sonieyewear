@@ -124,8 +124,8 @@ const lp: LandingPageContent = {
       {
         name: 'Chỉ Mua Gọng',
         tagline: '',
-        price: 620000,
-        originalPrice: 890000,
+        price: 496000,
+        originalPrice: 620000,
         features: [
           'Gọng kính Bulsajo chính hãng',
           'Bảo hành gọng 12 tháng',
@@ -137,8 +137,8 @@ const lp: LandingPageContent = {
       },
       {
         name: 'Combo Cắt Kính Trung Cấp',
-        tagline: 'Chỉ từ 750.000đ',
-        price: 750000,
+        tagline: 'Chỉ từ',
+        price: 765000,
         features: [
           'Trọn bộ: Gọng Bulsajo + Tròng cắt theo độ',
           'Tròng chống ánh sáng xanh — đỡ mỏi mắt khi dùng máy tính/điện thoại',
@@ -157,8 +157,8 @@ const lp: LandingPageContent = {
       },
       {
         name: 'Combo Cắt Kính Cao Cấp',
-        tagline: 'Chỉ từ 1.190.000đ',
-        price: 1190000,
+        tagline: 'Chỉ từ',
+        price: 1000000,
         features: [
           'Trọn bộ: Gọng Bulsajo + Tròng cao cấp cắt theo độ',
           'Miễn phí đổi độ trong 30 ngày',

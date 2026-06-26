@@ -66,6 +66,11 @@
   animation: lpCtaPulse 2.2s ease-in-out infinite;
 }
 
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.pb-safe { padding-bottom: max(0.625rem, env(safe-area-inset-bottom)); }
+
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
