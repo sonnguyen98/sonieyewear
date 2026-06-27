@@ -15,6 +15,7 @@ import { VI } from '@/constants/vietnamese'
 import { formatVND } from '@/lib/utils'
 import { useStock } from '@/hooks/useStock'
 import { useCart } from '@/lib/cartStore'
+import ReviewSection from '@/components/review/ReviewSection'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -312,16 +313,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
       {/* Reviews */}
       <div className="mt-10">
-        <h3 className="text-base font-bold text-brand-black mb-4">Đánh giá từ khách hàng</h3>
-        <div className="rounded-xl border border-brand-border p-6 text-center">
-          <p className="text-sm font-semibold text-brand-black mb-1">Chưa có đánh giá</p>
-          <p className="text-xs text-brand-muted mb-4 max-w-xs mx-auto">
-            Sau khi nhận hàng, bạn sẽ nhận được lời mời để lại đánh giá kèm ảnh qua Zalo — giúp khách hàng tiếp theo có thêm thông tin thật.
-          </p>
-          <p className="text-xs text-brand-muted">
-            Review kèm ảnh được tặng thêm ưu đãi nhỏ cho lần mua sau.
-          </p>
-        </div>
+        <ReviewSection productId={product.id} />
       </div>
 
       {/* Related */}

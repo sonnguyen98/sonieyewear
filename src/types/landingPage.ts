@@ -21,6 +21,7 @@ export type LpTargetId =
   | 'team'
   | 'personas'
   | 'pricing'
+  | 'shop'
   | 'guarantees'
   | 'faq'
   | 'final-cta'
@@ -40,6 +41,15 @@ export interface LandingPageContent {
 
   // Anchor menu trên top nav
   navAnchors?: { label: string; targetId: LpTargetId }[]
+
+  // SECTION — Gift Lead (thay thế Hero + Gifts khi dùng LP thu lead)
+  giftLead?: {
+    title: string
+    subtitle: string
+    gifts: { name: string; icon: string; desc: string; value?: string }[]
+    ctaText: string
+    successMessage?: string
+  }
 
   hero: {
     eyebrow?: string

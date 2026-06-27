@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import type { LandingPageContent, LandingPagePreset, LpTargetId } from '@/types/landingPage'
 import type { Product } from '@/types/product'
 import OrderModal from '@/components/product/OrderModal'
+import ProductQuickView from '@/components/landing/ProductQuickView'
 import { formatVND, cn } from '@/lib/utils'
 
 // Map accent → full Tailwind classes (JIT cần thấy đầy đủ chuỗi)
@@ -101,6 +102,244 @@ function ColorGallery({ title, colors, accent, selected, onSelect }: {
   )
 }
 
+function ShopCarousel({ accent }: { accent: AccentMap }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [allProducts, setAllProducts] = useState<any[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [quickView, setQuickView] = useState<any | null>(null)
+  const [search, setSearch] = useState('')
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setAllProducts(data) })
+      .catch(() => {})
+  }, [])
+
+  const q = search.toLowerCase().trim()
+  const products = q
+    ? allProducts.filter(p => p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q) || (p.slug && p.slug.toLowerCase().includes(q)))
+    : allProducts
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (!scrollRef.current) return
+    const amount = scrollRef.current.offsetWidth * 0.7
+    scrollRef.current.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' })
+  }
+
+  if (allProducts.length === 0) return null
+
+  return (
+    <section id="shop" className={cn('py-10 sm:py-16', accent.bgSoft)}>
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div>
+            <span className={cn('inline-block text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full mb-2', accent.bg, 'text-white')}>
+              🔥 Giảm 20%
+            </span>
+            <h2 className="text-xl sm:text-3xl font-extrabold">Shop Gọng Kính</h2>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => scroll('left')}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm">
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button onClick={() => scroll('right')}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors shadow-sm">
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-4">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Tìm theo tên hoặc mã sản phẩm..."
+            className="w-full pl-10 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-200 outline-none transition-all"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {products.length === 0 && q ? (
+          <p className="text-center text-sm text-brand-muted py-8">Không tìm thấy sản phẩm &ldquo;{search}&rdquo;</p>
+        ) : (
+        <div ref={scrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2">
+          {products.map(p => {
+            const thumb = p.images?.[0] ?? p.colorVariants?.[0]?.imageUrl ?? ''
+            const discounted = Math.round(p.basePrice * 0.8)
+            return (
+              <button key={p.id} onClick={() => setQuickView(p)}
+                className="flex-shrink-0 w-[60vw] sm:w-56 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group text-left">
+                <div className="aspect-square bg-gray-50 relative overflow-hidden">
+                  {thumb && (
+                    <Image src={thumb} alt={p.name} fill className="object-contain p-3 group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 42vw, 192px" />
+                  )}
+                  <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">
+                    -20%
+                  </span>
+                </div>
+                <div className="p-2.5 sm:p-3">
+                  <p className="text-xs sm:text-sm font-bold text-brand-black line-clamp-2 leading-tight mb-1.5">{p.name}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-400 line-through">{formatVND(p.basePrice)}</p>
+                  <p className={cn('text-sm sm:text-base font-extrabold', accent.text)}>{formatVND(discounted)}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+        )}
+      </div>
+
+      {quickView && (
+        <ProductQuickView product={quickView} onClose={() => setQuickView(null)} />
+      )}
+    </section>
+  )
+}
+
+function GiftLeadSection({ giftLead, accent, slug }: {
+  giftLead: NonNullable<LandingPageContent['giftLead']>
+  accent: AccentMap
+  slug: string
+}) {
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ name: '', phone: '', email: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [done, setDone] = useState(false)
+
+  async function handleSubmit() {
+    if (!form.name.trim() || form.phone.trim().length < 9 || submitting) return
+    setSubmitting(true)
+    try {
+      await fetch('/api/gift-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name, phone: form.phone, email: form.email, source: `LP: ${slug}` }),
+      })
+      setDone(true)
+    } catch {}
+    setSubmitting(false)
+  }
+
+  if (done) {
+    return (
+      <section className={cn('py-12 sm:py-20', accent.bgSoft)}>
+        <div className="max-w-lg mx-auto px-4 text-center">
+          <div className="text-5xl mb-4">🎉</div>
+          <h2 className="text-xl sm:text-2xl font-extrabold mb-3">
+            {giftLead.successMessage ?? 'Nhận Quà Thành Công!'}
+          </h2>
+          <p className="text-sm text-brand-muted mb-2">SONi sẽ gửi quà tặng qua Zalo cho bạn.</p>
+          <p className="text-sm text-brand-muted">Sổ Y Bạ đã được tạo — bạn có thể tra cứu tại mục <strong>Sổ Y Bạ</strong> trên website.</p>
+        </div>
+      </section>
+    )
+  }
+
+  const totalValue = giftLead.gifts.reduce((s, g) => {
+    const num = parseInt((g.value ?? '0').replace(/\D/g, ''))
+    return s + num
+  }, 0)
+
+  return (
+    <section className={cn('py-10 sm:py-16', accent.bgSoft)}>
+      <div className="max-w-2xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-1.5 shadow-sm border border-brand-border mb-4">
+            <span className="text-lg">🎁</span>
+            <span className={cn('text-xs sm:text-sm font-bold', accent.text)}>Quà tặng trị giá {totalValue > 0 ? `${(totalValue / 1000).toFixed(0)}.000đ` : ''} — MIỄN PHÍ</span>
+          </div>
+          <h2 className="text-lg sm:text-2xl font-extrabold mb-2 leading-tight">{giftLead.title}</h2>
+          <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{giftLead.subtitle}</p>
+        </div>
+
+        {/* Gift cards */}
+        <div className="space-y-3 mb-6 sm:mb-8">
+          {giftLead.gifts.map((g, i) => (
+            <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-brand-border flex items-start gap-4">
+              <div className={cn('w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0', accent.bgSoft)}>
+                {g.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-extrabold text-sm sm:text-base text-brand-black">{g.name}</p>
+                  {g.value && (
+                    <span className={cn('text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full', accent.bgSoft, accent.text)}>
+                      {g.value}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">{g.desc}</p>
+              </div>
+              <span className={cn('text-xs font-extrabold flex-shrink-0 mt-1', accent.text)}>FREE</span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA / Form */}
+        {!showForm ? (
+          <div className="text-center space-y-3">
+            <button onClick={() => setShowForm(true)}
+              className={cn('cta-pulse w-full sm:w-auto px-8 py-4 rounded-2xl font-extrabold text-white shadow-lg transition active:scale-95 text-sm sm:text-base', accent.bg, accent.bgHover)}>
+              🎁 {giftLead.ctaText}
+            </button>
+            <p className="text-[10px] sm:text-xs text-brand-muted">Chỉ cần 10 giây — nhận quà ngay, không kèm điều kiện</p>
+          </div>
+        ) : (
+          <div className={cn('rounded-2xl p-5 sm:p-6 shadow-lg border-2 space-y-4', accent.border, 'bg-white')}>
+            <div className="text-center">
+              <p className="font-extrabold text-base text-brand-black">🎁 Nhận quà ngay</p>
+              <p className="text-xs text-brand-muted mt-0.5">Điền thông tin bên dưới — quà gửi tự động</p>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 mb-1 block">Họ tên</label>
+              <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Nguyễn Văn A"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-brand-zalo focus:ring-1 focus:ring-brand-zalo/30 outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 mb-1 block">Số điện thoại</label>
+              <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="0912 345 678"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-brand-zalo focus:ring-1 focus:ring-brand-zalo/30 outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-600 mb-1 block">Email</label>
+              <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="email@example.com"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-brand-zalo focus:ring-1 focus:ring-brand-zalo/30 outline-none" />
+            </div>
+            <button onClick={handleSubmit}
+              disabled={!form.name.trim() || form.phone.trim().length < 9 || submitting}
+              className={cn('cta-pulse w-full font-extrabold py-4 rounded-xl text-white transition active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:animate-none text-sm sm:text-base shadow-lg', accent.bg, accent.bgHover)}>
+              {submitting ? 'Đang xử lý...' : `🎁 ${giftLead.ctaText}`}
+            </button>
+            <p className="text-center text-[10px] text-brand-muted">🔒 Thông tin được bảo mật — không spam</p>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 interface Props {
   content: LandingPageContent
   product: Product
@@ -160,8 +399,13 @@ export default function LandingPageView({ content, product }: Props) {
         </div>
       </nav>
 
+      {/* ═══════════════ GIFT LEAD (thay Hero + Gifts) ═══════════════ */}
+      {content.giftLead && (
+        <GiftLeadSection giftLead={content.giftLead} accent={accent} slug={content.slug} />
+      )}
+
       {/* ═══════════════ 1. HERO ═══════════════ */}
-      <section className="relative overflow-hidden">
+      {!content.giftLead && <section className="relative overflow-hidden">
         <div className={cn('absolute inset-0 opacity-50', accent.bgSoft)} />
         <div className="relative max-w-6xl mx-auto px-4 py-8 sm:py-10 md:py-16">
           {/* Mobile: ảnh trước, text sau */}
@@ -210,7 +454,7 @@ export default function LandingPageView({ content, product }: Props) {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ═══════════════ COLOR GALLERY ═══════════════ */}
       {content.showColorGallery && product.colorVariants.length > 1 && (
@@ -226,7 +470,7 @@ export default function LandingPageView({ content, product }: Props) {
       )}
 
       {/* ═══════════════ 2. GIFTS ═══════════════ */}
-      <section id="gifts" className="py-10 sm:py-14 md:py-20 bg-white">
+      {!content.giftLead && <section id="gifts" className="py-10 sm:py-14 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8 sm:mb-10">
             {content.gifts.eyebrow && (
@@ -284,7 +528,7 @@ export default function LandingPageView({ content, product }: Props) {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ═══════════════ 3. PAIN ↔ SOLUTION Q&A ═══════════════ */}
       <section id="pain-solution" className="py-10 sm:py-14 md:py-20 bg-brand-light">
@@ -306,62 +550,38 @@ export default function LandingPageView({ content, product }: Props) {
                 <div className={cn('px-4 sm:px-6 py-3 sm:py-4 text-center bg-gradient-to-r text-white', accent.gradient)}>
                   <h3 className="text-base sm:text-xl font-extrabold">{qa.pain.question}</h3>
                 </div>
-                <div className="p-4 sm:p-6">
-                  {qa.pain.image && (
-                    <div className="mb-2">
-                      <div className="rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] bg-gray-100 relative">
-                        <Image src={qa.pain.image} alt={qa.pain.text} fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
-                        <span className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow">TRƯỚC</span>
-                      </div>
-                      <p className="text-center text-xs sm:text-sm text-brand-muted mt-1.5 italic">{qa.pain.text}</p>
+                <div className="p-4 sm:p-5">
+                  {/* Before / After cạnh nhau */}
+                  {(qa.pain.image || qa.solution.image) && (
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      {qa.pain.image && (
+                        <div>
+                          <div className="rounded-xl overflow-hidden aspect-[3/4] bg-gray-100 relative">
+                            <Image src={qa.pain.image} alt={qa.pain.text} fill className="object-cover" sizes="(max-width: 768px) 45vw, 280px" />
+                            <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full">TRƯỚC</span>
+                          </div>
+                        </div>
+                      )}
+                      {qa.solution.image && (
+                        <div>
+                          <div className="rounded-xl overflow-hidden aspect-[3/4] bg-gray-100 relative">
+                            <Image src={qa.solution.image} alt={qa.solution.text} fill className="object-cover" sizes="(max-width: 768px) 45vw, 280px" />
+                            <span className={cn('absolute top-1.5 left-1.5 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full', accent.bg)}>SAU</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                  <div className={cn('flex justify-center py-2 sm:py-3 text-2xl sm:text-3xl font-bold', accent.text)}>↓</div>
-                  {qa.solution.image && (
-                    <div className="mb-4 sm:mb-5">
-                      <div className="rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] bg-gray-100 relative">
-                        <Image src={qa.solution.image} alt={qa.solution.text} fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
-                        <span className={cn('absolute top-2 sm:top-3 left-2 sm:left-3 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow', accent.bg)}>SAU</span>
-                      </div>
-                      <p className={cn('text-center text-xs sm:text-sm font-semibold mt-1.5', accent.text)}>{qa.solution.text}</p>
-                    </div>
-                  )}
-                  <div className={cn('rounded-xl sm:rounded-2xl p-4 sm:p-5', accent.bgSoft)}>
-                    <p className={cn('text-xs sm:text-sm font-extrabold mb-2 sm:mb-3', accent.text)}>{qa.solution.title}</p>
-                    {qa.solution.bullets && (
-                      <ul className="space-y-2">
-                        {qa.solution.bullets.map((b, bi) => (
-                          <li key={bi} className="flex items-start gap-2 text-xs sm:text-base font-medium text-brand-black">
-                            <span className={cn('flex-shrink-0 mt-0.5 font-bold', accent.text)}>✓</span>{b}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
                 </div>
               </div>
             ))}
 
-            {content.painSolutionQA.aiSuggestion && (
-              <div className={cn('rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-center text-white bg-gradient-to-r', accent.gradient)}>
-                <h3 className="text-base sm:text-xl font-extrabold mb-2">{content.painSolutionQA.aiSuggestion.question}</h3>
-                <p className="text-xs sm:text-base mb-4 sm:mb-5 opacity-95">{content.painSolutionQA.aiSuggestion.text}</p>
-                {content.painSolutionQA.aiSuggestion.ctaHref ? (
-                  <a href={content.painSolutionQA.aiSuggestion.ctaHref}
-                    className="inline-block bg-white text-brand-black font-extrabold px-5 sm:px-7 py-3 sm:py-4 rounded-2xl shadow-lg hover:scale-105 transition text-sm sm:text-base">
-                    🤖 {content.painSolutionQA.aiSuggestion.ctaText}
-                  </a>
-                ) : (
-                  <button onClick={() => content.painSolutionQA.aiSuggestion?.ctaTargetId && scrollTo(content.painSolutionQA.aiSuggestion.ctaTargetId)}
-                    className="bg-white text-brand-black font-extrabold px-5 sm:px-7 py-3 sm:py-4 rounded-2xl shadow-lg hover:scale-105 transition text-sm sm:text-base">
-                    🤖 {content.painSolutionQA.aiSuggestion.ctaText}
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </section>
+
+      {/* ═══════════════ SHOP ═══════════════ */}
+      <ShopCarousel accent={accent} />
 
       {/* ═══════════════ 4. SOCIAL PROOF ═══════════════ */}
       <section id="team" className="py-10 sm:py-14 md:py-20 bg-white">
@@ -463,11 +683,12 @@ export default function LandingPageView({ content, product }: Props) {
               </div>
             ))}
           </div>
+
         </div>
       </section>
 
       {/* ═══════════════ 6. PRICING ═══════════════ */}
-      <section id="pricing" className="py-10 sm:py-14 md:py-20 bg-white">
+      {!content.giftLead && <section id="pricing" className="py-10 sm:py-14 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8 sm:mb-10">
             <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3">{content.pricing.title}</h2>
@@ -525,7 +746,7 @@ export default function LandingPageView({ content, product }: Props) {
             <p className="text-center text-xs sm:text-sm text-brand-muted mt-6 sm:mt-8 max-w-3xl mx-auto leading-relaxed">{content.pricing.footnote}</p>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* ═══════════════ 7. GUARANTEES ═══════════════ */}
       <section id="guarantees" className={cn('py-10 sm:py-14 md:py-20', accent.bgSoft)}>
@@ -549,6 +770,29 @@ export default function LandingPageView({ content, product }: Props) {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════ AI SUGGESTION ═══════════════ */}
+      {content.painSolutionQA.aiSuggestion && (
+        <section className="py-10 sm:py-14 bg-white">
+          <div className="max-w-3xl mx-auto px-4">
+            <div className={cn('rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-center text-white bg-gradient-to-r', accent.gradient)}>
+              <h3 className="text-base sm:text-xl font-extrabold mb-2">{content.painSolutionQA.aiSuggestion.question}</h3>
+              <p className="text-xs sm:text-base mb-4 sm:mb-5 opacity-95">{content.painSolutionQA.aiSuggestion.text}</p>
+              {content.painSolutionQA.aiSuggestion.ctaHref ? (
+                <a href={content.painSolutionQA.aiSuggestion.ctaHref}
+                  className="inline-block bg-white text-brand-black font-extrabold px-5 sm:px-7 py-3 sm:py-4 rounded-2xl shadow-lg hover:scale-105 transition text-sm sm:text-base">
+                  🤖 {content.painSolutionQA.aiSuggestion.ctaText}
+                </a>
+              ) : (
+                <button onClick={() => content.painSolutionQA.aiSuggestion?.ctaTargetId && scrollTo(content.painSolutionQA.aiSuggestion.ctaTargetId)}
+                  className="bg-white text-brand-black font-extrabold px-5 sm:px-7 py-3 sm:py-4 rounded-2xl shadow-lg hover:scale-105 transition text-sm sm:text-base">
+                  🤖 {content.painSolutionQA.aiSuggestion.ctaText}
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════ 8. FAQ ═══════════════ */}
       <section id="faq" className="py-10 sm:py-14 md:py-20 bg-white">
@@ -579,9 +823,9 @@ export default function LandingPageView({ content, product }: Props) {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-3 sm:mb-5 leading-tight">{content.finalCta.title}</h2>
           <p className="text-sm sm:text-lg mb-6 sm:mb-8 opacity-95 leading-relaxed">{content.finalCta.subtitle}</p>
-          <button onClick={() => scrollTo('pricing')}
+          <button onClick={() => scrollTo(content.giftLead ? 'shop' : 'pricing')}
             className="bg-white text-brand-black font-extrabold text-sm sm:text-lg px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl shadow-2xl hover:scale-105 transition">
-            {content.finalCta.ctaText}
+            {content.giftLead ? '🛍️ Xem Shop Gọng Kính' : content.finalCta.ctaText}
           </button>
           <p className="text-[10px] sm:text-xs opacity-90 mt-3 sm:mt-4">🛡️ {content.finalCta.microcopy}</p>
         </div>
@@ -604,10 +848,10 @@ export default function LandingPageView({ content, product }: Props) {
 
       {/* ═══════════════ STICKY BOTTOM CTA (MOBILE) ═══════════════ */}
       {showStickyCta && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white border-t border-brand-border shadow-2xl p-2.5 pb-safe">
-          <button onClick={() => scrollTo('pricing')}
+        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur border-t border-brand-border shadow-2xl p-2.5 pb-safe">
+          <button onClick={() => scrollTo(content.giftLead ? 'shop' : 'pricing')}
             className={cn('cta-pulse w-full font-extrabold py-3.5 rounded-xl text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm', accent.bg, accent.bgHover)}>
-            <span>Mua Ngay — Xem Bảng Giá</span>
+            <span>{content.giftLead ? '🛍️ Xem Shop — Giảm 20%' : 'Mua Ngay — Xem Bảng Giá'}</span>
             <span className="text-base">→</span>
           </button>
         </div>

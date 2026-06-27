@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/lib/cartStore'
@@ -16,12 +16,15 @@ interface CheckoutForm {
   phone: string
   address: string
   note: string
-  payment: 'cod' | 'bank'
+  payment: 'cod' | 'deposit-bank' | 'full-bank'
 }
 
 export default function GioHangPage() {
   const { items, removeItem, updateQuantity, setLens, setRx, totalItems, totalPrice, clearCart } = useCart()
   const [step, setStep] = useState<CheckoutStep>('cart')
+  const hasLens = items.some(i => !!i.lens)
+  const totalLensPrice = items.reduce((s, i) => s + (i.lens?.price ?? 0) * i.quantity, 0)
+  const totalLensPrice50 = Math.round(totalLensPrice * 0.8 * 0.5)
   const [form, setForm] = useState<CheckoutForm>({ name: '', phone: '', address: '', note: '', payment: 'cod' })
   const [submitting, setSubmitting] = useState(false)
   const [orderCode, setOrderCode] = useState('')
@@ -30,6 +33,15 @@ export default function GioHangPage() {
   const [rxInputFor, setRxInputFor] = useState<{ productId: string; colorId: string } | null>(null)
 
   const update = (field: keyof CheckoutForm, value: string) => setForm(f => ({ ...f, [field]: value }))
+
+  useEffect(() => {
+    if (hasLens && form.payment === 'cod') {
+      setForm(f => ({ ...f, payment: 'deposit-bank' }))
+    }
+    if (!hasLens && form.payment !== 'cod' && form.payment !== 'full-bank') {
+      setForm(f => ({ ...f, payment: 'cod' }))
+    }
+  }, [hasLens, form.payment])
   const canSubmit = form.name.trim() && form.phone.trim().length >= 9 && form.address.trim() && items.length > 0
 
   async function handleSubmit() {
@@ -71,14 +83,23 @@ export default function GioHangPage() {
             total: formatVND(lineTotal),
             originalTotal: formatVND((item.originalPrice ?? item.price) * item.quantity),
             discount: '20%',
-            payment: form.payment === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 'Chuyển khoản ngân hàng',
-            payAmount: lineTotal,
+            payment: form.payment === 'cod' ? 'Thanh toán khi nhận hàng (COD)'
+              : form.payment === 'deposit-bank' ? `Cọc 50% tròng ${formatVND(Math.round((item.lens?.price ?? 0) * 0.8 * 0.5))} - Chuyển khoản`
+              : `Toàn bộ ${formatVND(lineTotal)} - Chuyển khoản`,
+            payAmount: form.payment === 'deposit-bank'
+              ? Math.round((item.lens?.price ?? 0) * 0.8 * 0.5)
+              : lineTotal,
             prescription: item.rx
               ? item.rx.mode === 'form'
                 ? `MP: SPH ${item.rx.rightSph} / CYL ${item.rx.rightCyl} / Trục ${item.rx.rightAxis} | MT: SPH ${item.rx.leftSph} / CYL ${item.rx.leftCyl} / Trục ${item.rx.leftAxis}${item.rx.pd ? ` | PD: ${item.rx.pd}` : ''}`
                 : item.rx.mode === 'image' ? 'Đã gửi ảnh toa thuốc' : 'Khách sẽ báo số độ sau qua Zalo'
               : '',
             prescriptionImage: item.rx?.mode === 'image' ? (item.rx.imageBase64 ?? '') : '',
+            ...(item.rx?.mode === 'form' ? {
+              rxRight: { sph: item.rx.rightSph, cyl: item.rx.rightCyl, axis: item.rx.rightAxis },
+              rxLeft: { sph: item.rx.leftSph, cyl: item.rx.leftCyl, axis: item.rx.leftAxis },
+              pd: item.rx.pd === 'Auto' ? undefined : parseInt(item.rx.pd ?? '0'),
+            } : {}),
             variantIds: [item.colorId],
             affiliateCode: typeof window !== 'undefined' ? (localStorage.getItem('affiliateRef') ?? '') : '',
             orderAmount: lineTotal,
@@ -276,20 +297,56 @@ export default function GioHangPage() {
 
                   <div>
                     <label className="text-xs font-bold text-gray-600 mb-2 block">Phương thức thanh toán</label>
+
+                    {hasLens && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3 flex gap-2">
+                        <span className="text-base flex-shrink-0">⚠️</span>
+                        <p className="text-xs text-amber-800 leading-relaxed">
+                          Đơn có <strong>tròng cắt theo số độ</strong> — cần cọc tiền tròng hoặc thanh toán toàn bộ trước khi xưởng tiến hành cắt kính.
+                        </p>
+                      </div>
+                    )}
+
                     <div className="space-y-2">
-                      {[
-                        { id: 'cod' as const, label: 'Thanh toán khi nhận hàng (COD)', icon: '💵' },
-                        { id: 'bank' as const, label: 'Chuyển khoản ngân hàng', icon: '🏦' },
-                      ].map(opt => (
-                        <label key={opt.id} className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
-                          form.payment === opt.id ? 'border-brand-zalo bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
+                      {!hasLens && (
+                        <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                          form.payment === 'cod' ? 'border-brand-zalo bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
                         }`}>
-                          <input type="radio" name="payment" value={opt.id} checked={form.payment === opt.id}
-                            onChange={() => update('payment', opt.id)} className="accent-brand-zalo" />
-                          <span className="text-lg">{opt.icon}</span>
-                          <span className="text-sm font-semibold">{opt.label}</span>
+                          <input type="radio" name="payment" value="cod" checked={form.payment === 'cod'}
+                            onChange={() => update('payment', 'cod')} className="accent-brand-zalo" />
+                          <span className="text-lg">💵</span>
+                          <div>
+                            <span className="text-sm font-semibold block">Thanh toán khi nhận hàng (COD)</span>
+                            <span className="text-[11px] text-brand-muted">Kiểm tra hàng trước, trả tiền sau</span>
+                          </div>
                         </label>
-                      ))}
+                      )}
+                      {hasLens && (
+                        <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                          form.payment === 'deposit-bank' ? 'border-brand-zalo bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
+                        }`}>
+                          <input type="radio" name="payment" value="deposit-bank" checked={form.payment === 'deposit-bank'}
+                            onChange={() => update('payment', 'deposit-bank')} className="accent-brand-zalo" />
+                          <span className="text-lg">🏦</span>
+                          <div>
+                            <span className="text-sm font-semibold block">Cọc 50% tiền tròng</span>
+                            <span className="text-[11px] text-brand-muted">
+                              Cọc {formatVND(totalLensPrice50)} — trả phần còn lại khi nhận hàng
+                            </span>
+                          </div>
+                        </label>
+                      )}
+                      <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                        form.payment === 'full-bank' ? 'border-brand-zalo bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
+                      }`}>
+                        <input type="radio" name="payment" value="full-bank" checked={form.payment === 'full-bank'}
+                          onChange={() => update('payment', 'full-bank')} className="accent-brand-zalo" />
+                        <span className="text-lg">🏦</span>
+                        <div>
+                          <span className="text-sm font-semibold block">Thanh toán toàn bộ</span>
+                          <span className="text-[11px] text-brand-muted">Chuyển khoản 100% — ưu tiên xử lý đơn trước</span>
+                        </div>
+                      </label>
                     </div>
                   </div>
 
@@ -336,8 +393,17 @@ export default function GioHangPage() {
                   <span className="text-xl font-extrabold text-brand-black">{formatVND(totalPrice)}</span>
                 </div>
 
+                {step === 'info' && form.payment === 'deposit-bank' && totalLensPrice50 > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
+                    <p className="text-xs text-blue-800">
+                      <strong>Cần cọc:</strong> {formatVND(totalLensPrice50)} (50% tiền tròng)
+                    </p>
+                    <p className="text-[10px] text-blue-600">Phần còn lại thanh toán khi nhận hàng</p>
+                  </div>
+                )}
+
                 <p className="text-[11px] text-brand-muted">
-                  Bạn có thể chọn tròng cắt kính cho từng gọng ở giỏ hàng.
+                  {hasLens ? 'Đơn có tròng cắt kính — cần cọc hoặc thanh toán trước.' : 'Bạn có thể chọn tròng cắt kính cho từng gọng ở giỏ hàng.'}
                 </p>
 
                 {step === 'cart' ? (
