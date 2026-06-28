@@ -136,7 +136,7 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
             <span className={cn('inline-block text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full mb-2', accent.bg, 'text-white')}>
-              🔥 Giảm 20%
+              🔥 Đang Giảm Giá
             </span>
             <h2 className="text-xl sm:text-3xl font-extrabold">Shop Gọng Kính</h2>
           </div>
@@ -847,7 +847,7 @@ export default function LandingPageView({ content, product }: Props) {
         <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur border-t border-brand-border shadow-2xl p-2.5 pb-safe">
           <button onClick={() => scrollTo(content.giftLead ? 'shop' : 'pricing')}
             className={cn('cta-pulse w-full font-extrabold py-3.5 rounded-xl text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm', accent.bg, accent.bgHover)}>
-            <span>{content.giftLead ? '🛍️ Xem Shop — Giảm 20%' : 'Mua Ngay — Xem Bảng Giá'}</span>
+            <span>{content.giftLead ? '🛍️ Xem Shop — Đang Giảm Giá' : 'Mua Ngay — Xem Bảng Giá'}</span>
             <span className="text-base">→</span>
           </button>
         </div>

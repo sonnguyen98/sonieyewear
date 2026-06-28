@@ -68,7 +68,7 @@ export default function CheckoutOverlay({ onClose }: CheckoutOverlayProps) {
             lens: item.lens ? item.lens.name : 'Chỉ Gọng',
             total: formatVND(lineTotal),
             originalTotal: formatVND((item.originalPrice ?? item.price) * item.quantity),
-            discount: '20%',
+            discount: item.originalPrice ? `${Math.round((1 - item.price / item.originalPrice) * 100)}%` : '0%',
             payment: form.payment === 'cod' ? 'COD'
               : form.payment === 'deposit-bank' ? `Thanh toán trước 20% ${formatVND(Math.round(lineTotal * 0.2))} - CK`
               : `Toàn bộ ${formatVND(lineTotal)} - CK`,
