@@ -988,7 +988,9 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                 <p className="text-xs text-brand-muted mt-0.5">Chọn loại phù hợp, rồi chọn mức giá theo độ mắt</p>
               </div>
               {donTrongCats.map(cat => {
+                const hasFree = cat.variants.some(v => v.price === 0 && v.originalPrice)
                 const minPrice = Math.min(...cat.variants.map(v => v.price))
+                const freeOriginalPrice = hasFree ? Math.min(...cat.variants.filter(v => v.price === 0 && v.originalPrice).map(v => v.originalPrice!)) : 0
                 return (
                   <button key={cat.id} onClick={() => handleSelectCategory(cat)}
                     className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group text-left">
@@ -998,7 +1000,10 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold text-sm text-brand-black">{cat.name}</span>
-                        {cat.badge && (
+                        {hasFree && (
+                          <span className="text-[10px] bg-green-500 text-white font-bold px-1.5 py-0.5 rounded-full">🎁 Tặng FREE</span>
+                        )}
+                        {cat.badge && !hasFree && (
                           <span className="text-[10px] bg-brand-gold text-white font-bold px-1.5 py-0.5 rounded-full">{cat.badge}</span>
                         )}
                         {cat.variants.length > 1 && (
@@ -1008,8 +1013,17 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                       <p className="text-xs text-brand-muted mt-0.5 leading-snug line-clamp-1">{cat.desc}</p>
                     </div>
                     <div className="text-right flex-shrink-0 flex flex-col items-end gap-0.5">
-                      <span className="text-[10px] text-brand-muted">từ</span>
-                      <span className="font-black text-sm text-brand-black">+{formatVND(minPrice)}</span>
+                      {hasFree ? (
+                        <>
+                          <span className="font-black text-sm text-green-600">Tặng FREE</span>
+                          <span className="text-[10px] text-gray-400 line-through">{formatVND(freeOriginalPrice)}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[10px] text-brand-muted">từ</span>
+                          <span className="font-black text-sm text-brand-black">+{formatVND(minPrice)}</span>
+                        </>
+                      )}
                       <svg className="w-4 h-4 text-brand-muted group-hover:text-brand-black group-hover:translate-x-0.5 transition-all mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                       </svg>
