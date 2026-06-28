@@ -640,6 +640,7 @@ interface LensItem {
   suitableFor: string
   recommended: boolean
   free?: boolean
+  discountPercent?: number
 }
 
 const GROUP_LABELS: Record<string, string> = {
@@ -735,7 +736,12 @@ function LensSection() {
                           {item.free && <span className="text-[9px] bg-green-500 text-white px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">🎁 FREE</span>}
                         </div>
                         {item.suitableFor && <p className="text-[10px] text-blue-600 font-semibold mt-0.5">👁 {item.suitableFor}</p>}
-                        <p className="text-sm font-black text-gray-900 mt-0.5">{item.free ? <span className="text-green-600">Tặng FREE</span> : fmt(item.price)}</p>
+                        <p className="text-sm font-black text-gray-900 mt-0.5">
+                          {item.free ? <span className="text-green-600">Tặng FREE</span> : fmt(item.price)}
+                          {!item.free && item.discountPercent && item.discountPercent > 0 && (
+                            <span className="text-[9px] text-red-500 ml-1">-{item.discountPercent}%</span>
+                          )}
+                        </p>
                       </div>
                       <div className="flex flex-col gap-1.5 p-2.5 flex-shrink-0 justify-center">
                         <button onClick={async () => {
@@ -771,6 +777,7 @@ function LensEditModal({ item, saving, onSave, onClose }: {
     categoryGroup: item.categoryGroup ?? 'trang',
     suitableFor: item.suitableFor ?? '',
     recommended: item.recommended ?? false,
+    discountPercent: item.discountPercent ?? 0,
   })
   const [uploading, setUploading] = useState(false)
 
@@ -786,7 +793,7 @@ function LensEditModal({ item, saving, onSave, onClose }: {
   }
 
   function handleSave() {
-    onSave({ ...form, price: Number(form.price), features: form.features.split('\n').filter(Boolean) })
+    onSave({ ...form, price: Number(form.price), discountPercent: Number(form.discountPercent ?? 0), features: form.features.split('\n').filter(Boolean) })
   }
 
   return (
@@ -880,11 +887,13 @@ function LensEditModal({ item, saving, onSave, onClose }: {
           </div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Mô tả ngắn</label>
             <input value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} className={inp()} placeholder="VD: Tròng nhựa cao cấp, chống tia UV, phủ AR 7 lớp..." /></div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giá (đ)</label>
               <input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: +e.target.value }))} className={inp()} /></div>
+            <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giảm giá (%)</label>
+              <input type="number" value={form.discountPercent} onChange={e => setForm(f => ({ ...f, discountPercent: +e.target.value }))} className={inp()} placeholder="0" min="0" max="100" /></div>
             <div><label className="block text-xs font-semibold text-gray-600 mb-1">Badge nhãn</label>
-              <input value={form.badge} onChange={e => setForm(f => ({ ...f, badge: e.target.value }))} className={inp()} placeholder="Phổ biến, Cao cấp, Mỏng nhất..." /></div>
+              <input value={form.badge} onChange={e => setForm(f => ({ ...f, badge: e.target.value }))} className={inp()} placeholder="Phổ biến, Cao cấp..." /></div>
           </div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tính năng (mỗi dòng 1 tính năng)</label>
             <textarea rows={4} value={form.features} onChange={e => setForm(f => ({ ...f, features: e.target.value }))}

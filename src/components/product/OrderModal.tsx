@@ -541,7 +541,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   useEffect(() => {
     fetch('/api/lens-products')
       .then(r => r.json())
-      .then((items: { id: string; name: string; desc: string; price: number; badge: string; image?: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean; free?: boolean }[]) => {
+      .then((items: { id: string; name: string; desc: string; price: number; badge: string; image?: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean; free?: boolean; discountPercent?: number }[]) => {
         if (!Array.isArray(items) || items.length === 0) return
 
         // Đơn tròng: nhóm theo categoryGroup
@@ -550,7 +550,10 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         donItems.forEach(item => {
           const g = item.categoryGroup ?? 'trang'
           if (!groupMap[g]) groupMap[g] = []
-          groupMap[g].push({ id: item.id, name: item.name, price: item.free ? 0 : item.price, originalPrice: item.free ? item.price : undefined, badge: item.free ? 'Tặng FREE' : (item.badge || undefined), image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
+          const lensDiscount = item.discountPercent ?? 0
+          const discountedLensPrice = item.free ? 0 : (lensDiscount > 0 ? Math.round(item.price * (1 - lensDiscount / 100)) : item.price)
+          const showOriginal = item.free || lensDiscount > 0
+          groupMap[g].push({ id: item.id, name: item.name, price: discountedLensPrice, originalPrice: showOriginal ? item.price : undefined, badge: item.free ? 'Tặng FREE' : (item.badge || undefined), image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
         })
         const cats: LensCategoryGroup[] = DON_GROUP_ORDER
           .filter(g => (groupMap[g]?.length ?? 0) > 0)
@@ -1094,8 +1097,10 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                       ) : (
                         <>
                           <span className="font-black text-base text-brand-black">+{formatVND(variant.price)}</span>
+                          {variant.originalPrice && variant.originalPrice !== variant.price && (
+                            <span className="text-[10px] text-gray-400 line-through">{formatVND(variant.originalPrice)}</span>
+                          )}
                           <span className="text-xs text-red-500 font-semibold">= {formatVND(Math.round((basePrice + variant.price) * (1 - discount)))}</span>
-                          <span className="text-[10px] text-gray-400 line-through">{formatVND(basePrice + variant.price)}</span>
                         </>
                       )}
                     </div>

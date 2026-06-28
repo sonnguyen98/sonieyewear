@@ -13,6 +13,7 @@ interface LensProduct {
   features: string[]
   categoryGroup?: string
   free?: boolean
+  discountPercent?: number
 }
 
 interface LensPickerProps {
@@ -34,7 +35,9 @@ export default function LensPicker({ currentLens, onSelect, onClose }: LensPicke
   }, [])
 
   const handleSelect = (lens: LensProduct) => {
-    onSelect({ id: lens.id, name: lens.name, price: lens.free ? 0 : lens.price })
+    const lensDiscount = lens.discountPercent ?? 0
+    const finalPrice = lens.free ? 0 : (lensDiscount > 0 ? Math.round(lens.price * (1 - lensDiscount / 100)) : lens.price)
+    onSelect({ id: lens.id, name: lens.name, price: finalPrice })
     onClose()
   }
 
@@ -94,6 +97,11 @@ export default function LensPicker({ currentLens, onSelect, onClose }: LensPicke
                       {lens.free ? (
                         <>
                           <span className="text-sm font-bold text-green-600">Tặng FREE</span>
+                          <p className="text-[10px] text-gray-400 line-through">{formatVND(lens.price)}</p>
+                        </>
+                      ) : lens.discountPercent && lens.discountPercent > 0 ? (
+                        <>
+                          <span className="text-sm font-bold text-red-500">+{formatVND(Math.round(lens.price * (1 - lens.discountPercent / 100)))}</span>
                           <p className="text-[10px] text-gray-400 line-through">{formatVND(lens.price)}</p>
                         </>
                       ) : (
