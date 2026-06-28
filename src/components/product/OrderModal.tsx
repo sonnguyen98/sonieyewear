@@ -32,6 +32,7 @@ interface LensVariant {
   id: string
   name: string
   price: number
+  originalPrice?: number
   badge?: string
   image?: string
   features: string[]
@@ -549,7 +550,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         donItems.forEach(item => {
           const g = item.categoryGroup ?? 'trang'
           if (!groupMap[g]) groupMap[g] = []
-          groupMap[g].push({ id: item.id, name: item.name, price: item.free ? 0 : item.price, badge: item.free ? 'Tặng FREE' : (item.badge || undefined), image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
+          groupMap[g].push({ id: item.id, name: item.name, price: item.free ? 0 : item.price, originalPrice: item.free ? item.price : undefined, badge: item.free ? 'Tặng FREE' : (item.badge || undefined), image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
         })
         const cats: LensCategoryGroup[] = DON_GROUP_ORDER
           .filter(g => (groupMap[g]?.length ?? 0) > 0)
@@ -1069,9 +1070,18 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 flex flex-col items-end gap-0.5">
-                      <span className={`font-black text-base ${variant.price === 0 ? 'text-green-600' : 'text-brand-black'}`}>{variant.price === 0 ? 'MIỄN PHÍ' : `+${formatVND(variant.price)}`}</span>
-                      <span className="text-xs text-red-500 font-semibold">= {formatVND(Math.round((basePrice + variant.price) * 0.8))}</span>
-                      <span className="text-[10px] text-gray-400 line-through">{formatVND(basePrice + variant.price)}</span>
+                      {variant.price === 0 && variant.originalPrice ? (
+                        <>
+                          <span className="font-black text-base text-green-600">Tặng FREE</span>
+                          <span className="text-xs text-gray-400 line-through">{formatVND(variant.originalPrice)}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-black text-base text-brand-black">+{formatVND(variant.price)}</span>
+                          <span className="text-xs text-red-500 font-semibold">= {formatVND(Math.round((basePrice + variant.price) * 0.8))}</span>
+                          <span className="text-[10px] text-gray-400 line-through">{formatVND(basePrice + variant.price)}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </button>

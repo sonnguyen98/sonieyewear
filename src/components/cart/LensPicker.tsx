@@ -90,7 +90,16 @@ export default function LensPicker({ currentLens, onSelect, onClose }: LensPicke
                         <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-semibold">{lens.badge}</span>
                       )}
                     </div>
-                    <span className={`text-sm font-bold ${lens.free ? 'text-green-600' : 'text-brand-black'}`}>{lens.free ? 'MIỄN PHÍ' : `+${formatVND(lens.price)}`}</span>
+                    <div className="text-right">
+                      {lens.free ? (
+                        <>
+                          <span className="text-sm font-bold text-green-600">Tặng FREE</span>
+                          <p className="text-[10px] text-gray-400 line-through">{formatVND(lens.price)}</p>
+                        </>
+                      ) : (
+                        <span className="text-sm font-bold text-brand-black">+{formatVND(lens.price)}</span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-brand-muted line-clamp-1">{lens.desc}</p>
                   {lens.features.length > 0 && (
