@@ -316,7 +316,7 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
   const isDeposit = form.payment.startsWith('deposit')
   const isMomo = form.payment.endsWith('momo')
   const payAmount = isDeposit
-    ? Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT) * 0.5)
+    ? Math.round(discountedTotal * 0.2)
     : discountedTotal
 
   const BANK = process.env.NEXT_PUBLIC_BANK_ID ?? 'MB'
@@ -732,12 +732,12 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
     const isCOD = form.payment === 'cod'
     const isDeposit = form.payment.startsWith('deposit')
     const payAmount = isDeposit
-      ? Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT) * 0.5)
+      ? Math.round(discountedTotal * 0.2)
       : discountedTotal
 
     const paymentLabel = form.payment === 'cod' ? 'COD - Thu hộ khi giao' :
-      form.payment === 'deposit-bank' ? `Cọc 50% tròng ${formatVND(payAmount)} - Chuyển khoản MB` :
-      form.payment === 'deposit-momo' ? `Cọc 50% tròng ${formatVND(payAmount)} - MoMo` :
+      form.payment === 'deposit-bank' ? `Thanh toán trước 20% ${formatVND(payAmount)} - Chuyển khoản MB` :
+      form.payment === 'deposit-momo' ? `Thanh toán trước 20% ${formatVND(payAmount)} - MoMo` :
       form.payment === 'full-bank' ? `Toàn bộ ${formatVND(payAmount)} - Chuyển khoản MB` :
       form.payment === 'full-momo' ? `Toàn bộ ${formatVND(payAmount)} - MoMo` :
       form.payment === 'bank' ? 'Chuyển khoản MB' :
@@ -1409,18 +1409,18 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                     <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex gap-2">
                       <span className="text-base flex-shrink-0">⚠️</span>
                       <p className="text-xs text-amber-800 leading-relaxed">
-                        Đơn có <strong>tròng cắt theo số độ</strong> — cần cọc tiền tròng hoặc thanh toán toàn bộ trước khi xưởng tiến hành cắt kính.
+                        Đơn có <strong>tròng cắt theo số độ</strong> — cần thanh toán trước 20% hoặc toàn bộ trước khi xưởng tiến hành cắt kính.
                       </p>
                     </div>
 
-                    {/* Option 1: Cọc tiền tròng */}
+                    {/* Option 1: Thanh toán trước 20% */}
                     {[
                       {
                         id: 'deposit',
-                        title: 'Cọc 50% tiền tròng',
-                        amount: Math.round((selectedLens?.price ?? 0) * (1 - DISCOUNT) * 0.5),
-                        originalAmount: selectedLens?.price ?? 0,
-                        sub: 'Cọc 50% tròng — trả 50% còn lại + gọng khi nhận hàng',
+                        title: 'Thanh toán trước 20%',
+                        amount: Math.round(discountedTotal * 0.2),
+                        originalAmount: discountedTotal,
+                        sub: 'Thanh toán 20% giá trị đơn — trả 80% còn lại khi nhận hàng',
                         badge: 'Linh hoạt',
                         badgeColor: 'bg-blue-100 text-blue-700',
                         icon: (

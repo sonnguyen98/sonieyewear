@@ -23,8 +23,7 @@ export default function GioHangPage() {
   const { items, removeItem, updateQuantity, setLens, setRx, totalItems, totalPrice, clearCart } = useCart()
   const [step, setStep] = useState<CheckoutStep>('cart')
   const hasLens = items.some(i => !!i.lens)
-  const totalLensPrice = items.reduce((s, i) => s + (i.lens?.price ?? 0) * i.quantity, 0)
-  const totalLensPrice50 = Math.round(totalLensPrice * 0.8 * 0.5)
+  const deposit20 = Math.round(totalPrice * 0.2)
   const [form, setForm] = useState<CheckoutForm>({ name: '', phone: '', address: '', note: '', payment: 'cod' })
   const [submitting, setSubmitting] = useState(false)
   const [orderCode, setOrderCode] = useState('')
@@ -84,10 +83,10 @@ export default function GioHangPage() {
             originalTotal: formatVND((item.originalPrice ?? item.price) * item.quantity),
             discount: '20%',
             payment: form.payment === 'cod' ? 'Thanh toán khi nhận hàng (COD)'
-              : form.payment === 'deposit-bank' ? `Cọc 50% tròng ${formatVND(Math.round((item.lens?.price ?? 0) * 0.8 * 0.5))} - Chuyển khoản`
+              : form.payment === 'deposit-bank' ? `Thanh toán trước 20% ${formatVND(Math.round(lineTotal * 0.2))} - Chuyển khoản`
               : `Toàn bộ ${formatVND(lineTotal)} - Chuyển khoản`,
-            payAmount: form.payment === 'deposit-bank'
-              ? Math.round((item.lens?.price ?? 0) * 0.8 * 0.5)
+            payAmount: form.payment === 'deposit-bank' as string
+              ? Math.round(lineTotal * 0.2)
               : lineTotal,
             prescription: item.rx
               ? item.rx.mode === 'form'
@@ -302,7 +301,7 @@ export default function GioHangPage() {
                       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3 flex gap-2">
                         <span className="text-base flex-shrink-0">⚠️</span>
                         <p className="text-xs text-amber-800 leading-relaxed">
-                          Đơn có <strong>tròng cắt theo số độ</strong> — cần cọc tiền tròng hoặc thanh toán toàn bộ trước khi xưởng tiến hành cắt kính.
+                          Đơn có <strong>tròng cắt theo số độ</strong> — cần thanh toán trước 20% hoặc toàn bộ trước khi xưởng tiến hành cắt kính.
                         </p>
                       </div>
                     )}
@@ -329,9 +328,9 @@ export default function GioHangPage() {
                             onChange={() => update('payment', 'deposit-bank')} className="accent-brand-zalo" />
                           <span className="text-lg">🏦</span>
                           <div>
-                            <span className="text-sm font-semibold block">Cọc 50% tiền tròng</span>
+                            <span className="text-sm font-semibold block">Thanh toán trước 20%</span>
                             <span className="text-[11px] text-brand-muted">
-                              Cọc {formatVND(totalLensPrice50)} — trả phần còn lại khi nhận hàng
+                              Thanh toán {formatVND(deposit20)} — trả 80% còn lại khi nhận hàng
                             </span>
                           </div>
                         </label>
@@ -393,17 +392,17 @@ export default function GioHangPage() {
                   <span className="text-xl font-extrabold text-brand-black">{formatVND(totalPrice)}</span>
                 </div>
 
-                {step === 'info' && form.payment === 'deposit-bank' && totalLensPrice50 > 0 && (
+                {step === 'info' && form.payment === 'deposit-bank' && deposit20 > 0 && (
                   <div className="bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
                     <p className="text-xs text-blue-800">
-                      <strong>Cần cọc:</strong> {formatVND(totalLensPrice50)} (50% tiền tròng)
+                      <strong>Thanh toán trước:</strong> {formatVND(deposit20)} (20% giá trị đơn)
                     </p>
                     <p className="text-[10px] text-blue-600">Phần còn lại thanh toán khi nhận hàng</p>
                   </div>
                 )}
 
                 <p className="text-[11px] text-brand-muted">
-                  {hasLens ? 'Đơn có tròng cắt kính — cần cọc hoặc thanh toán trước.' : 'Bạn có thể chọn tròng cắt kính cho từng gọng ở giỏ hàng.'}
+                  {hasLens ? 'Đơn có tròng cắt kính — cần thanh toán trước 20% hoặc toàn bộ.' : 'Bạn có thể chọn tròng cắt kính cho từng gọng ở giỏ hàng.'}
                 </p>
 
                 {step === 'cart' ? (

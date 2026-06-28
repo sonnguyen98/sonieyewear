@@ -17,7 +17,7 @@ type Step = 'cart' | 'info' | 'success'
 export default function CheckoutOverlay({ onClose }: CheckoutOverlayProps) {
   const { items, removeItem, updateQuantity, setLens, setRx, totalItems, totalPrice, clearCart } = useCart()
   const hasLens = items.some(i => !!i.lens)
-  const totalLensPrice50 = Math.round(items.reduce((s, i) => s + (i.lens?.price ?? 0) * i.quantity, 0) * 0.8 * 0.5)
+  const deposit20 = Math.round(totalPrice * 0.2)
 
   const [step, setStep] = useState<Step>('cart')
   const [form, setForm] = useState({ name: '', phone: '', address: '', note: '', payment: hasLens ? 'deposit-bank' : 'cod' })
@@ -70,9 +70,9 @@ export default function CheckoutOverlay({ onClose }: CheckoutOverlayProps) {
             originalTotal: formatVND((item.originalPrice ?? item.price) * item.quantity),
             discount: '20%',
             payment: form.payment === 'cod' ? 'COD'
-              : form.payment === 'deposit-bank' ? `Cọc 50% tròng ${formatVND(Math.round(lensPrice * 0.8 * 0.5))} - CK`
+              : form.payment === 'deposit-bank' ? `Thanh toán trước 20% ${formatVND(Math.round(lineTotal * 0.2))} - CK`
               : `Toàn bộ ${formatVND(lineTotal)} - CK`,
-            payAmount: form.payment === 'deposit-bank' ? Math.round(lensPrice * 0.8 * 0.5) : lineTotal,
+            payAmount: form.payment === 'deposit-bank' ? Math.round(lineTotal * 0.2) : lineTotal,
             prescription: item.rx
               ? item.rx.mode === 'form'
                 ? `MP: SPH ${item.rx.rightSph} / CYL ${item.rx.rightCyl} / Trục ${item.rx.rightAxis} | MT: SPH ${item.rx.leftSph} / CYL ${item.rx.leftCyl} / Trục ${item.rx.leftAxis}${item.rx.pd ? ` | PD: ${item.rx.pd}` : ''}`
@@ -233,7 +233,7 @@ export default function CheckoutOverlay({ onClose }: CheckoutOverlayProps) {
               <p className="text-xs font-bold text-gray-600 mb-2">Phương thức thanh toán</p>
               {hasLens && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-2 text-[11px] text-amber-800">
-                  ⚠️ Đơn có tròng cắt theo số độ — cần cọc hoặc thanh toán trước.
+                  ⚠️ Đơn có tròng cắt theo số độ — cần thanh toán trước 20% hoặc toàn bộ.
                 </div>
               )}
               <div className="space-y-2">
@@ -247,8 +247,8 @@ export default function CheckoutOverlay({ onClose }: CheckoutOverlayProps) {
                   <label className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm cursor-pointer ${form.payment === 'deposit-bank' ? 'border-brand-zalo bg-blue-50' : 'border-gray-200'}`}>
                     <input type="radio" name="pay" checked={form.payment === 'deposit-bank'} onChange={() => setForm(f => ({ ...f, payment: 'deposit-bank' }))} className="accent-brand-zalo" />
                     <div>
-                      <span className="font-semibold block">🏦 Cọc 50% tiền tròng</span>
-                      <span className="text-[10px] text-brand-muted">Cọc {formatVND(totalLensPrice50)} — trả phần còn lại khi nhận</span>
+                      <span className="font-semibold block">🏦 Thanh toán trước 20%</span>
+                      <span className="text-[10px] text-brand-muted">Thanh toán {formatVND(deposit20)} — trả 80% còn lại khi nhận</span>
                     </div>
                   </label>
                 )}
