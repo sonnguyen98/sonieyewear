@@ -155,7 +155,7 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
             })}
           </div>
 
-          <PriceTag price={product.basePrice} originalPrice={product.originalPrice} size="sm" className="mb-2.5" />
+          <PriceTag price={product.basePrice} originalPrice={product.originalPrice} discountPercent={product.discountPercent ?? 20} size="sm" className="mb-2.5" />
 
           {showZaloCTA && (
             isAvailable ? (
