@@ -691,6 +691,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
       name: selectedCategory!.variants.length === 1 ? selectedCategory!.name : `${selectedCategory!.name} — ${variant.name}`,
       desc: variant.suitableFor,
       price: variant.price,
+      originalPrice: variant.originalPrice,
       icon: selectedCategory!.icon,
       badge: variant.badge,
       features: variant.features,
