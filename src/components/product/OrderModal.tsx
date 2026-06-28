@@ -1175,24 +1175,26 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                 <p className="text-xs font-bold text-brand-black uppercase tracking-wide">Tóm tắt đơn hàng</p>
                 <div className="flex justify-between text-sm">
                   <span className="text-brand-muted">Gọng kính</span>
-                  <span className="font-semibold">{formatVND(basePrice)}</span>
+                  <div className="text-right">
+                    <span className="font-semibold">{formatVND(discountedBase)}</span>
+                    {discount > 0 && <span className="text-[10px] text-gray-400 line-through ml-1.5">{formatVND(basePrice)}</span>}
+                  </div>
                 </div>
                 {selectedLens && (
                   <div className="flex justify-between text-sm">
                     <span className="text-brand-muted">{selectedLens.name}</span>
-                    <span className="font-semibold">+{formatVND(selectedLens.price)}</span>
+                    <div className="text-right">
+                      <span className="font-semibold">{lensPrice === 0 ? <span className="text-green-600">FREE</span> : formatVND(lensPrice)}</span>
+                      {lensOriginal > lensPrice && <span className="text-[10px] text-gray-400 line-through ml-1.5">{formatVND(lensOriginal)}</span>}
+                    </div>
                   </div>
                 )}
-                <div className="flex justify-between text-sm border-t border-brand-border pt-2">
-                  <span className="text-brand-muted">Tạm tính</span>
-                  <span className="font-semibold text-gray-400 line-through">{formatVND(totalPrice)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-600 font-semibold flex items-center gap-1">
-                    🎉 Giảm {product.discountPercent ?? 20}%
-                  </span>
-                  <span className="font-bold text-green-600">-{formatVND(savedAmount)}</span>
-                </div>
+                {savedAmount > 0 && (
+                  <div className="flex justify-between text-sm border-t border-brand-border pt-2">
+                    <span className="text-green-600 font-semibold">🎉 Bạn tiết kiệm</span>
+                    <span className="font-bold text-green-600">-{formatVND(savedAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-t border-brand-border pt-2">
                   <span className="font-bold text-brand-black">Tổng thanh toán</span>
                   <span className="font-black text-red-600 text-lg">{formatVND(discountedTotal)}</span>
