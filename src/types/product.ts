@@ -51,6 +51,7 @@ export interface Product {
   lensPackages: LensPackage[]
   images: string[]
   modelImages: string[]
+  discountPercent?: number
   isBestSeller?: boolean
   isNew?: boolean
   tags: string[]

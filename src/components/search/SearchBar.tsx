@@ -38,7 +38,7 @@ export default function SearchBar({ onClose }: SearchBarProps) {
           items.push({
             id: p.id,
             name: p.name,
-            price: Math.round(p.basePrice * 0.8),
+            price: Math.round(p.basePrice * (1 - (p.discountPercent ?? 20) / 100)),
             originalPrice: p.basePrice,
             image: p.images?.[0] ?? p.colorVariants?.[0]?.imageUrl ?? '',
             href: `/gong-kinh/${p.id}`,

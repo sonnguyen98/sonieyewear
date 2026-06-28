@@ -43,7 +43,8 @@ export default function ProductQuickView({ product, onClose }: ProductQuickViewP
   const { addItem } = useCart()
 
   const color = product.colorVariants[selectedColorIdx]
-  const discounted = Math.round(product.basePrice * 0.8)
+  const discountPct = (product as { discountPercent?: number }).discountPercent ?? 20
+  const discounted = Math.round(product.basePrice * (1 - discountPct / 100))
   const mainImage = color?.imageUrl || product.images?.[0] || ''
 
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function ProductQuickView({ product, onClose }: ProductQuickViewP
             {/* Price badge */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/95 to-transparent pt-8 pb-3 px-4">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">-20%</span>
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">-{discountPct}%</span>
                 <span className="text-2xl font-extrabold text-red-500">{formatVND(discounted)}</span>
               </div>
               <p className="text-sm text-gray-400 line-through">{formatVND(product.basePrice)}</p>

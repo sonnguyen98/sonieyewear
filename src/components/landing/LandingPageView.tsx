@@ -183,7 +183,8 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
         <div ref={scrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2">
           {products.map(p => {
             const thumb = p.images?.[0] ?? p.colorVariants?.[0]?.imageUrl ?? ''
-            const discounted = Math.round(p.basePrice * 0.8)
+            const pDiscount = p.discountPercent ?? 20
+            const discounted = Math.round(p.basePrice * (1 - pDiscount / 100))
             return (
               <button key={p.id} onClick={() => setQuickView(p)}
                 className="flex-shrink-0 w-[60vw] sm:w-56 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group text-left">
@@ -192,7 +193,7 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
                     <Image src={thumb} alt={p.name} fill className="object-contain p-3 group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 42vw, 192px" />
                   )}
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">
-                    -20%
+                    -{pDiscount}%
                   </span>
                 </div>
                 <div className="p-2.5 sm:p-3">

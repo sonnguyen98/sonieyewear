@@ -296,7 +296,7 @@ function ThuKinhContent() {
           <div className="grid grid-cols-2 gap-3 mb-5">
             {recommended.map((product, idx) => {
               const thumb = product.images?.[0] ?? product.colorVariants[0]?.imageUrl
-              const discounted = Math.round(product.basePrice * 0.8)
+              const discounted = Math.round(product.basePrice * (1 - (product.discountPercent ?? 20) / 100))
               const lp = getAllLandingPages().find(l => l.productId === product.id)
               const href = lp ? `/lp/${lp.slug}` : `/gong-kinh/${product.id}`
               return (

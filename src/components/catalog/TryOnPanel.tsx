@@ -91,11 +91,11 @@ export default function TryOnPanel({ product, onClose }: TryOnPanelProps) {
             {/* Price + Order */}
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-yellow-400 font-black">{formatVND(Math.round(product.basePrice * 0.8))}</span>
+                <span className="text-yellow-400 font-black">{formatVND(Math.round(product.basePrice * (1 - (product.discountPercent ?? 20) / 100)))}</span>
                 {product.originalPrice && (
                   <span className="text-gray-500 text-xs line-through ml-2">{formatVND(product.basePrice)}</span>
                 )}
-                <span className="text-green-400 text-xs ml-1">-20%</span>
+                <span className="text-green-400 text-xs ml-1">-{product.discountPercent ?? 20}%</span>
               </div>
               <button onClick={handleOrder}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2 rounded-full transition-colors">

@@ -271,6 +271,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
       id, slug, ...form,
       basePrice: Number(form.basePrice),
       originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
+      discountPercent: Number(form.discountPercent ?? 20),
       rating: 4.5, reviewCount: 0,
       features: form.features.split('\n').filter(Boolean),
       colorVariants: colors.map((c, i) => {
@@ -357,6 +358,8 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
               <input type="number" value={form.basePrice} onChange={e => setForm(f => ({ ...f, basePrice: e.target.value }))} className={inp()} placeholder="590000" /></div>
             <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giá gốc (đ)</label>
               <input type="number" value={form.originalPrice} onChange={e => setForm(f => ({ ...f, originalPrice: e.target.value }))} className={inp()} placeholder="890000" /></div>
+            <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giảm giá (%)</label>
+              <input type="number" value={form.discountPercent ?? 20} onChange={e => setForm(f => ({ ...f, discountPercent: e.target.value }))} className={inp()} placeholder="20" min="0" max="100" /></div>
           </div>
 
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Mô tả sản phẩm</label>
@@ -1390,7 +1393,7 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
 
 // ── PRODUCT EDIT MODAL ────────────────────────────────────────────────────────
 function ProductEditModal({ product, onClose, onSaved }: { product: Product; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState({ name: product.name, sku: (product as { sku?: string }).sku ?? '', basePrice: product.basePrice, originalPrice: product.originalPrice ?? '', description: product.description, features: product.features.join('\n'), type: product.type, shape: product.shape, material: product.material, gender: product.gender, isBestSeller: product.isBestSeller ?? false, isNew: product.isNew ?? false })
+  const [form, setForm] = useState({ name: product.name, sku: (product as { sku?: string }).sku ?? '', basePrice: product.basePrice, originalPrice: product.originalPrice ?? '', discountPercent: product.discountPercent ?? 20, description: product.description, features: product.features.join('\n'), type: product.type, shape: product.shape, material: product.material, gender: product.gender, isBestSeller: product.isBestSeller ?? false, isNew: product.isNew ?? false })
   const [images, setImages] = useState<string[]>(product.images ?? [])
   const [colors, setColors] = useState(
     product.colorVariants.map(v => ({ id: v.id, name: v.name, hex: v.hex, isNew: false }))
@@ -1475,6 +1478,7 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
             ...form,
             basePrice: Number(form.basePrice),
             originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
+            discountPercent: Number(form.discountPercent ?? 20),
             features: form.features.split('\n').filter(Boolean),
             images, colorVariants: updatedVariants, specs,
           }
@@ -1509,6 +1513,8 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
               <input type="number" value={form.basePrice} onChange={e => setForm(f => ({ ...f, basePrice: +e.target.value }))} className={inp()} /></div>
             <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giá gốc (đ)</label>
               <input type="number" value={form.originalPrice} onChange={e => setForm(f => ({ ...f, originalPrice: e.target.value }))} className={inp()} /></div>
+            <div><label className="block text-xs font-semibold text-gray-600 mb-1">Giảm giá (%)</label>
+              <input type="number" value={form.discountPercent ?? 20} onChange={e => setForm(f => ({ ...f, discountPercent: +e.target.value }))} className={inp()} placeholder="20" min="0" max="100" /></div>
           </div>
           <div><label className="block text-xs font-semibold text-gray-600 mb-1">Mô tả</label>
             <textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={inp('resize-none')} /></div>

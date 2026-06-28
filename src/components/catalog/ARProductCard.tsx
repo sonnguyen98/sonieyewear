@@ -88,7 +88,7 @@ export default function ARProductCard({ product, facePhoto, faceLandmarks }: ARP
     setRendered(true)
   }
 
-  const discountedPrice = Math.round(product.basePrice * 0.8)
+  const discountedPrice = Math.round(product.basePrice * (1 - (product.discountPercent ?? 20) / 100))
 
   return (
     <Link href={`/gong-kinh/${product.id}`}
