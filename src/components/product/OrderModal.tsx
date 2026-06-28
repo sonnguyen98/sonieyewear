@@ -23,6 +23,7 @@ interface LensOption {
   name: string
   desc: string
   price: number
+  originalPrice?: number
   icon: string
   badge?: string
   features: string[]
@@ -605,7 +606,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
             setSelectedCategory(cat)
             if (cat.variants.length === 1) {
               const v = cat.variants[0]
-              setSelectedLens({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, icon: cat.icon, badge: v.badge, features: v.features })
+              setSelectedLens({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, originalPrice: v.originalPrice, icon: cat.icon, badge: v.badge, features: v.features })
               setStep('checkout')
             } else {
               setStep('don-trong-detail')
@@ -661,8 +662,11 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
 
   const discount = (product.discountPercent ?? 20) / 100
   const basePrice = product.basePrice
-  const totalPrice = basePrice + (selectedLens?.price ?? 0)
-  const discountedTotal = Math.round(totalPrice * (1 - discount))
+  const discountedBase = Math.round(basePrice * (1 - discount))
+  const lensPrice = selectedLens?.price ?? 0
+  const lensOriginal = selectedLens?.originalPrice ?? lensPrice
+  const totalPrice = basePrice + lensOriginal
+  const discountedTotal = discountedBase + lensPrice
   const savedAmount = totalPrice - discountedTotal
 
   function goToCheckout(lens: LensOption | null) {
@@ -675,7 +679,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
     setSelectedCategory(cat)
     if (cat.variants.length === 1) {
       const v = cat.variants[0]
-      goToCheckout({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, icon: cat.icon, badge: v.badge, features: v.features })
+      goToCheckout({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, originalPrice: v.originalPrice, icon: cat.icon, badge: v.badge, features: v.features })
     } else {
       setStep('don-trong-detail')
     }
@@ -1115,7 +1119,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                           {variant.originalPrice && variant.originalPrice !== variant.price && (
                             <span className="text-[10px] text-gray-400 line-through">{formatVND(variant.originalPrice)}</span>
                           )}
-                          <span className="text-xs text-red-500 font-semibold">= {formatVND(Math.round((basePrice + variant.price) * (1 - discount)))}</span>
+                          <span className="text-xs text-red-500 font-semibold">= {formatVND(discountedBase + variant.price)}</span>
                         </>
                       )}
                     </div>
@@ -1152,7 +1156,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                   </div>
                   <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                     <span className="font-black text-sm text-brand-black">+{formatVND(lens.price)}</span>
-                    <span className="text-[11px] text-red-500 font-semibold">= {formatVND(Math.round((basePrice + lens.price) * (1 - discount)))}</span>
+                    <span className="text-[11px] text-red-500 font-semibold">= {formatVND(discountedBase + lens.price)}</span>
                     <span className="text-[10px] text-gray-400 line-through">{formatVND(basePrice + lens.price)}</span>
                     <svg className="w-4 h-4 text-brand-muted group-hover:text-brand-zalo group-hover:translate-x-0.5 transition-all mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
