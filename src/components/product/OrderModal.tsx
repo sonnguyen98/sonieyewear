@@ -994,8 +994,11 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
               </div>
               {donTrongCats.map(cat => {
                 const hasFree = cat.variants.some(v => v.price === 0 && v.originalPrice)
+                const hasDiscount = !hasFree && cat.variants.some(v => v.originalPrice && v.originalPrice > v.price)
                 const minPrice = Math.min(...cat.variants.map(v => v.price))
                 const freeOriginalPrice = hasFree ? Math.min(...cat.variants.filter(v => v.price === 0 && v.originalPrice).map(v => v.originalPrice!)) : 0
+                const discountedVariant = hasDiscount ? cat.variants.find(v => v.originalPrice && v.originalPrice > v.price) : null
+                const lensDiscountPct = discountedVariant ? Math.round((1 - discountedVariant.price / discountedVariant.originalPrice!) * 100) : 0
                 return (
                   <button key={cat.id} onClick={() => handleSelectCategory(cat)}
                     className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group text-left">
@@ -1008,7 +1011,10 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                         {hasFree && (
                           <span className="text-[10px] bg-green-500 text-white font-bold px-1.5 py-0.5 rounded-full">🎁 Tặng FREE</span>
                         )}
-                        {cat.badge && !hasFree && (
+                        {hasDiscount && (
+                          <span className="text-[10px] bg-red-500 text-white font-bold px-1.5 py-0.5 rounded-full">-{lensDiscountPct}%</span>
+                        )}
+                        {cat.badge && !hasFree && !hasDiscount && (
                           <span className="text-[10px] bg-brand-gold text-white font-bold px-1.5 py-0.5 rounded-full">{cat.badge}</span>
                         )}
                         {cat.variants.length > 1 && (
@@ -1022,6 +1028,12 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                         <>
                           <span className="font-black text-sm text-green-600">Tặng FREE</span>
                           <span className="text-[10px] text-gray-400 line-through">{formatVND(freeOriginalPrice)}</span>
+                        </>
+                      ) : hasDiscount && discountedVariant ? (
+                        <>
+                          <span className="text-[10px] text-brand-muted">từ</span>
+                          <span className="font-black text-sm text-red-500">+{formatVND(minPrice)}</span>
+                          <span className="text-[10px] text-gray-400 line-through">{formatVND(Math.min(...cat.variants.filter(v => v.originalPrice).map(v => v.originalPrice!)))}</span>
                         </>
                       ) : (
                         <>
@@ -1074,6 +1086,9 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                         <span className="font-bold text-sm text-brand-black">{variant.name}</span>
                         {variant.badge && !variant.recommended && (
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${variant.badge === 'Tặng FREE' ? 'bg-green-500 text-white' : 'bg-blue-100 text-blue-700'}`}>{variant.badge === 'Tặng FREE' ? '🎁 Tặng FREE' : variant.badge}</span>
+                        )}
+                        {variant.originalPrice && variant.originalPrice !== variant.price && variant.price > 0 && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">-{Math.round((1 - variant.price / variant.originalPrice) * 100)}%</span>
                         )}
                       </div>
                       {/* Phạm vi độ mắt */}

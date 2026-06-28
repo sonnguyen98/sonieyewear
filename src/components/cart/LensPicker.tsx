@@ -89,6 +89,9 @@ export default function LensPicker({ currentLens, onSelect, onClose }: LensPicke
                       {lens.free && (
                         <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-full font-bold">🎁 Tặng FREE</span>
                       )}
+                      {!lens.free && lens.discountPercent && lens.discountPercent > 0 && (
+                        <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">-{lens.discountPercent}%</span>
+                      )}
                       {lens.badge && !lens.free && (
                         <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-semibold">{lens.badge}</span>
                       )}
