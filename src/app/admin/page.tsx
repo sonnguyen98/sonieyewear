@@ -636,6 +636,7 @@ interface LensItem {
   categoryGroup: string
   suitableFor: string
   recommended: boolean
+  free?: boolean
 }
 
 const GROUP_LABELS: Record<string, string> = {
@@ -728,11 +729,19 @@ function LensSection() {
                           <p className="font-bold text-sm text-gray-900 line-clamp-1">{item.name}</p>
                           {item.recommended && <span className="text-[9px] bg-gray-900 text-white px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">★ Phổ biến</span>}
                           {item.badge && <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">{item.badge}</span>}
+                          {item.free && <span className="text-[9px] bg-green-500 text-white px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">🎁 FREE</span>}
                         </div>
                         {item.suitableFor && <p className="text-[10px] text-blue-600 font-semibold mt-0.5">👁 {item.suitableFor}</p>}
-                        <p className="text-sm font-black text-gray-900 mt-0.5">{fmt(item.price)}</p>
+                        <p className="text-sm font-black text-gray-900 mt-0.5">{item.free ? <span className="text-green-600">Tặng FREE</span> : fmt(item.price)}</p>
                       </div>
                       <div className="flex flex-col gap-1.5 p-2.5 flex-shrink-0 justify-center">
+                        <button onClick={async () => {
+                          const next = items.map(i => i.id === item.id ? { ...i, free: !i.free } : i)
+                          await fetch('/api/admin/content/lens-products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) })
+                          setItems(next)
+                        }} className={`text-xs px-2.5 py-1.5 rounded-lg font-bold ${item.free ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}>
+                          {item.free ? '🎁 FREE' : 'FREE'}
+                        </button>
                         <button onClick={() => { setEditing(item); setIsNew(false) }} className="text-xs bg-gray-900 text-white px-2.5 py-1.5 rounded-lg">Sửa</button>
                         <button onClick={() => del(item.id)} className="text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg">Xoá</button>
                       </div>

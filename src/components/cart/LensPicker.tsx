@@ -12,6 +12,7 @@ interface LensProduct {
   badge?: string
   features: string[]
   categoryGroup?: string
+  free?: boolean
 }
 
 interface LensPickerProps {
@@ -33,7 +34,7 @@ export default function LensPicker({ currentLens, onSelect, onClose }: LensPicke
   }, [])
 
   const handleSelect = (lens: LensProduct) => {
-    onSelect({ id: lens.id, name: lens.name, price: lens.price })
+    onSelect({ id: lens.id, name: lens.name, price: lens.free ? 0 : lens.price })
     onClose()
   }
 
@@ -82,11 +83,14 @@ export default function LensPicker({ currentLens, onSelect, onClose }: LensPicke
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold">{lens.name}</p>
-                      {lens.badge && (
+                      {lens.free && (
+                        <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-full font-bold">🎁 Tặng FREE</span>
+                      )}
+                      {lens.badge && !lens.free && (
                         <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-semibold">{lens.badge}</span>
                       )}
                     </div>
-                    <span className="text-sm font-bold text-brand-black">+{formatVND(lens.price)}</span>
+                    <span className={`text-sm font-bold ${lens.free ? 'text-green-600' : 'text-brand-black'}`}>{lens.free ? 'MIỄN PHÍ' : `+${formatVND(lens.price)}`}</span>
                   </div>
                   <p className="text-xs text-brand-muted line-clamp-1">{lens.desc}</p>
                   {lens.features.length > 0 && (

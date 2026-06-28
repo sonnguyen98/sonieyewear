@@ -540,7 +540,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   useEffect(() => {
     fetch('/api/lens-products')
       .then(r => r.json())
-      .then((items: { id: string; name: string; desc: string; price: number; badge: string; image?: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean }[]) => {
+      .then((items: { id: string; name: string; desc: string; price: number; badge: string; image?: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean; free?: boolean }[]) => {
         if (!Array.isArray(items) || items.length === 0) return
 
         // Đơn tròng: nhóm theo categoryGroup
@@ -549,7 +549,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         donItems.forEach(item => {
           const g = item.categoryGroup ?? 'trang'
           if (!groupMap[g]) groupMap[g] = []
-          groupMap[g].push({ id: item.id, name: item.name, price: item.price, badge: item.badge || undefined, image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
+          groupMap[g].push({ id: item.id, name: item.name, price: item.free ? 0 : item.price, badge: item.free ? 'Tặng FREE' : (item.badge || undefined), image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
         })
         const cats: LensCategoryGroup[] = DON_GROUP_ORDER
           .filter(g => (groupMap[g]?.length ?? 0) > 0)
@@ -1053,7 +1053,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold text-sm text-brand-black">{variant.name}</span>
                         {variant.badge && !variant.recommended && (
-                          <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded-full">{variant.badge}</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${variant.badge === 'Tặng FREE' ? 'bg-green-500 text-white' : 'bg-blue-100 text-blue-700'}`}>{variant.badge === 'Tặng FREE' ? '🎁 Tặng FREE' : variant.badge}</span>
                         )}
                       </div>
                       {/* Phạm vi độ mắt */}
@@ -1069,7 +1069,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 flex flex-col items-end gap-0.5">
-                      <span className="font-black text-base text-brand-black">+{formatVND(variant.price)}</span>
+                      <span className={`font-black text-base ${variant.price === 0 ? 'text-green-600' : 'text-brand-black'}`}>{variant.price === 0 ? 'MIỄN PHÍ' : `+${formatVND(variant.price)}`}</span>
                       <span className="text-xs text-red-500 font-semibold">= {formatVND(Math.round((basePrice + variant.price) * 0.8))}</span>
                       <span className="text-[10px] text-gray-400 line-through">{formatVND(basePrice + variant.price)}</span>
                     </div>
