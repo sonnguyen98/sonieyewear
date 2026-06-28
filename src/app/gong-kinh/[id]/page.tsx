@@ -130,8 +130,12 @@ export default function ProductDetailPage({ params }: PageProps) {
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-center gap-3">
             <span className="text-2xl sm:text-3xl font-black text-brand-black">{formatVND(discountedPrice)}</span>
+            <span className="text-base sm:text-lg text-gray-400 line-through">{formatVND(product.basePrice)}</span>
+            {discountPct > 0 && (
+              <span className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 py-0.5 rounded-full">-{discountPct}%</span>
+            )}
           </div>
 
           {/* Color picker — chọn màu đổi ảnh gallery */}
