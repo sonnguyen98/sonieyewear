@@ -11,11 +11,34 @@ interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+const DUMMY_PRODUCT: Product = {
+  id: 'general',
+  slug: 'general',
+  name: 'SONi',
+  brand: 'SONi',
+  type: 'full-rim',
+  shape: 'round',
+  material: 'metal',
+  gender: 'unisex',
+  basePrice: 0,
+  rating: 5,
+  reviewCount: 0,
+  colorVariants: [],
+  specs: { bridgeWidth: 0, lensWidth: 0, templeLength: 0, frameWidth: '', weight: 0 },
+  description: '',
+  features: [],
+  lensPackages: [],
+  images: [],
+  modelImages: [],
+  isBestSeller: false,
+  isNew: false,
+  tags: [],
+}
+
 export default function LandingPage({ params }: PageProps) {
   const { slug } = use(params)
   const content = getLandingPage(slug)
 
-  // Bootstrap với product tĩnh nếu có; fetch API để lấy data mới nhất (giá, tồn kho)
   const staticProduct = content ? (getProductById(content.productId) as Product | undefined) : undefined
   const [product, setProduct] = useState<Product | undefined>(staticProduct)
   const [fetched, setFetched] = useState(!!staticProduct)
@@ -36,7 +59,7 @@ export default function LandingPage({ params }: PageProps) {
 
   if (!content) notFound()
 
-  if (!fetched) {
+  if (!fetched && !content.giftLead) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -47,7 +70,7 @@ export default function LandingPage({ params }: PageProps) {
     )
   }
 
-  if (!product) notFound()
+  if (!product && !content.giftLead) notFound()
 
-  return <LandingPageView content={content} product={product} />
+  return <LandingPageView content={content} product={product ?? DUMMY_PRODUCT} />
 }
