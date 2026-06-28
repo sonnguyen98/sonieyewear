@@ -227,7 +227,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
   const [colorImages, setColorImages] = useState<Record<number, string[]>>({})
   const [colors, setColors] = useState([{ name: 'Đen', hex: '#1A1A1A', quantity: 10 }])
   const [form, setForm] = useState({
-    name: '', sku: '', brand: 'SONi', basePrice: '', originalPrice: '',
+    name: '', sku: '', brand: 'SONi', basePrice: '', originalPrice: '', discountPercent: '20',
     description: '', features: '',
     type: 'full-rim', shape: 'round', material: 'metal', gender: 'unisex',
     isBestSeller: false, isNew: true,
