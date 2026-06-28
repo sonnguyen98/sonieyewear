@@ -13,7 +13,7 @@ import SearchBar from '@/components/search/SearchBar'
 const NAV_LINKS = [
   { href: '/gong-kinh',  label: 'Gọng Kính' },
   { href: '/trong-kinh', label: 'Tròng Kính' },
-  { href: '/so-y-ba',    label: '📋 Sổ Y Bạ' },
+  { href: '/so-y-ba',    label: '📋 Sổ Theo Dõi Độ' },
 ]
 
 const MORE_LINKS = [
