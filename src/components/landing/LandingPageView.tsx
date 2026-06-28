@@ -613,9 +613,9 @@ export default function LandingPageView({ content, product }: Props) {
           {content.team.gallery && content.team.gallery.length > 0 && (
             <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
               {content.team.gallery.map((img, i) => (
-                <div key={i} className="aspect-square rounded-lg sm:rounded-2xl overflow-hidden bg-gray-100 relative group">
-                  <Image src={img.src} alt={img.alt} fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                <div key={i} className="rounded-lg sm:rounded-2xl overflow-hidden bg-gray-100 relative group">
+                  <Image src={img.src} alt={img.alt} width={400} height={400}
+                    className="w-full h-auto group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 768px) 33vw, 280px" />
                 </div>
               ))}
