@@ -881,10 +881,10 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                   <span className="ml-1.5 text-xs text-gray-400 line-through">{formatVND(totalPrice)}</span>
                 </div>
               ) : (
-                <span className="font-black text-brand-black">{formatVND(basePrice)}</span>
-              )}
-              {product.originalPrice && step !== 'checkout' && (
-                <span className="text-xs text-gray-400 line-through">{formatVND(product.originalPrice)}</span>
+                <>
+                  <span className="font-black text-brand-black">{formatVND(Math.round(basePrice * (1 - discount)))}</span>
+                  <span className="text-xs text-gray-400 line-through">{formatVND(basePrice)}</span>
+                </>
               )}
             </div>
           </div>
@@ -909,7 +909,8 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                   <p className="text-xs text-brand-muted mt-0.5">Mua gọng, tự lắp tròng sau</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="font-black text-brand-black text-sm">{formatVND(basePrice)}</p>
+                  <p className="font-black text-brand-black text-sm">{formatVND(Math.round(basePrice * (1 - discount)))}</p>
+                  <p className="text-[10px] text-gray-400 line-through">{formatVND(basePrice)}</p>
                   <svg className="w-4 h-4 text-brand-muted ml-auto mt-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
