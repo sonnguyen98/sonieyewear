@@ -33,13 +33,13 @@ const lp: LandingPageContent = {
     subtitle: 'SONi có phần Quà Tặng dành cho bạn — giúp đôi mắt của bạn khoẻ hơn mỗi ngày.',
     gifts: [
       {
-        name: 'Bộ 3 Ebook Chăm Mắt',
+        name: '3 Ebook Giúp Mắt Không Tăng Độ',
         icon: '📚',
-        desc: '21 bài tập thư giãn mắt · Bí mật giữ độ ổn định · Dinh dưỡng vàng cho mắt sáng khoẻ.',
+        desc: '✅ 21 Bài Tập Thư Giãn Mắt\n✅ Bí Mật Giữ Độ Ổn Định\n✅ Dinh Dưỡng Vàng Cho Đôi Mắt',
         value: '399.000đ',
       },
       {
-        name: 'Sổ Y Bạ Điện Tử',
+        name: 'Sổ Theo Dõi Độ Online',
         icon: '📋',
         desc: 'Lưu số độ & lịch sử cắt kính vĩnh viễn — tra cứu mọi lúc, đặt kính lần sau không cần đo lại.',
         value: '249.000đ',

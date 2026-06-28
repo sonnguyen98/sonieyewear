@@ -287,7 +287,7 @@ function GiftLeadSection({ giftLead, accent, slug }: {
                     </span>
                   )}
                 </div>
-                <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">{g.desc}</p>
+                <p className="text-xs sm:text-sm text-brand-muted leading-relaxed whitespace-pre-line">{g.desc}</p>
               </div>
               <span className={cn('text-xs font-extrabold flex-shrink-0 mt-1', accent.text)}>FREE</span>
             </div>
@@ -660,21 +660,16 @@ export default function LandingPageView({ content, product }: Props) {
           {/* Mobile: 1 cột, SM: 2 cột, LG: 4 cột */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {content.personas.items.map((p, i) => (
-              <div key={i} className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-brand-border flex flex-col">
-                <div className="flex items-center gap-3 mb-2 sm:mb-3">
-                  <div className={cn('flex-shrink-0 w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden',
-                    !p.avatar && PERSONA_COLORS[i % PERSONA_COLORS.length])}>
+              <div key={i} className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-brand-border flex flex-col">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className={cn('flex-shrink-0 w-8 h-8 rounded-full overflow-hidden', !p.avatar && PERSONA_COLORS[i % PERSONA_COLORS.length])}>
                     {p.avatar ? (
-                      <Image src={p.avatar} alt={p.name} width={56} height={56} className="w-full h-full object-cover" />
+                      <Image src={p.avatar} alt={p.name} width={32} height={32} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="w-full h-full flex items-center justify-center font-extrabold text-base sm:text-xl">{p.initial}</span>
+                      <span className="w-full h-full flex items-center justify-center font-extrabold text-sm">{p.initial}</span>
                     )}
                   </div>
-                  <div className="leading-tight">
-                    <p className="font-extrabold text-sm">{p.name} · {p.age} tuổi</p>
-                    <p className="text-[11px] sm:text-xs text-brand-muted">{p.role}</p>
-                    {p.location && <p className="text-[11px] sm:text-xs text-brand-muted">{p.location}</p>}
-                  </div>
+                  <span className="font-bold text-sm text-brand-black">{p.name}</span>
                 </div>
                 <p className="text-yellow-500 text-xs mb-1">⭐⭐⭐⭐⭐</p>
                 <p className="text-xs sm:text-sm leading-relaxed italic text-brand-black flex-1">

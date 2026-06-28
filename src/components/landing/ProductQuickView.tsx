@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { formatVND, cn } from '@/lib/utils'
 import { useCart } from '@/lib/cartStore'
-import CheckoutOverlay from '@/components/landing/CheckoutOverlay'
+import OrderModal from '@/components/product/OrderModal'
+import type { Product } from '@/types/product'
 import ReviewSection from '@/components/review/ReviewSection'
 
 interface QuickViewProduct {
@@ -38,7 +39,7 @@ export default function ProductQuickView({ product, onClose }: ProductQuickViewP
   })
   const [qty, setQty] = useState(1)
   const [addedMsg, setAddedMsg] = useState('')
-  const [showCheckout, setShowCheckout] = useState(false)
+  const [showOrder, setShowOrder] = useState(false)
   const { addItem } = useCart()
 
   const color = product.colorVariants[selectedColorIdx]
@@ -69,12 +70,17 @@ export default function ProductQuickView({ product, onClose }: ProductQuickViewP
   }
 
   function handleBuyNow() {
-    handleAddToCart()
-    setTimeout(() => setShowCheckout(true), 200)
+    setShowOrder(true)
   }
 
-  if (showCheckout) {
-    return <CheckoutOverlay onClose={onClose} />
+  if (showOrder) {
+    return (
+      <OrderModal
+        product={product as unknown as Product}
+        selectedColorId={color?.id}
+        onClose={onClose}
+      />
+    )
   }
 
   return (

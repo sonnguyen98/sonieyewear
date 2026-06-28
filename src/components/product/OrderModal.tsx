@@ -33,6 +33,7 @@ interface LensVariant {
   name: string
   price: number
   badge?: string
+  image?: string
   features: string[]
   suitableFor: string
   recommended?: boolean
@@ -539,7 +540,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   useEffect(() => {
     fetch('/api/lens-products')
       .then(r => r.json())
-      .then((items: { id: string; name: string; desc: string; price: number; badge: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean }[]) => {
+      .then((items: { id: string; name: string; desc: string; price: number; badge: string; image?: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean }[]) => {
         if (!Array.isArray(items) || items.length === 0) return
 
         // Đơn tròng: nhóm theo categoryGroup
@@ -548,7 +549,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         donItems.forEach(item => {
           const g = item.categoryGroup ?? 'trang'
           if (!groupMap[g]) groupMap[g] = []
-          groupMap[g].push({ id: item.id, name: item.name, price: item.price, badge: item.badge || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
+          groupMap[g].push({ id: item.id, name: item.name, price: item.price, badge: item.badge || undefined, image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
         })
         const cats: LensCategoryGroup[] = DON_GROUP_ORDER
           .filter(g => (groupMap[g]?.length ?? 0) > 0)
@@ -1042,7 +1043,12 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                       <span className="text-[10px] bg-brand-black text-white font-bold px-2 py-0.5 rounded-full">✓ Phổ biến nhất</span>
                     </div>
                   )}
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    {variant.image && (
+                      <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
+                        <Image src={variant.image} alt={variant.name} width={96} height={96} className="w-full h-full object-cover" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold text-sm text-brand-black">{variant.name}</span>
