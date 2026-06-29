@@ -3,10 +3,17 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+interface ProductCard {
+  id: string; name: string; slug: string
+  price: number; originalPrice: number; discount: number
+  image: string; link: string
+}
+
 interface Message {
   id: string
   role: 'user' | 'model'
   text: string
+  products?: ProductCard[]
 }
 
 const ZALO_URL = 'https://zalo.me/0869308231'
@@ -68,7 +75,7 @@ export default function ChatWidget() {
 
       setMessages(prev => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: 'model', text: replyText },
+        { id: (Date.now() + 1).toString(), role: 'model', text: replyText, products: data.products },
       ])
     } catch {
       setMessages(prev => [
@@ -170,19 +177,42 @@ export default function ChatWidget() {
               )}
 
               {messages.map(msg => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[85%] px-4 py-2.5 text-sm whitespace-pre-wrap ${
-                      msg.role === 'user'
-                        ? 'bg-brand-black text-white rounded-2xl rounded-br-sm'
-                        : 'bg-white text-brand-black rounded-2xl rounded-tl-sm shadow-sm'
-                    }`}
-                  >
-                    {msg.text}
+                <div key={msg.id} className="space-y-2">
+                  <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div
+                      className={`max-w-[85%] px-4 py-2.5 text-sm whitespace-pre-wrap ${
+                        msg.role === 'user'
+                          ? 'bg-brand-black text-white rounded-2xl rounded-br-sm'
+                          : 'bg-white text-brand-black rounded-2xl rounded-tl-sm shadow-sm'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
                   </div>
+                  {msg.products?.map(p => (
+                    <div key={p.id} className="flex justify-start">
+                      <a href={p.link} className="block max-w-[85%] bg-white rounded-2xl rounded-tl-sm shadow-sm overflow-hidden border border-brand-border hover:shadow-md transition-shadow">
+                        {p.image && (
+                          <img src={p.image} alt={p.name} className="w-full h-36 object-cover" />
+                        )}
+                        <div className="p-3">
+                          <p className="font-semibold text-sm text-brand-black leading-tight">{p.name}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="font-bold text-red-500 text-sm">
+                              {new Intl.NumberFormat('vi-VN').format(p.price)}đ
+                            </span>
+                            <span className="text-xs text-gray-400 line-through">
+                              {new Intl.NumberFormat('vi-VN').format(p.originalPrice)}đ
+                            </span>
+                            <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">
+                              -{p.discount}%
+                            </span>
+                          </div>
+                          <p className="text-xs text-brand-zalo font-semibold mt-2">Xem chi tiết →</p>
+                        </div>
+                      </a>
+                    </div>
+                  ))}
                 </div>
               ))}
 

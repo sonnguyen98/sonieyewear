@@ -91,7 +91,9 @@ function buildSystemPrompt(lensData: LensItem[], policiesData: PolicyItem[], pro
 - Chỉ refer bác sĩ khi khách hỏi chẩn đoán cá nhân hoặc điều trị cụ thể
 
 ═══ QUY TẮC VỀ SẢN PHẨM — CỰC KỲ QUAN TRỌNG ═══
-- Khi gợi ý sản phẩm CÓ trong catalog → gửi kèm link: kinhmatsoni.com/gong-kinh/[slug] để khách xem ảnh
+- Khi gợi ý sản phẩm CÓ trong catalog → PHẢI chèn tag [PRODUCT:mã-sản-phẩm] vào tin nhắn. Hệ thống sẽ tự gửi ảnh + thông tin cho khách xem.
+  VD: "Dạ, em gợi ý anh/chị mẫu này ạ [PRODUCT:sp1777365245128]"
+  Chỉ dùng mã sản phẩm (id) có trong catalog, KHÔNG bịa mã.
 - Khi khách hỏi sản phẩm KHÔNG CÓ trong catalog → KHÔNG gợi ý sản phẩm thay thế mà khách không hỏi. Chỉ trả lời ngắn gọn rồi hướng khách vào website xem thêm.
   VD đúng: "Dạ, gọng titan trắng là lựa chọn rất sang trọng ạ. Anh/chị có thể vào phần Gọng Kính trên website để xem thêm nhiều mẫu ạ. Anh/chị có câu hỏi nào khác cho em không ạ?"
   VD sai: "Em chưa thấy mẫu đó, anh/chị có muốn xem mẫu A, B, C thay thế không?" ← KHÔNG LÀM THẾ NÀY
@@ -307,12 +309,36 @@ export async function POST(request: NextRequest) {
     }
 
     const parts = candidate?.content?.parts ?? []
-    const reply = parts
+    let reply = parts
       .filter((p: { text?: string }) => p.text)
       .map((p: { text: string }) => p.text)
       .join('') || 'Dạ xin lỗi anh/chị, em chưa hiểu rõ câu hỏi. Anh/chị có thể hỏi lại được không ạ?'
 
-    return NextResponse.json({ reply })
+    const productTags = reply.match(/\[PRODUCT:([\w-]+)\]/g) ?? []
+    const recommendedProducts = productTags
+      .map((tag: string) => {
+        const id = tag.replace('[PRODUCT:', '').replace(']', '')
+        const p = products.find(prod => prod.id === id)
+        if (!p) return null
+        const discount = p.discountPercent ?? 20
+        const salePrice = Math.round(p.basePrice * (1 - discount / 100))
+        const image = p.colorVariants?.[0]?.imageUrl || p.images?.[0] || ''
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          price: salePrice,
+          originalPrice: p.basePrice,
+          discount,
+          image,
+          link: `/gong-kinh/${p.slug}`,
+        }
+      })
+      .filter(Boolean)
+
+    reply = reply.replace(/\[PRODUCT:[\w-]+\]/g, '').replace(/\n{3,}/g, '\n\n').trim()
+
+    return NextResponse.json({ reply, products: recommendedProducts.length > 0 ? recommendedProducts : undefined })
   } catch (e) {
     console.error('Chat API error:', e)
     return NextResponse.json(
