@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { MERGED_PRODUCTS } from '@/data/products'
 import { LENS_PACKAGES } from '@/data/lens-packages'
 import { kvGet, KV_KEYS } from '@/lib/kv-store'
+import { getProducts } from '@/lib/getProducts'
+import type { Product } from '@/types/product'
 import policiesFallback from '@/data/policies.json'
 import lensProductsFallback from '@/data/lens-products.json'
 
@@ -18,9 +19,9 @@ interface LensItem {
 
 interface PolicyItem { id: string; title: string; icon: string; content: string }
 
-function buildProductCatalog(): string {
+function buildProductCatalog(products: Product[]): string {
   const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
-  return MERGED_PRODUCTS.map(p => {
+  return products.map(p => {
     const discount = p.discountPercent ?? 20
     const salePrice = Math.round(p.basePrice * (1 - discount / 100))
     const colors = p.colorVariants
@@ -71,7 +72,7 @@ function buildPolicies(policiesData: PolicyItem[]): string {
   return policiesData.map(p => `• ${p.title}: ${p.content}`).join('\n')
 }
 
-function buildSystemPrompt(lensData: LensItem[], policiesData: PolicyItem[]): string {
+function buildSystemPrompt(lensData: LensItem[], policiesData: PolicyItem[], products: Product[]): string {
   return `Bạn là trợ lý tư vấn kính mắt của SONi — thương hiệu "Cắt Kính Online" Việt Nam. Website: kinhmatsoni.com
 
 ═══ QUY TẮC GIAO TIẾP ═══
@@ -152,8 +153,8 @@ HƯỚNG DẪN TƯ VẤN TRÒNG THEO ĐỘ:
 - Dùng màn hình nhiều → chọn dòng U6 (lọc ánh sáng xanh tốt hơn)
 - Ngân sách tiết kiệm → chọn dòng U2
 
-═══ CATALOG GỌNG KÍNH ═══
-${buildProductCatalog()}
+═══ CATALOG GỌNG KÍNH (${products.length} sản phẩm đang bán) ═══
+${buildProductCatalog(products)}
 
 ═══ ESCALATION ═══
 Khi khách muốn đặt hàng, cần tư vấn chuyên sâu hơn, hoặc gặp vấn đề ngoài khả năng → hướng dẫn nhắn Zalo: zalo.me/0869308231
@@ -194,14 +195,16 @@ export async function POST(request: NextRequest) {
     parts: [{ text: m.text }],
   }))
 
-  const [lensData, policiesData] = await Promise.all([
+  const [lensData, policiesData, products] = await Promise.all([
     kvGet<LensItem[]>(KV_KEYS.lensProducts, 'lens-products.json'),
     kvGet<PolicyItem[]>(KV_KEYS.policies, 'policies.json'),
+    getProducts(),
   ])
 
   const systemPrompt = buildSystemPrompt(
     lensData ?? lensProductsFallback as LensItem[],
     policiesData ?? policiesFallback as PolicyItem[],
+    products,
   )
 
   try {
