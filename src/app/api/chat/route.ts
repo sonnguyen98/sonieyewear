@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { MERGED_PRODUCTS } from '@/data/products'
 import { LENS_PACKAGES } from '@/data/lens-packages'
 import policies from '@/data/policies.json'
+import lensProducts from '@/data/lens-products.json'
 
 interface ChatMessage {
   role: 'user' | 'model'
@@ -38,6 +39,20 @@ function buildLensInfo(): string {
       : `+${new Intl.NumberFormat('vi-VN').format(l.additionalPrice)}đ`
     return `• ${l.name}: ${l.description} — ${price}${l.recommended ? ' (ĐỀ XUẤT)' : ''}`
   }).join('\n')
+}
+
+function buildLensProducts(): string {
+  return (lensProducts as Array<{ id: string; name: string; desc: string; price: number; badge: string; features: string[]; suitableFor?: string }>)
+    .map(l => {
+      const price = new Intl.NumberFormat('vi-VN').format(l.price)
+      return [
+        `• ${l.name} — ${price}đ`,
+        `  ${l.desc}`,
+        l.suitableFor ? `  Phù hợp: ${l.suitableFor}` : '',
+        `  Tính năng: ${l.features.join(', ')}`,
+        l.badge ? `  ${l.badge}` : '',
+      ].filter(Boolean).join('\n')
+    }).join('\n\n')
 }
 
 function buildPolicies(): string {
@@ -101,10 +116,26 @@ ${buildPolicies()}
 - Cắt kính: bảo hành 6 tháng
 - Gọng: bảo hành 12 tháng lỗi kỹ thuật
 
-═══ GÓI TRÒNG KÍNH ═══
+═══ GÓI TRÒNG KHI ĐẶT GỌNG (add-on) ═══
 ${buildLensInfo()}
 
-═══ CATALOG SẢN PHẨM ═══
+═══ DANH MỤC TRÒNG KÍNH CHI TIẾT (bán riêng hoặc kèm gọng) ═══
+SONi bán tròng kính thương hiệu Chemi (Hàn Quốc) với 2 dòng:
+- Chemi U2: chống ánh sáng xanh cơ bản
+- Chemi U6: lọc ánh sáng xanh nâng cao, phủ AR chống chói
+Mỗi dòng có 4 chiết suất: 1.56 (độ thấp), 1.60 (độ trung bình), 1.67 (độ cao), 1.74 (độ rất cao)
+
+${buildLensProducts()}
+
+HƯỚNG DẪN TƯ VẤN TRÒNG THEO ĐỘ:
+- 0–3 độ → chiết suất 1.56 (rẻ nhất, đủ mỏng)
+- 3–6 độ → chiết suất 1.60 (mỏng hơn 15%)
+- 6–8 độ → chiết suất 1.67 (siêu mỏng)
+- Trên 8 độ → chiết suất 1.74 (mỏng nhất hiện nay)
+- Dùng màn hình nhiều → chọn dòng U6 (lọc ánh sáng xanh tốt hơn)
+- Ngân sách tiết kiệm → chọn dòng U2
+
+═══ CATALOG GỌNG KÍNH ═══
 ${buildProductCatalog()}
 
 ═══ ESCALATION ═══
