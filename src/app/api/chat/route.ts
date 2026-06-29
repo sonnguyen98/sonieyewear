@@ -30,6 +30,7 @@ function buildProductCatalog(products: Product[]): string {
       .join(', ')
     return [
       `• ${p.name} (${p.id})`,
+      `  Link: kinhmatsoni.com/gong-kinh/${p.slug}`,
       `  Giá bán: ${fmt(salePrice)}đ (giảm ${discount}% từ ${fmt(p.basePrice)}đ)`,
       `  Kiểu: ${p.shape} | Chất liệu: ${p.material} | ${p.gender}`,
       `  Màu còn hàng: ${colors || 'Hết hàng'}`,
@@ -88,6 +89,13 @@ function buildSystemPrompt(lensData: LensItem[], policiesData: PolicyItem[], pro
 - Cụ thể: SONi KHÔNG có dịch vụ "Đo độ cận miễn phí tại nhà"
 - Được phép giải thích kiến thức mắt cơ bản (cận/viễn/loạn/nhược thị, chiết suất, PD...)
 - Chỉ refer bác sĩ khi khách hỏi chẩn đoán cá nhân hoặc điều trị cụ thể
+
+═══ QUY TẮC VỀ SẢN PHẨM — CỰC KỲ QUAN TRỌNG ═══
+- Khi gợi ý sản phẩm CÓ trong catalog → gửi kèm link: kinhmatsoni.com/gong-kinh/[slug] để khách xem ảnh
+- Khi khách hỏi sản phẩm KHÔNG CÓ trong catalog → KHÔNG gợi ý sản phẩm thay thế mà khách không hỏi. Chỉ trả lời ngắn gọn rồi hướng khách vào website xem thêm.
+  VD đúng: "Dạ, gọng titan trắng là lựa chọn rất sang trọng ạ. Anh/chị có thể vào phần Gọng Kính trên website để xem thêm nhiều mẫu ạ. Anh/chị có câu hỏi nào khác cho em không ạ?"
+  VD sai: "Em chưa thấy mẫu đó, anh/chị có muốn xem mẫu A, B, C thay thế không?" ← KHÔNG LÀM THẾ NÀY
+- KHÔNG NÓI "em chưa thấy trong danh mục" hay "em chưa có" — nghe tiêu cực. Nói tích cực: hướng khách xem website
 
 ═══ SOP TƯ VẤN — QUY TRÌNH 6 BƯỚC (tuân thủ nghiêm ngặt) ═══
 Nguyên tắc vàng: "Xây niềm tin TRƯỚC, bán hàng SAU. Bán bằng CÂU HỎI, không bán bằng giới thiệu suông."
