@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MERGED_PRODUCTS } from '@/data/products'
 import { LENS_PACKAGES } from '@/data/lens-packages'
-import policies from '@/data/policies.json'
-import lensProducts from '@/data/lens-products.json'
+import { kvGet, KV_KEYS } from '@/lib/kv-store'
+import policiesFallback from '@/data/policies.json'
+import lensProductsFallback from '@/data/lens-products.json'
 
 interface ChatMessage {
   role: 'user' | 'model'
   text: string
 }
+
+interface LensItem {
+  id: string; name: string; desc: string; price: number
+  badge: string; features: string[]; suitableFor?: string
+}
+
+interface PolicyItem { id: string; title: string; icon: string; content: string }
 
 function buildProductCatalog(): string {
   return MERGED_PRODUCTS.map(p => {
@@ -41,25 +49,25 @@ function buildLensInfo(): string {
   }).join('\n')
 }
 
-function buildLensProducts(): string {
-  return (lensProducts as Array<{ id: string; name: string; desc: string; price: number; badge: string; features: string[]; suitableFor?: string }>)
-    .map(l => {
-      const price = new Intl.NumberFormat('vi-VN').format(l.price)
-      return [
-        `• ${l.name} — ${price}đ`,
-        `  ${l.desc}`,
-        l.suitableFor ? `  Phù hợp: ${l.suitableFor}` : '',
-        `  Tính năng: ${l.features.join(', ')}`,
-        l.badge ? `  ${l.badge}` : '',
-      ].filter(Boolean).join('\n')
-    }).join('\n\n')
+function buildLensProducts(lensData: LensItem[]): string {
+  return lensData.map(l => {
+    const price = new Intl.NumberFormat('vi-VN').format(l.price)
+    return [
+      `• ${l.name} — ${price}đ`,
+      `  ${l.desc}`,
+      l.suitableFor ? `  Phù hợp: ${l.suitableFor}` : '',
+      `  Tính năng: ${l.features.join(', ')}`,
+      l.badge ? `  ${l.badge}` : '',
+    ].filter(Boolean).join('\n')
+  }).join('\n\n')
 }
 
-function buildPolicies(): string {
-  return policies.map(p => `• ${p.title}: ${p.content}`).join('\n')
+function buildPolicies(policiesData: PolicyItem[]): string {
+  return policiesData.map(p => `• ${p.title}: ${p.content}`).join('\n')
 }
 
-const SYSTEM_PROMPT = `Bạn là trợ lý tư vấn kính mắt của SONi — thương hiệu "Cắt Kính Online" Việt Nam. Website: kinhmatsoni.com
+function buildSystemPrompt(lensData: LensItem[], policiesData: PolicyItem[]): string {
+  return `Bạn là trợ lý tư vấn kính mắt của SONi — thương hiệu "Cắt Kính Online" Việt Nam. Website: kinhmatsoni.com
 
 ═══ QUY TẮC GIAO TIẾP ═══
 - Mở đầu bằng "Dạ", kết câu bằng "ạ"
@@ -111,7 +119,7 @@ VD: Gọng 590.000đ + Tròng chống ánh sáng xanh 550.000đ = 1.140.000đ
 - Thanh toán: chuyển khoản, MoMo, COD
 
 ═══ CHÍNH SÁCH ═══
-${buildPolicies()}
+${buildPolicies(policiesData)}
 - Đổi trả 7 ngày CHỈ cho đơn GỌNG (chưa cắt tròng)
 - Cắt kính: bảo hành 6 tháng
 - Gọng: bảo hành 12 tháng lỗi kỹ thuật
@@ -119,13 +127,13 @@ ${buildPolicies()}
 ═══ GÓI TRÒNG KHI ĐẶT GỌNG (add-on) ═══
 ${buildLensInfo()}
 
-═══ DANH MỤC TRÒNG KÍNH CHI TIẾT (bán riêng hoặc kèm gọng) ═══
+═══ DANH MỤC TRÒNG KÍNH (giá bán thực tế trên website) ═══
 SONi bán tròng kính thương hiệu Chemi (Hàn Quốc) với 2 dòng:
 - Chemi U2: chống ánh sáng xanh cơ bản
 - Chemi U6: lọc ánh sáng xanh nâng cao, phủ AR chống chói
 Mỗi dòng có 4 chiết suất: 1.56 (độ thấp), 1.60 (độ trung bình), 1.67 (độ cao), 1.74 (độ rất cao)
 
-${buildLensProducts()}
+${buildLensProducts(lensData)}
 
 HƯỚNG DẪN TƯ VẤN TRÒNG THEO ĐỘ:
 - 0–3 độ → chiết suất 1.56 (rẻ nhất, đủ mỏng)
@@ -149,6 +157,7 @@ Khi khách hỏi về vấn đề y tế/bệnh lý mắt → khuyên đi khám 
 - KHÔNG liệt kê dài dòng về cam kết chính hãng/bảo hành (phản tác dụng)
 - KHÔNG trả lời chủ đề ngoài kính mắt/thời trang mắt kính
 `
+}
 
 export async function POST(request: NextRequest) {
   const key = process.env.GEMINI_API_KEY
@@ -176,6 +185,16 @@ export async function POST(request: NextRequest) {
     parts: [{ text: m.text }],
   }))
 
+  const [lensData, policiesData] = await Promise.all([
+    kvGet<LensItem[]>(KV_KEYS.lensProducts, 'lens-products.json'),
+    kvGet<PolicyItem[]>(KV_KEYS.policies, 'policies.json'),
+  ])
+
+  const systemPrompt = buildSystemPrompt(
+    lensData ?? lensProductsFallback as LensItem[],
+    policiesData ?? policiesFallback as PolicyItem[],
+  )
+
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
@@ -183,7 +202,7 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          system_instruction: { parts: [{ text: systemPrompt }] },
           contents,
           generationConfig: {
             maxOutputTokens: 2048,
@@ -226,8 +245,7 @@ export async function POST(request: NextRequest) {
   } catch (e) {
     console.error('Chat API error:', e)
     return NextResponse.json(
-      { error: 'Xin lỗi, đã có lỗi xảy ra. Anh/chị nhắn Zalo 0869308231 để được tư vấn ạ.' },
-      { status: 500 }
+      { reply: 'Dạ xin lỗi, đã có lỗi xảy ra. Anh/chị nhắn Zalo 0869308231 để được tư vấn ạ.' },
     )
   }
 }
