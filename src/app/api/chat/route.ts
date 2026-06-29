@@ -160,26 +160,32 @@ export async function POST(request: NextRequest) {
             topP: 0.9,
           },
           safetySettings: [
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
           ],
         }),
       }
     )
 
+    const data = await res.json().catch(() => null)
+
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      console.error('Gemini API error:', err)
+      console.error('Gemini API error:', res.status, JSON.stringify(data))
       return NextResponse.json(
-        { error: 'Xin lỗi, em không thể trả lời lúc này. Anh/chị nhắn Zalo 0869308231 để được tư vấn trực tiếp ạ.' },
-        { status: 502 }
+        { reply: 'Dạ xin lỗi anh/chị, hệ thống đang bận. Anh/chị thử lại sau giây lát hoặc nhắn Zalo 0869308231 để được tư vấn trực tiếp ạ.' },
       )
     }
 
-    const data = await res.json()
-    const parts = data?.candidates?.[0]?.content?.parts ?? []
+    const candidate = data?.candidates?.[0]
+    if (candidate?.finishReason === 'SAFETY') {
+      return NextResponse.json({
+        reply: 'Dạ anh/chị cho em hỏi rõ hơn về nhu cầu kính mắt được không ạ? Em sẵn sàng tư vấn gọng kính, tròng kính, hoặc chính sách bảo hành ạ.',
+      })
+    }
+
+    const parts = candidate?.content?.parts ?? []
     const reply = parts
       .filter((p: { text?: string }) => p.text)
       .map((p: { text: string }) => p.text)
