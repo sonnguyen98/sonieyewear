@@ -13,23 +13,23 @@ interface ChatMessage {
 interface LensItem {
   id: string; name: string; desc: string; price: number
   badge: string; features: string[]; suitableFor?: string
+  discountPercent?: number; free?: boolean
 }
 
 interface PolicyItem { id: string; title: string; icon: string; content: string }
 
 function buildProductCatalog(): string {
+  const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
   return MERGED_PRODUCTS.map(p => {
-    const price = new Intl.NumberFormat('vi-VN').format(p.basePrice)
-    const origPrice = p.originalPrice
-      ? new Intl.NumberFormat('vi-VN').format(p.originalPrice)
-      : null
+    const discount = p.discountPercent ?? 20
+    const salePrice = Math.round(p.basePrice * (1 - discount / 100))
     const colors = p.colorVariants
       .filter(c => c.inStock)
       .map(c => c.name)
       .join(', ')
     return [
       `• ${p.name} (${p.id})`,
-      `  Giá: ${price}đ${origPrice ? ` (gốc ${origPrice}đ)` : ''}`,
+      `  Giá bán: ${fmt(salePrice)}đ (giảm ${discount}% từ ${fmt(p.basePrice)}đ)`,
       `  Kiểu: ${p.shape} | Chất liệu: ${p.material} | ${p.gender}`,
       `  Màu còn hàng: ${colors || 'Hết hàng'}`,
       `  Đặc điểm: ${p.features.join(', ')}`,
@@ -51,9 +51,14 @@ function buildLensInfo(): string {
 
 function buildLensProducts(lensData: LensItem[]): string {
   return lensData.map(l => {
-    const price = new Intl.NumberFormat('vi-VN').format(l.price)
+    const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n)
+    const discount = l.discountPercent ?? 0
+    const salePrice = discount > 0 ? Math.round(l.price * (1 - discount / 100)) : l.price
+    const priceStr = discount > 0
+      ? `${fmt(salePrice)}đ (giảm ${discount}% từ ${fmt(l.price)}đ)`
+      : `${fmt(l.price)}đ`
     return [
-      `• ${l.name} — ${price}đ`,
+      `• ${l.name} — ${priceStr}${l.free ? ' — MIỄN PHÍ khi mua gọng' : ''}`,
       `  ${l.desc}`,
       l.suitableFor ? `  Phù hợp: ${l.suitableFor}` : '',
       `  Tính năng: ${l.features.join(', ')}`,
@@ -109,8 +114,12 @@ CHẤT LIỆU GỌNG:
 - Titanium: siêu nhẹ, siêu bền, cao cấp, giá cao hơn
 - Kết hợp: kim loại + nhựa, thời trang, điểm nhấn
 
-GIÁ KÍNH HOÀN CHỈNH = Giá gọng + Giá tròng
-VD: Gọng 590.000đ + Tròng chống ánh sáng xanh 550.000đ = 1.140.000đ
+CHƯƠNG TRÌNH GIẢM GIÁ:
+- SONi ĐANG CÓ giảm giá cho cả gọng kính và tròng kính
+- Giá bán thực tế đã được ghi rõ trong catalog bên dưới (đã trừ giảm giá)
+- Khi khách hỏi "có giảm giá không" → trả lời CÓ và nêu % giảm + giá sau giảm
+
+GIÁ KÍNH HOÀN CHỈNH = Giá bán gọng (đã giảm) + Giá bán tròng (đã giảm)
 
 ĐƠN HÀNG & GIAO HÀNG:
 - Đặt hàng trên website hoặc qua Zalo
