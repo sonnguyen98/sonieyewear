@@ -43,6 +43,10 @@ const config: Config = {
           '0%, 100%': { boxShadow: '0 0 0 0 rgba(0,104,255,0.4)' },
           '50%':      { boxShadow: '0 0 0 12px rgba(0,104,255,0)' },
         },
+        pulseChat: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(13,13,13,0.3)' },
+          '50%':      { boxShadow: '0 0 0 10px rgba(13,13,13,0)' },
+        },
         shimmer: {
           '0%':   { backgroundPosition: '-400px 0' },
           '100%': { backgroundPosition: '400px 0' },
@@ -52,6 +56,7 @@ const config: Config = {
         'slide-up':   'slideUp 0.4s ease-out',
         'fade-in':    'fadeIn 0.3s ease-out',
         'pulse-zalo': 'pulseZalo 2s infinite',
+        'pulse-chat': 'pulseChat 2s infinite',
         shimmer:      'shimmer 1.4s infinite linear',
       },
     },
