@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { motion } from 'framer-motion'
 import Image from 'next/image'
 import type { LandingPageContent, LandingPagePreset, LpTargetId } from '@/types/landingPage'
 import type { Product } from '@/types/product'
@@ -99,6 +100,20 @@ function ColorGallery({ title, colors, accent, selected, onSelect }: {
         </div>
       </div>
     </section>
+  )
+}
+
+function FadeUp({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.5, ease: 'easeOut', delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
   )
 }
 
@@ -215,6 +230,99 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
   )
 }
 
+function ProofGallerySlider({ gallery, accent }: {
+  gallery: { src: string; alt: string }[]
+  accent: AccentMap
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState(0)
+  const activeRef = useRef(0)
+
+  const handleScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    const idx = Math.round(el.scrollLeft / el.offsetWidth)
+    activeRef.current = idx
+    setActive(idx)
+  }
+
+  const goTo = (idx: number) => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollTo({ left: idx * el.offsetWidth, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    if (gallery.length <= 1) return
+    const id = setInterval(() => {
+      const next = (activeRef.current + 1) % gallery.length
+      goTo(next)
+    }, 2000)
+    return () => clearInterval(id)
+  }, [gallery.length])
+
+  return (
+    <div>
+      <div className="relative">
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar rounded-xl sm:rounded-2xl"
+        >
+          {gallery.map((img, i) => (
+            <div key={i} className="flex-shrink-0 w-full snap-center bg-gray-100 relative">
+              <Image src={img.src} alt={img.alt} width={800} height={800}
+                className="w-full h-auto"
+                sizes="(max-width: 768px) 100vw, 600px" />
+            </div>
+          ))}
+        </div>
+
+        {gallery.length > 1 && (
+          <>
+            <button
+              onClick={() => goTo(Math.max(0, active - 1))}
+              disabled={active === 0}
+              aria-label="Ảnh trước"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 border border-gray-200 flex items-center justify-center shadow-sm hover:bg-white transition-colors disabled:opacity-0 disabled:pointer-events-none"
+            >
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => goTo(Math.min(gallery.length - 1, active + 1))}
+              disabled={active === gallery.length - 1}
+              aria-label="Ảnh tiếp theo"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 border border-gray-200 flex items-center justify-center shadow-sm hover:bg-white transition-colors disabled:opacity-0 disabled:pointer-events-none"
+            >
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </>
+        )}
+      </div>
+
+      {gallery.length > 1 && (
+        <div className="flex items-center justify-center gap-1.5 mt-3 sm:mt-4">
+          {gallery.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              aria-label={`Ảnh ${i + 1}`}
+              className={cn(
+                'h-1.5 rounded-full transition-all',
+                i === active ? cn('w-6', accent.bg) : 'w-1.5 bg-gray-300'
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function GiftLeadSection({ giftLead, accent, slug }: {
   giftLead: NonNullable<LandingPageContent['giftLead']>
   accent: AccentMap
@@ -254,20 +362,11 @@ function GiftLeadSection({ giftLead, accent, slug }: {
     )
   }
 
-  const totalValue = giftLead.gifts.reduce((s, g) => {
-    const num = parseInt((g.value ?? '0').replace(/\D/g, ''))
-    return s + num
-  }, 0)
-
   return (
     <section className={cn('py-10 sm:py-16', accent.bgSoft)}>
       <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-1.5 shadow-sm border border-brand-border mb-4">
-            <span className="text-lg">🎁</span>
-            <span className={cn('text-xs sm:text-sm font-bold', accent.text)}>Quà tặng trị giá {totalValue > 0 ? `${(totalValue / 1000).toFixed(0)}.000đ` : ''} — MIỄN PHÍ</span>
-          </div>
           <h2 className="text-lg sm:text-2xl font-extrabold mb-2 leading-tight">{giftLead.title}</h2>
           <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{giftLead.subtitle}</p>
         </div>
@@ -280,14 +379,7 @@ function GiftLeadSection({ giftLead, accent, slug }: {
                 {g.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-extrabold text-sm sm:text-base text-brand-black">{g.name}</p>
-                  {g.value && (
-                    <span className={cn('text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full', accent.bgSoft, accent.text)}>
-                      {g.value}
-                    </span>
-                  )}
-                </div>
+                <p className="font-extrabold text-sm sm:text-base text-brand-black mb-1">{g.name}</p>
                 <p className="text-xs sm:text-sm text-brand-muted leading-relaxed whitespace-pre-line">{g.desc}</p>
               </div>
               <span className={cn('text-xs font-extrabold flex-shrink-0 mt-1', accent.text)}>FREE</span>
@@ -534,20 +626,23 @@ export default function LandingPageView({ content, product }: Props) {
       {/* ═══════════════ 3. PAIN ↔ SOLUTION Q&A ═══════════════ */}
       <section id="pain-solution" className="py-10 sm:py-14 md:py-20 bg-brand-light">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-3 sm:mb-4 leading-tight">
-              {content.painSolutionQA.title}
-            </h2>
-            {content.painSolutionQA.subtitle && (
-              <p className={cn('inline-block text-sm sm:text-lg font-bold px-4 sm:px-5 py-2 rounded-full', accent.bgSoft, accent.text)}>
-                {content.painSolutionQA.subtitle}
-              </p>
-            )}
-          </div>
+          <FadeUp>
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-3 sm:mb-4 leading-tight">
+                {content.painSolutionQA.title}
+              </h2>
+              {content.painSolutionQA.subtitle && (
+                <p className={cn('inline-block text-sm sm:text-lg font-bold px-4 sm:px-5 py-2 rounded-full', accent.bgSoft, accent.text)}>
+                  {content.painSolutionQA.subtitle}
+                </p>
+              )}
+            </div>
+          </FadeUp>
 
           <div className="space-y-6 sm:space-y-8">
             {content.painSolutionQA.items.map((qa, i) => (
-              <div key={i} className="bg-white rounded-2xl sm:rounded-3xl shadow-md sm:shadow-lg overflow-hidden">
+              <FadeUp key={i} delay={i * 0.1}>
+              <div className="bg-white rounded-2xl sm:rounded-3xl shadow-md sm:shadow-lg overflow-hidden">
                 <div className={cn('px-4 sm:px-6 py-3 sm:py-4 text-center bg-gradient-to-r text-white', accent.gradient)}>
                   <h3 className="text-base sm:text-xl font-extrabold">{qa.pain.question}</h3>
                 </div>
@@ -575,6 +670,7 @@ export default function LandingPageView({ content, product }: Props) {
                   )}
                 </div>
               </div>
+              </FadeUp>
             ))}
 
           </div>
@@ -587,40 +683,36 @@ export default function LandingPageView({ content, product }: Props) {
       {/* ═══════════════ 4. SOCIAL PROOF ═══════════════ */}
       <section id="team" className="py-10 sm:py-14 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-8 sm:mb-10">
-            {content.team.eyebrow && (
-              <p className={cn('uppercase tracking-wider text-xs font-bold mb-2', accent.text)}>{content.team.eyebrow}</p>
-            )}
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3 max-w-3xl mx-auto leading-tight">
-              {content.team.title}
-            </h2>
-            {content.team.subtitle && (
-              <p className="text-sm sm:text-lg text-brand-muted max-w-2xl mx-auto leading-relaxed">{content.team.subtitle}</p>
-            )}
-            {content.team.rating && (
-              <div className="mt-4 sm:mt-6 inline-flex flex-col items-center gap-1">
-                <p className="text-xl sm:text-2xl tracking-wider">⭐⭐⭐⭐⭐</p>
-                <p className="text-base sm:text-xl font-extrabold">
-                  {content.team.rating.score}{' '}
-                  <span className="text-xs sm:text-base font-medium text-brand-muted">{content.team.rating.text}</span>
-                </p>
-              </div>
-            )}
-            {content.team.tagline && (
-              <p className={cn('mt-3 sm:mt-4 text-xs sm:text-base font-medium italic', accent.text)}>{content.team.tagline}</p>
-            )}
-          </div>
+          <FadeUp>
+            <div className="text-center mb-8 sm:mb-10">
+              {content.team.eyebrow && (
+                <p className={cn('uppercase tracking-wider text-xs font-bold mb-2', accent.text)}>{content.team.eyebrow}</p>
+              )}
+              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3 max-w-3xl mx-auto leading-tight">
+                {content.team.title}
+              </h2>
+              {content.team.subtitle && (
+                <p className="text-sm sm:text-lg text-brand-muted max-w-2xl mx-auto leading-relaxed">{content.team.subtitle}</p>
+              )}
+              {content.team.rating && (
+                <div className="mt-4 sm:mt-6 inline-flex flex-col items-center gap-1">
+                  <p className="text-xl sm:text-2xl tracking-wider">⭐⭐⭐⭐⭐</p>
+                  <p className="text-base sm:text-xl font-extrabold">
+                    {content.team.rating.score}{' '}
+                    <span className="text-xs sm:text-base font-medium text-brand-muted">{content.team.rating.text}</span>
+                  </p>
+                </div>
+              )}
+              {content.team.tagline && (
+                <p className={cn('mt-3 sm:mt-4 text-xs sm:text-base font-medium italic', accent.text)}>{content.team.tagline}</p>
+              )}
+            </div>
+          </FadeUp>
 
           {content.team.gallery && content.team.gallery.length > 0 && (
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
-              {content.team.gallery.map((img, i) => (
-                <div key={i} className="rounded-lg sm:rounded-2xl overflow-hidden bg-gray-100 relative group">
-                  <Image src={img.src} alt={img.alt} width={400} height={400}
-                    className="w-full h-auto group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 33vw, 280px" />
-                </div>
-              ))}
-            </div>
+            <FadeUp delay={0.2} className="max-w-md mx-auto">
+              <ProofGallerySlider gallery={content.team.gallery} accent={accent} />
+            </FadeUp>
           )}
 
           {content.team.steps && content.team.steps.length > 0 && !content.team.gallery && (
@@ -686,17 +778,20 @@ export default function LandingPageView({ content, product }: Props) {
       {/* ═══════════════ 6. PRICING ═══════════════ */}
       {!content.giftLead && <section id="pricing" className="py-10 sm:py-14 md:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3">{content.pricing.title}</h2>
-            {content.pricing.subtitle && (
-              <p className="text-sm sm:text-base text-brand-muted leading-relaxed max-w-2xl mx-auto">{content.pricing.subtitle}</p>
-            )}
-          </div>
+          <FadeUp>
+            <div className="text-center mb-8 sm:mb-10">
+              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3">{content.pricing.title}</h2>
+              {content.pricing.subtitle && (
+                <p className="text-sm sm:text-base text-brand-muted leading-relaxed max-w-2xl mx-auto">{content.pricing.subtitle}</p>
+              )}
+            </div>
+          </FadeUp>
 
           {/* Mobile: stack dọc, highlighted lên đầu */}
           <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
-            {[...content.pricing.packages].sort((a, b) => (b.highlighted ? 1 : 0) - (a.highlighted ? 1 : 0)).map((pkg) => (
-              <div key={pkg.name}
+            {[...content.pricing.packages].sort((a, b) => (b.highlighted ? 1 : 0) - (a.highlighted ? 1 : 0)).map((pkg, i) => (
+              <FadeUp key={pkg.name} delay={i * 0.1}>
+              <div
                 className={cn(
                   'bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 flex flex-col relative transition-all',
                   pkg.highlighted
@@ -735,6 +830,7 @@ export default function LandingPageView({ content, product }: Props) {
                   {pkg.ctaText}
                 </button>
               </div>
+              </FadeUp>
             ))}
           </div>
 
@@ -747,21 +843,25 @@ export default function LandingPageView({ content, product }: Props) {
       {/* ═══════════════ 7. GUARANTEES ═══════════════ */}
       <section id="guarantees" className={cn('py-10 sm:py-14 md:py-20', accent.bgSoft)}>
         <div className="max-w-5xl mx-auto px-4">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3">{content.guarantees.title}</h2>
-            {content.guarantees.subtitle && (
-              <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{content.guarantees.subtitle}</p>
-            )}
-          </div>
+          <FadeUp>
+            <div className="text-center mb-8 sm:mb-10">
+              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3">{content.guarantees.title}</h2>
+              {content.guarantees.subtitle && (
+                <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{content.guarantees.subtitle}</p>
+              )}
+            </div>
+          </FadeUp>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
             {content.guarantees.items.map((g, i) => (
-              <div key={i} className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
-                <div className="text-2xl sm:text-3xl sm:mb-2 flex-shrink-0">{g.icon}</div>
-                <div>
-                  <h3 className="font-extrabold text-sm sm:text-lg sm:mb-2 leading-snug">{g.title}</h3>
-                  {g.desc && <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">{g.desc}</p>}
+              <FadeUp key={i} delay={i * 0.1}>
+                <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
+                  <div className="text-2xl sm:text-3xl sm:mb-2 flex-shrink-0">{g.icon}</div>
+                  <div>
+                    <h3 className="font-extrabold text-sm sm:text-lg sm:mb-2 leading-snug">{g.title}</h3>
+                    {g.desc && <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">{g.desc}</p>}
+                  </div>
                 </div>
-              </div>
+              </FadeUp>
             ))}
           </div>
         </div>
@@ -793,7 +893,7 @@ export default function LandingPageView({ content, product }: Props) {
       {/* ═══════════════ 8. FAQ ═══════════════ */}
       <section id="faq" className="py-10 sm:py-14 md:py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-6 sm:mb-8 text-center">{content.faq.title}</h2>
+          <FadeUp><h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-6 sm:mb-8 text-center">{content.faq.title}</h2></FadeUp>
           <div className="space-y-2 sm:space-y-3">
             {content.faq.items.map((item, i) => {
               const isOpen = openFaq === i
@@ -816,7 +916,7 @@ export default function LandingPageView({ content, product }: Props) {
 
       {/* ═══════════════ 9. FINAL CTA ═══════════════ */}
       <section id="final-cta" className={cn('py-12 sm:py-16 md:py-24 text-white bg-gradient-to-br', accent.gradient)}>
-        <div className="max-w-3xl mx-auto px-4 text-center">
+        <FadeUp className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-3 sm:mb-5 leading-tight">{content.finalCta.title}</h2>
           <p className="text-sm sm:text-lg mb-6 sm:mb-8 opacity-95 leading-relaxed">{content.finalCta.subtitle}</p>
           <button onClick={() => scrollTo(content.giftLead ? 'shop' : 'pricing')}
@@ -824,7 +924,7 @@ export default function LandingPageView({ content, product }: Props) {
             {content.giftLead ? '🛍️ Xem Shop Gọng Kính' : content.finalCta.ctaText}
           </button>
           <p className="text-[10px] sm:text-xs opacity-90 mt-3 sm:mt-4">🛡️ {content.finalCta.microcopy}</p>
-        </div>
+        </FadeUp>
       </section>
 
       {/* ═══════════════ FOOTER ═══════════════ */}
