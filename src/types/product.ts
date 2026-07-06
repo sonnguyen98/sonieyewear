@@ -35,6 +35,7 @@ export interface Product {
   id: string
   slug: string
   name: string
+  sku?: string
   brand: string
   type: FrameType
   shape: FrameShape

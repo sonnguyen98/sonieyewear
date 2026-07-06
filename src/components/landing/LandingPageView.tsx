@@ -150,8 +150,6 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
   const products = q
     ? allProducts.filter(p =>
         p.name.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        (p.slug && p.slug.toLowerCase().includes(q)) ||
         (p.sku && p.sku.toLowerCase().includes(q))
       )
     : allProducts
