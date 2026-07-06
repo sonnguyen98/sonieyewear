@@ -8,6 +8,7 @@ import { formatVND } from '@/lib/utils'
 interface SearchItem {
   id: string
   name: string
+  sku?: string
   price: number
   originalPrice?: number
   image: string
@@ -38,6 +39,7 @@ export default function SearchBar({ onClose }: SearchBarProps) {
           items.push({
             id: p.id,
             name: p.name,
+            sku: p.sku ?? undefined,
             price: Math.round(p.basePrice * (1 - (p.discountPercent ?? 20) / 100)),
             originalPrice: p.basePrice,
             image: p.images?.[0] ?? p.colorVariants?.[0]?.imageUrl ?? '',
@@ -68,7 +70,9 @@ export default function SearchBar({ onClose }: SearchBarProps) {
     if (!query.trim()) { setResults([]); return }
     const q = query.toLowerCase().trim()
     const filtered = allItems.filter(item =>
-      item.name.toLowerCase().includes(q) || item.id.toLowerCase().includes(q)
+      item.name.toLowerCase().includes(q) ||
+      item.id.toLowerCase().includes(q) ||
+      (item.sku ? item.sku.toLowerCase().includes(q) : false)
     ).slice(0, 8)
     setResults(filtered)
   }, [query, allItems])
@@ -133,7 +137,7 @@ export default function SearchBar({ onClose }: SearchBarProps) {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-brand-black truncate">{item.name}</p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-bold text-brand-black">{formatVND(item.price)}</span>
                       {item.originalPrice && item.originalPrice !== item.price && (
                         <span className="text-xs text-gray-400 line-through">{formatVND(item.originalPrice)}</span>
@@ -143,6 +147,11 @@ export default function SearchBar({ onClose }: SearchBarProps) {
                       }`}>
                         {item.type === 'trong' ? 'Tròng' : 'Gọng'}
                       </span>
+                      {item.sku && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-500">
+                          {item.sku}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
