@@ -148,7 +148,12 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
 
   const q = search.toLowerCase().trim()
   const products = q
-    ? allProducts.filter(p => p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q) || (p.slug && p.slug.toLowerCase().includes(q)))
+    ? allProducts.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) ||
+        (p.slug && p.slug.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q))
+      )
     : allProducts
 
   const scroll = (dir: 'left' | 'right') => {
