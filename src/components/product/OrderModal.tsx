@@ -378,12 +378,31 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
           {selectedLens && <div className="flex justify-between"><span className="text-brand-muted">Tròng kính</span><span className="font-semibold">{selectedLens.name}</span></div>}
           <div className="flex justify-between"><span className="text-brand-muted">Họ tên</span><span className="font-semibold">{form.name}</span></div>
           <div className="flex justify-between"><span className="text-brand-muted">SĐT</span><span className="font-semibold">{form.phone}</span></div>
-          <div className="flex justify-between border-t border-brand-border pt-2">
-            <span className="font-bold">Tổng thanh toán</span>
-            <div className="text-right">
-              <span className="font-black text-red-600">{formatVND(discountedTotal)}</span>
-              <span className="text-xs text-gray-400 line-through ml-1">{formatVND(totalPrice)}</span>
+          <div className="border-t border-brand-border pt-2 space-y-1">
+            <div className="flex justify-between">
+              <span className="text-brand-muted">Tổng đơn hàng</span>
+              <div className="text-right">
+                <span className="font-semibold">{formatVND(discountedTotal)}</span>
+                <span className="text-xs text-gray-400 line-through ml-1">{formatVND(totalPrice)}</span>
+              </div>
             </div>
+            {isDeposit ? (
+              <>
+                <div className="flex justify-between">
+                  <span className="font-bold">Thanh toán trước (20%)</span>
+                  <span className="font-black text-red-600">{formatVND(payAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-brand-muted">Thu COD khi giao</span>
+                  <span className="font-semibold">{formatVND(discountedTotal - payAmount)}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between">
+                <span className="font-bold">Tổng thanh toán</span>
+                <span className="font-black text-red-600">{formatVND(payAmount)}</span>
+              </div>
+            )}
           </div>
         </div>
         {isCOD && (
@@ -632,6 +651,17 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   const [paymentConfirmed, setPaymentConfirmed] = useState(false)
   const [rxNotice, setRxNotice] = useState<{ examDate: string } | null>(null)
 
+  // Tính toán thanh toán — dùng trong review step và confirm button
+  const isDepositPmt = form.payment.startsWith('deposit')
+  const payAmountNow = isDepositPmt ? Math.round(discountedTotal * 0.2) : discountedTotal
+  const codRemainder = isDepositPmt ? discountedTotal - payAmountNow : 0
+  const reviewPayLabel = form.payment === 'cod' ? 'COD – Thu hộ khi giao'
+    : (form.payment === 'deposit-bank' || form.payment === 'deposit') ? 'Đặt cọc 20% – Chuyển khoản MB'
+    : form.payment === 'deposit-momo' ? 'Đặt cọc 20% – MoMo'
+    : form.payment === 'full-bank' ? 'Toàn bộ – Chuyển khoản MB'
+    : form.payment === 'full-momo' ? 'Toàn bộ – MoMo'
+    : form.payment
+
   // Khi khách nhập SĐT hợp lệ → tự tra số độ gần nhất từ Sổ Theo Dõi Độ
   useEffect(() => {
     const phone = form.phone.trim()
@@ -744,9 +774,12 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
       ? Math.round(discountedTotal * 0.2)
       : discountedTotal
 
+    const depositRemainder = discountedTotal - payAmount
     const paymentLabel = form.payment === 'cod' ? 'COD - Thu hộ khi giao' :
-      form.payment === 'deposit-bank' ? `Thanh toán trước 20% ${formatVND(payAmount)} - Chuyển khoản MB` :
-      form.payment === 'deposit-momo' ? `Thanh toán trước 20% ${formatVND(payAmount)} - MoMo` :
+      (form.payment === 'deposit-bank' || form.payment === 'deposit') ?
+        `Cọc 20% ${formatVND(payAmount)} - Chuyển khoản MB | COD khi giao: ${formatVND(depositRemainder)}` :
+      form.payment === 'deposit-momo' ?
+        `Cọc 20% ${formatVND(payAmount)} - MoMo | COD khi giao: ${formatVND(depositRemainder)}` :
       form.payment === 'full-bank' ? `Toàn bộ ${formatVND(payAmount)} - Chuyển khoản MB` :
       form.payment === 'full-momo' ? `Toàn bộ ${formatVND(payAmount)} - MoMo` :
       form.payment === 'bank' ? 'Chuyển khoản MB' :
@@ -1196,9 +1229,28 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                     <span className="font-bold text-green-600">-{formatVND(savedAmount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between border-t border-brand-border pt-2">
-                  <span className="font-bold text-brand-black">Tổng thanh toán</span>
-                  <span className="font-black text-red-600 text-lg">{formatVND(discountedTotal)}</span>
+                <div className="border-t border-brand-border pt-2 space-y-1">
+                  {isDepositPmt ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-brand-muted">Tổng đơn hàng</span>
+                        <span className="font-semibold">{formatVND(discountedTotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold text-brand-black">Thanh toán trước (20%)</span>
+                        <span className="font-black text-red-600 text-lg">{formatVND(payAmountNow)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-brand-muted">Thu COD khi giao</span>
+                        <span className="font-semibold">{formatVND(codRemainder)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="font-bold text-brand-black">Tổng thanh toán</span>
+                      <span className="font-black text-red-600 text-lg">{formatVND(discountedTotal)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1583,14 +1635,31 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                 {/* Thanh toán */}
                 <div className="space-y-1.5 border-t border-brand-border pt-2">
                   <p className="text-xs font-bold text-brand-muted uppercase">Thanh toán</p>
-                  <div className="flex justify-between"><span className="text-brand-muted">Hình thức</span><span className="font-semibold text-right max-w-[55%]">{form.payment || '—'}</span></div>
-                  <div className="flex justify-between text-brand-black">
-                    <span className="font-bold">Tổng thanh toán</span>
+                  <div className="flex justify-between"><span className="text-brand-muted">Hình thức</span><span className="font-semibold text-right max-w-[55%]">{reviewPayLabel}</span></div>
+                  <div className="flex justify-between">
+                    <span className="text-brand-muted">Tổng đơn hàng</span>
                     <div className="text-right">
-                      <span className="font-black text-red-600">{formatVND(discountedTotal)}</span>
+                      <span className="font-semibold">{formatVND(discountedTotal)}</span>
                       <span className="text-xs text-gray-400 line-through ml-1.5">{formatVND(totalPrice)}</span>
                     </div>
                   </div>
+                  {isDepositPmt ? (
+                    <>
+                      <div className="flex justify-between text-brand-black">
+                        <span className="font-bold">Thanh toán trước (20%)</span>
+                        <span className="font-black text-red-600">{formatVND(payAmountNow)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-brand-muted">Thu COD khi giao</span>
+                        <span className="font-semibold">{formatVND(codRemainder)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between text-brand-black border-t border-brand-border pt-1.5">
+                      <span className="font-bold">Tổng thanh toán</span>
+                      <span className="font-black text-red-600">{formatVND(payAmountNow)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

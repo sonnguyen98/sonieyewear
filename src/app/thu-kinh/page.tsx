@@ -88,10 +88,6 @@ function ThuKinhContent() {
 
       setAnalysis(result)
 
-      // Chỉ đề xuất sản phẩm CÓ landing page
-      const landingPages = getAllLandingPages()
-      const lpProductIds = new Set(landingPages.map(lp => lp.productId))
-
       let allProducts = MERGED_PRODUCTS
       try {
         const pr = await fetch('/api/products')
@@ -99,10 +95,9 @@ function ThuKinhContent() {
         if (Array.isArray(d) && d.length > 0) allProducts = d
       } catch {}
 
-      const productsWithLP = allProducts.filter(p => lpProductIds.has(p.id))
       const rShapes = result.recommendedShapes
-      const filtered = productsWithLP.filter(p => rShapes.includes(p.shape))
-      setRecommended(filtered.length > 0 ? filtered.slice(0, 5) : productsWithLP.slice(0, 5))
+      const filtered = allProducts.filter(p => rShapes.includes(p.shape))
+      setRecommended(filtered.length > 0 ? filtered.slice(0, 5) : allProducts.slice(0, 5))
       setStep('result')
 
     } catch (e) {
