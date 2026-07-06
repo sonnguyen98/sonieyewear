@@ -231,6 +231,9 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
                   </div>
                   <div className="p-2.5 sm:p-3 pb-2">
                     <p className="text-xs sm:text-sm font-bold text-brand-black line-clamp-2 leading-tight mb-1.5">{p.name}</p>
+                    {p.sku && (
+                      <span className="inline-block text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-semibold mb-1">{p.sku}</span>
+                    )}
                     <p className="text-[10px] sm:text-xs text-gray-400 line-through">{formatVND(p.basePrice)}</p>
                     <p className={cn('text-sm sm:text-base font-extrabold', accent.text)}>{formatVND(discounted)}</p>
                   </div>
