@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { findOrCreateCustomerByPhone } from '@/lib/customerStore'
+import { findOrCreateCustomerByPhone, addTagToCustomer } from '@/lib/customerStore'
 import { postToSheet } from '@/lib/googleSheet'
+
+const GIFT_TAG = 'Khách nhận quà'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -13,12 +15,15 @@ export async function POST(req: NextRequest) {
   try {
     const customer = await findOrCreateCustomerByPhone(phone, name, email ?? '')
 
+    await addTagToCustomer(customer.id, GIFT_TAG)
+
     await postToSheet({
       action: 'syncCustomer',
       phone: customer.phone,
       name: name,
       email: email ?? '',
-      source: source ?? 'LP Gift',
+      source: `Nhận Quà | ${source ?? 'LP Gift'}`,
+      note: GIFT_TAG,
       createdAt: customer.createdAt,
     })
 

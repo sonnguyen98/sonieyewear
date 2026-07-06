@@ -8,6 +8,7 @@ export interface Customer {
   phone: string
   createdAt: string
   dob?: string
+  tags?: string[]
 }
 
 // ── Read ops ─────────────────────────────────────────────────────────────────
@@ -74,5 +75,17 @@ export async function findOrCreateCustomerByPhone(phone: string, name?: string, 
 
     await kvSet(KV_KEYS.customers, 'customers.json', [...list, customer])
     return customer
+  })
+}
+
+export async function addTagToCustomer(id: string, tag: string): Promise<void> {
+  await withLock('customer:write', async () => {
+    const list = await getAllCustomers()
+    const idx = list.findIndex(c => c.id === id)
+    if (idx === -1) return
+    const existing = list[idx]
+    if (existing.tags?.includes(tag)) return
+    list[idx] = { ...existing, tags: [...(existing.tags ?? []), tag] }
+    await kvSet(KV_KEYS.customers, 'customers.json', list)
   })
 }

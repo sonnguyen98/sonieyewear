@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
       name: c.name ?? '',
       email: c.email ?? '',
       createdAt: c.createdAt,
+      note: c.tags?.join(', ') ?? '',
     })),
   })
 
