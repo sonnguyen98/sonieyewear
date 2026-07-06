@@ -229,7 +229,7 @@ export default function DashboardPage() {
       <div className="bg-white border-b border-gray-100 px-4 py-4 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div>
-            <p className="font-black text-gray-900">Sổ Y Bạ Khúc Xạ</p>
+            <p className="font-black text-gray-900">Sổ Theo Dõi Độ Khúc Xạ</p>
             <p className="text-xs text-gray-400">Xin chào, {customer?.name || customer?.phone}</p>
           </div>
           <button onClick={handleLogout} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Đăng xuất</button>

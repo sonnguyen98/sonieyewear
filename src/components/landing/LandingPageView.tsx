@@ -378,7 +378,7 @@ function GiftLeadSection({ giftLead, accent, slug }: {
             {giftLead.successMessage ?? 'Nhận Quà Thành Công!'}
           </h2>
           <p className="text-sm text-brand-muted mb-2">SONi sẽ gửi quà tặng qua Zalo cho bạn.</p>
-          <p className="text-sm text-brand-muted">Sổ Y Bạ đã được tạo — bạn có thể tra cứu tại mục <strong>Sổ Y Bạ</strong> trên website.</p>
+          <p className="text-sm text-brand-muted">Sổ Theo Dõi Độ đã được tạo — bạn có thể tra cứu tại mục <strong>Sổ Theo Dõi Độ</strong> trên website.</p>
         </div>
       </section>
     )

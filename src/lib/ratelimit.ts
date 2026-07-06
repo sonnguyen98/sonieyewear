@@ -27,7 +27,7 @@ export const limiters = {
   order:           build('order', 10, 3600),          // 10 đơn / giờ / IP
   paymentWebhook:  build('webhook', 60, 60),          // 60 webhook / phút (SePay) — chống flood
   affiliateWithdraw:   build('aff-wd', 5, 3600),        // 5 lệnh rút / giờ
-  customerAccess:      build('cust-access', 10, 60),     // 10 lần / phút (vào Sổ Y Bạ bằng SĐT)
+  customerAccess:      build('cust-access', 10, 60),     // 10 lần / phút (vào Sổ Theo Dõi Độ bằng SĐT)
   prescriptionOcr:     build('rx-ocr', 10, 3600),        // 10 lần OCR / giờ (Gemini tốn tiền)
   api:                 build('api', 60, 60),              // 60 req / phút (mặc định)
 }

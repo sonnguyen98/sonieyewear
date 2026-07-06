@@ -40,13 +40,13 @@ export default function LuuDoKinhLanding() {
 
           {/* Solution subline */}
           <p className="text-base text-gray-600 leading-relaxed mb-6">
-            <span className="font-bold text-gray-900">Sổ Y Bạ SONi</span> nhớ giúp bạn — lần sau cắt kính chỉ cần số điện thoại là ra ngay toa độ cũ.
+            <span className="font-bold text-gray-900">Sổ Theo Dõi Độ SONi</span> nhớ giúp bạn — lần sau cắt kính chỉ cần số điện thoại là ra ngay toa độ cũ.
             <span className="block mt-1 text-amber-700 font-semibold">100% miễn phí, không tốn 1 đồng.</span>
           </p>
 
           {/* Demo visual — tiếng Việt thuần, không đánh đố khách */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 mb-3">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Sổ Y Bạ của bạn — ví dụ</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Sổ Theo Dõi Độ của bạn — ví dụ</div>
             <div className="space-y-3">
               <div>
                 <div className="flex items-center justify-between mb-0.5">
@@ -111,7 +111,7 @@ export default function LuuDoKinhLanding() {
       {/* 3 LÝ DO */}
       <section className="px-4 py-12 bg-gradient-to-b from-white to-amber-50/50">
         <div className="max-w-md mx-auto">
-          <p className="text-[11px] font-bold tracking-widest text-amber-700 uppercase mb-2">Vì sao bạn cần Sổ Y Bạ</p>
+          <p className="text-[11px] font-bold tracking-widest text-amber-700 uppercase mb-2">Vì sao bạn cần Sổ Theo Dõi Độ</p>
           <h2 className="text-2xl font-black text-gray-900 mb-6 leading-tight">
             3 lý do khách SONi không bao giờ mất toa kính
           </h2>
@@ -130,7 +130,7 @@ export default function LuuDoKinhLanding() {
               {
                 num: '03',
                 title: 'Tư vấn AI gọng phù hợp khuôn mặt',
-                desc: 'Sau khi tạo Sổ Y Bạ, dùng được AI Try-On miễn phí — chụp ảnh khuôn mặt, AI gợi ý 5 gọng hợp nhất.',
+                desc: 'Sau khi tạo Sổ Theo Dõi Độ, dùng được AI Try-On miễn phí — chụp ảnh khuôn mặt, AI gợi ý 5 gọng hợp nhất.',
               },
             ].map(r => (
               <div key={r.num} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
@@ -179,7 +179,7 @@ export default function LuuDoKinhLanding() {
             href={SO_Y_BA_URL}
             className="mt-8 block w-full py-3.5 bg-white border-2 border-amber-400 text-amber-700 hover:bg-amber-50 font-bold text-sm text-center rounded-xl transition-all active:scale-[0.98]"
           >
-            → Vào Tạo Sổ Y Bạ Ngay
+            → Vào Tạo Sổ Theo Dõi Độ Ngay
           </Link>
         </div>
       </section>
@@ -191,7 +191,7 @@ export default function LuuDoKinhLanding() {
             Đừng quên độ kính nữa.
           </h2>
           <p className="text-amber-50 text-sm mb-6 leading-relaxed">
-            Tạo Sổ Y Bạ trong 30 giây. Lần sau cắt kính bạn cảm ơn chính mình.
+            Tạo Sổ Theo Dõi Độ trong 30 giây. Lần sau cắt kính bạn cảm ơn chính mình.
           </p>
           <Link
             href={SO_Y_BA_URL}

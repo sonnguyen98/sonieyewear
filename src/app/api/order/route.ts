@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Cập nhật/tạo khách hàng trong Sổ Y Bạ (nếu có SĐT) — đồng bộ tên/email + lưu số độ
+    // Cập nhật/tạo khách hàng trong Sổ Theo Dõi Độ (nếu có SĐT) — đồng bộ tên/email + lưu số độ
     if (body.phone) {
       try {
         const customer = await findOrCreateCustomerByPhone(body.phone, body.name, body.email)
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
           createdAt: customer.createdAt,
         })
       } catch (err) {
-        console.error('[Order] lưu Sổ Y Bạ error:', err)
+        console.error('[Order] lưu Sổ Theo Dõi Độ error:', err)
       }
     }
 

@@ -26,7 +26,7 @@ export const DEFAULT_GIFTS: LandingPageContent['gifts'] = {
     },
     {
       icon: '📋',
-      name: 'Sổ Y Bạ Điện Tử',
+      name: 'Sổ Theo Dõi Độ Điện Tử',
       desc: 'Lưu lại toàn bộ thông số mắt & lịch sử cắt kính của bạn — tra cứu mọi lúc, lần sau đặt kính nhanh gọn, không lo quên độ.',
       subdesc: 'Theo dõi độ cận qua từng giai đoạn để chủ động chăm mắt kịp thời.',
       value: '249.000đ',
@@ -94,7 +94,7 @@ export const DEFAULT_OBJECTIONS: LandingPageContent['objections'] = {
   items: [
     {
       you: 'Không đo mắt trực tiếp thì làm sao cắt đúng độ cho tôi?',
-      reality: 'Bạn **chụp ảnh đơn kính cũ** hoặc tự điền thông số, xưởng cắt theo đúng số đó. Chưa có đơn? Bạn cần đến cơ sở đo mắt uy tín để lấy số độ trước — sau đó lưu vào **Sổ Y Bạ SONi** dùng mãi cho lần sau.',
+      reality: 'Bạn **chụp ảnh đơn kính cũ** hoặc tự điền thông số, xưởng cắt theo đúng số đó. Chưa có đơn? Bạn cần đến cơ sở đo mắt uy tín để lấy số độ trước — sau đó lưu vào **Sổ Theo Dõi Độ SONi** dùng mãi cho lần sau.',
     },
     {
       you: 'Lỡ cắt sai độ, đeo vào nhức mắt thì mất tiền oan.',
@@ -131,7 +131,7 @@ export const DEFAULT_COMPARISON: LandingPageContent['comparison'] = {
   rows: [
     { label: 'Giá bộ kính', soni: 'Giá xưởng, không gánh mặt bằng', shop: 'Cộng chi phí mặt bằng, nhân viên', soniOk: true, shopOk: false },
     { label: 'Đi lại', soni: 'Đặt tại nhà, giao tận nơi', shop: 'Phải ra tiệm, có khi 2 lần', soniOk: true, shopOk: false },
-    { label: 'Khai / lưu độ', soni: 'Chụp ảnh đơn · lưu Sổ Y Bạ online', shop: 'Lần sau thường phải đo lại', soniOk: true, shopOk: false },
+    { label: 'Khai / lưu độ', soni: 'Chụp ảnh đơn · lưu Sổ Theo Dõi Độ online', shop: 'Lần sau thường phải đo lại', soniOk: true, shopOk: false },
     { label: 'Cắt đúng độ', soni: 'Khúc xạ viên 10 năm · sai làm lại free', shop: 'Tùy tay nghề từng tiệm', soniOk: true, shopOk: true },
     { label: 'Đổi độ / bảo hành', soni: 'Đổi độ 30 ngày · bảo hành 1 năm', shop: 'Chính sách không đồng nhất', soniOk: true, shopOk: false },
   ],
@@ -158,7 +158,7 @@ export const DEFAULT_FAQ: LandingPageContent['faq'] = {
     },
     {
       q: 'Tôi không biết độ của mình?',
-      a: 'Bạn cần đi đến cơ sở uy tín để đo mắt và lấy thông số độ của mình. Bạn cũng có thể lưu lại số độ vào Sổ Y Bạ của SONi để dùng cho những lần sau.',
+      a: 'Bạn cần đi đến cơ sở uy tín để đo mắt và lấy thông số độ của mình. Bạn cũng có thể lưu lại số độ vào Sổ Theo Dõi Độ của SONi để dùng cho những lần sau.',
     },
     {
       q: 'Chiết suất là gì?',

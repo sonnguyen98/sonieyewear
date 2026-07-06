@@ -185,7 +185,7 @@ interface EyeRxLocal { sph: string; cyl: string; axis: string }
 // SPH mặc định = Plano để dropdown tự scroll đến giữa khi mở
 const DEFAULT_EYE: EyeRxLocal = { sph: '0.00 (Plano)', cyl: '0.00 (Không loạn)', axis: '' }
 
-// ── Chuyển đổi giữa dropdown (string) ↔ số liệu lưu Sổ Y Bạ ──────────────────
+// ── Chuyển đổi giữa dropdown (string) ↔ số liệu lưu Sổ Theo Dõi Độ ──────────────────
 function rxToEyeData(rx: EyeRxLocal, add: string): EyeData {
   return {
     sph: rx.sph.startsWith('0.00') ? 0 : parseFloat(rx.sph),
@@ -632,7 +632,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   const [paymentConfirmed, setPaymentConfirmed] = useState(false)
   const [rxNotice, setRxNotice] = useState<{ examDate: string } | null>(null)
 
-  // Khi khách nhập SĐT hợp lệ → tự tra số độ gần nhất từ Sổ Y Bạ
+  // Khi khách nhập SĐT hợp lệ → tự tra số độ gần nhất từ Sổ Theo Dõi Độ
   useEffect(() => {
     const phone = form.phone.trim()
     if (!/^0\d{9}$/.test(phone)) { setRxNotice(null); return }
@@ -758,7 +758,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         : `MP: SPH ${form.rxRight.sph||'?'} / CYL ${form.rxRight.cyl||'?'} / Trục ${form.rxRight.axis||'?'} | MT: SPH ${form.rxLeft.sph||'?'} / CYL ${form.rxLeft.cyl||'?'} / Trục ${form.rxLeft.axis||'?'}${form.rxAdd ? ` | ADD ${form.rxAdd}` : ''}${form.pd ? ` | PD: ${form.pd}` : ''}`
       : 'Không cần (chỉ gọng)'
 
-    // Tự điền số độ → kèm số liệu để lưu vào Sổ Y Bạ của khách
+    // Tự điền số độ → kèm số liệu để lưu vào Sổ Theo Dõi Độ của khách
     const rxData = (selectedLens && form.rxMode === 'form')
       ? {
           rxRight: rxToEyeData(form.rxRight, form.rxAdd),
@@ -1226,7 +1226,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
 
                 <div>
                   <input
-                    type="email" placeholder="Email (nếu là lần đầu, để lưu vào Sổ Y Bạ)" value={form.email}
+                    type="email" placeholder="Email (nếu là lần đầu, để lưu vào Sổ Theo Dõi Độ)" value={form.email}
                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                     className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-colors ${errors.email ? 'border-red-400 bg-red-50' : 'border-brand-border focus:border-brand-black'}`}
                   />
@@ -1270,7 +1270,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                       </button>
                     </div>
 
-                    {/* Thông báo số độ gần nhất từ Sổ Y Bạ */}
+                    {/* Thông báo số độ gần nhất từ Sổ Theo Dõi Độ */}
                     {rxNotice && form.rxMode === 'form' && (
                       <div className="px-4 pb-2">
                         <p className="text-[11px] text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 leading-relaxed">
@@ -1381,14 +1381,14 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                   </div>
                 )}
 
-                {/* CTA → Sổ Y Bạ */}
+                {/* CTA → Sổ Theo Dõi Độ */}
                 {selectedLens && (
                   <a href="/so-y-ba" target="_blank" rel="noopener noreferrer"
                     className="flex items-center justify-between gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl px-4 py-3 transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-base flex-shrink-0">📖</span>
-                      <span className="text-xs font-semibold text-blue-700">Xem lịch sử & biểu đồ độ mắt trong Sổ Y Bạ</span>
+                      <span className="text-xs font-semibold text-blue-700">Xem lịch sử & biểu đồ độ mắt trong Sổ Theo Dõi Độ</span>
                     </div>
                     <svg className="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

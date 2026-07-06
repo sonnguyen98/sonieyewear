@@ -58,7 +58,7 @@ export default function SoYBaPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-black text-gray-900 mb-2">Sổ Y Bạ Khúc Xạ</h1>
+          <h1 className="text-2xl font-black text-gray-900 mb-2">Sổ Theo Dõi Độ Khúc Xạ</h1>
           <p className="text-gray-500 text-sm leading-relaxed">
             Lưu trữ lịch sử đơn kính, theo dõi độ mắt qua từng năm. Miễn phí cho tất cả mọi người.
           </p>
@@ -92,14 +92,14 @@ export default function SoYBaPage() {
                 placeholder="ban@email.com"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
               />
-              <p className="text-[10px] text-gray-400 mt-1">💡 Có email — SONi gửi bản backup Sổ Y Bạ, lỡ mất SĐT vẫn tra được.</p>
+              <p className="text-[10px] text-gray-400 mt-1">💡 Có email — SONi gửi bản backup Sổ Theo Dõi Độ, lỡ mất SĐT vẫn tra được.</p>
             </div>
             {error && <p className="text-red-500 text-xs bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <button
               type="submit" disabled={loading}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-60 text-sm"
             >
-              {loading ? 'Đang vào...' : 'Vào Sổ Y Bạ'}
+              {loading ? 'Đang vào...' : 'Vào Sổ Theo Dõi Độ'}
             </button>
             <p className="text-[11px] text-gray-400 text-center leading-relaxed">
               Chỉ cần số điện thoại — không cần mật khẩu. Lần sau quay lại, nhập đúng số này để xem lại thông tin của bạn.
