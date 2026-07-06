@@ -551,8 +551,10 @@ export default function LandingPageView({ content, product }: Props) {
             <div className="flex items-center gap-4 sm:gap-6 flex-1 justify-center">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-xl flex-none select-none">🔥</span>
-                <p className="text-white font-extrabold uppercase tracking-wide leading-tight text-sm sm:text-base md:text-lg truncate">
-                  TRỌN BỘ KÍNH CẮT THEO ĐỘ —&nbsp;<span className="text-yellow-400">CHỈ TỪ 152.000Đ</span>
+                <p className="text-white font-extrabold uppercase tracking-wide leading-tight text-sm sm:text-base md:text-lg">
+                  <span className="hidden sm:inline">TRỌN BỘ KÍNH CẮT THEO ĐỘ —&nbsp;</span>
+                  <span className="sm:hidden">Cắt kính online —&nbsp;</span>
+                  <span className="text-yellow-400">CHỈ TỪ 152.000Đ</span>
                 </p>
               </div>
               <div className="flex flex-col items-center gap-0.5 flex-none">
@@ -574,7 +576,7 @@ export default function LandingPageView({ content, product }: Props) {
                 </div>
               </div>
             </div>
-            <div className="flex-1 flex justify-end">
+            <div className="hidden sm:flex flex-1 justify-end">
               <button onClick={() => scrollTo('shop')}
                 className="btn-shimmer flex-none text-gray-900 font-extrabold text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg shadow-md hover:scale-105 active:scale-95 transition-transform whitespace-nowrap">
                 Đặt Hàng Ngay →
@@ -653,7 +655,7 @@ export default function LandingPageView({ content, product }: Props) {
                 )}
               </div>
               {/* Ảnh slideshow */}
-              <div className="order-first lg:order-last">
+              <div className="order-last">
                 <div className="aspect-[4/5] max-h-[55vh] lg:max-h-none rounded-2xl sm:rounded-3xl overflow-hidden bg-brand-light shadow-xl mx-auto max-w-sm lg:max-w-none relative">
                   {slideImages.map((src, i) => (
                     <Image key={src} src={src} alt={product.name} width={800} height={1000}
@@ -983,7 +985,8 @@ export default function LandingPageView({ content, product }: Props) {
               </div>
             </FadeUp>
             <FadeUp delay={0.1}>
-              <div className="rounded-2xl overflow-hidden border border-brand-border shadow-md bg-white">
+              <div className="overflow-x-auto -mx-4 px-4">
+              <div className="rounded-2xl overflow-hidden border border-brand-border shadow-md bg-white min-w-[400px]">
                 {/* Header row */}
                 <div className="grid grid-cols-[1.4fr_1fr_1fr]">
                   <div className="p-3 sm:p-4 text-xs font-bold text-brand-muted bg-brand-light border-b border-brand-border" />
@@ -1008,6 +1011,7 @@ export default function LandingPageView({ content, product }: Props) {
                     </div>
                   )
                 })}
+              </div>
               </div>
               {content.comparison.note && (
                 <p className="text-center text-xs sm:text-sm text-brand-muted mt-4">{content.comparison.note}</p>
@@ -1243,11 +1247,11 @@ export default function LandingPageView({ content, product }: Props) {
                 <div key={i} className="bg-brand-light rounded-xl sm:rounded-2xl border border-brand-border">
                   <button onClick={() => setOpenFaq(isOpen ? null : i)}
                     className="w-full flex items-start justify-between gap-3 p-4 sm:p-5 text-left">
-                    <span className="font-bold text-xs sm:text-base leading-snug pr-2">{item.q}</span>
+                    <span className="font-bold text-sm sm:text-base leading-snug pr-2">{item.q}</span>
                     <span className={cn('flex-shrink-0 text-xl sm:text-2xl font-light transition-transform', accent.text, isOpen ? 'rotate-45' : '')}>+</span>
                   </button>
                   {isOpen && (
-                    <div className="px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-base text-brand-muted leading-relaxed whitespace-pre-line">{item.a}</div>
+                    <div className="px-4 sm:px-5 pb-4 sm:pb-5 text-sm sm:text-base text-brand-muted leading-relaxed whitespace-pre-line">{item.a}</div>
                   )}
                 </div>
               )
