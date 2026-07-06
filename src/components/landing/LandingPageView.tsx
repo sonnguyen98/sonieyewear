@@ -103,6 +103,13 @@ function ColorGallery({ title, colors, accent, selected, onSelect }: {
   )
 }
 
+// ─── Announcement bar (shared, hardcoded) ────────────────────────────────────
+const ANNOUNCE_ITEMS = [
+  { icon: '🚚', text: 'Freeship toàn quốc' },
+  { icon: '🛡️', text: 'Sai độ làm lại miễn phí' },
+  { icon: '👁️', text: 'Khúc xạ viên 10 năm kinh nghiệm' },
+]
+
 function FadeUp({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
@@ -114,6 +121,13 @@ function FadeUp({ children, delay = 0, className }: { children: ReactNode; delay
     >
       {children}
     </motion.div>
+  )
+}
+
+function parseHighlight(text: string, accentClass: string) {
+  const parts = text.split(/\*\*(.*?)\*\*/g)
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i} className={accentClass}>{part}</strong> : part
   )
 }
 
@@ -201,22 +215,30 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
             const pDiscount = p.discountPercent ?? 20
             const discounted = Math.round(p.basePrice * (1 - pDiscount / 100))
             return (
-              <button key={p.id} onClick={() => setQuickView(p)}
-                className="flex-shrink-0 w-[60vw] sm:w-56 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group text-left">
-                <div className="aspect-square bg-gray-50 relative overflow-hidden">
-                  {thumb && (
-                    <Image src={thumb} alt={p.name} fill className="object-contain p-3 group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 42vw, 192px" />
-                  )}
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">
-                    -{pDiscount}%
-                  </span>
+              <div key={p.id}
+                className="flex-shrink-0 w-[60vw] sm:w-56 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group flex flex-col">
+                <button onClick={() => setQuickView(p)} className="text-left">
+                  <div className="aspect-square bg-gray-50 relative overflow-hidden">
+                    {thumb && (
+                      <Image src={thumb} alt={p.name} fill className="object-contain p-3 group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 42vw, 192px" />
+                    )}
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">
+                      -{pDiscount}%
+                    </span>
+                  </div>
+                  <div className="p-2.5 sm:p-3 pb-2">
+                    <p className="text-xs sm:text-sm font-bold text-brand-black line-clamp-2 leading-tight mb-1.5">{p.name}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-400 line-through">{formatVND(p.basePrice)}</p>
+                    <p className={cn('text-sm sm:text-base font-extrabold', accent.text)}>{formatVND(discounted)}</p>
+                  </div>
+                </button>
+                <div className="px-2.5 sm:px-3 pb-2.5 sm:pb-3 mt-auto">
+                  <button onClick={() => setQuickView(p)}
+                    className={cn('cta-pulse w-full py-2 rounded-xl text-xs sm:text-sm font-bold text-white transition active:scale-95', accent.bg, accent.bgHover)}>
+                    MUA NGAY
+                  </button>
                 </div>
-                <div className="p-2.5 sm:p-3">
-                  <p className="text-xs sm:text-sm font-bold text-brand-black line-clamp-2 leading-tight mb-1.5">{p.name}</p>
-                  <p className="text-[10px] sm:text-xs text-gray-400 line-through">{formatVND(p.basePrice)}</p>
-                  <p className={cn('text-sm sm:text-base font-extrabold', accent.text)}>{formatVND(discounted)}</p>
-                </div>
-              </button>
+              </div>
             )
           })}
         </div>
@@ -374,7 +396,7 @@ function GiftLeadSection({ giftLead, accent, slug }: {
         {/* Gift cards */}
         <div className="space-y-3 mb-6 sm:mb-8">
           {giftLead.gifts.map((g, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-brand-border flex items-start gap-4">
+            <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-brand-border flex items-start gap-4 transition-all duration-200 hover:border-orange-400 hover:bg-orange-50 hover:shadow-md">
               <div className={cn('w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0', accent.bgSoft)}>
                 {g.icon}
               </div>
@@ -444,6 +466,8 @@ export default function LandingPageView({ content, product }: Props) {
   const [showStickyCta, setShowStickyCta] = useState(false)
   const [selectedColorIdx, setSelectedColorIdx] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+  const [heroSlide, setHeroSlide] = useState(0)
   const accent = ACCENT[content.accent ?? 'orange']
   const heroImage = content.heroImage ?? product.images?.[0] ?? product.colorVariants?.[0]?.imageUrl ?? ''
 
@@ -452,6 +476,37 @@ export default function LandingPageView({ content, product }: Props) {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  useEffect(() => {
+    const KEY = 'soni_offer_end'
+    let end = parseInt(sessionStorage.getItem(KEY) ?? '0')
+    if (!end || end < Date.now()) {
+      end = Date.now() + 30 * 60 * 1000
+      sessionStorage.setItem(KEY, String(end))
+    }
+    const calc = () => {
+      const d = Math.max(0, end - Date.now())
+      setTimeLeft({
+        days: 0,
+        hours: Math.floor(d / 3600000),
+        minutes: Math.floor((d % 3600000) / 60000),
+        seconds: Math.floor((d % 60000) / 1000),
+      })
+    }
+    calc()
+    const t = setInterval(calc, 1000)
+    return () => clearInterval(t)
+  }, [])
+
+  const slideImages = content.heroNew?.heroImages?.length
+    ? content.heroNew.heroImages
+    : [heroImage].filter(Boolean)
+
+  useEffect(() => {
+    if (slideImages.length <= 1) return
+    const t = setInterval(() => setHeroSlide(i => (i + 1) % slideImages.length), 3000)
+    return () => clearInterval(t)
+  }, [slideImages.length])
 
   const openOrder = (preset?: LandingPagePreset) => {
     setModalPreset(preset)
@@ -469,36 +524,181 @@ export default function LandingPageView({ content, product }: Props) {
 
   return (
     <div className="bg-white text-brand-black">
-      {/* ═══════════════ 0. TOP NAV ═══════════════ */}
-      <nav className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-brand-border">
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 h-12 sm:h-14 flex items-center justify-between gap-2">
-          <a href="/" className="font-extrabold text-base sm:text-lg tracking-tight flex-shrink-0">
-            SONi <span className={accent.text}>Cắt Kính Online</span>
-          </a>
-          {content.navAnchors && content.navAnchors.length > 0 && (
-            <div className="flex items-center gap-1 sm:gap-4 overflow-x-auto no-scrollbar text-xs sm:text-sm font-medium text-brand-muted">
-              {content.navAnchors.map(a => (
-                <button key={a.targetId} onClick={() => scrollTo(a.targetId)}
-                  className="hover:text-brand-black transition whitespace-nowrap px-1.5 sm:px-0 py-1">
-                  {a.label}
-                </button>
-              ))}
-            </div>
-          )}
-          <a href="https://zalo.me/0869308231" target="_blank" rel="noopener noreferrer"
-            className={cn('px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-white text-xs sm:text-sm shadow transition flex-shrink-0', accent.bg, accent.bgHover)}>
-            💬 Zalo
-          </a>
-        </div>
-      </nav>
 
-      {/* ═══════════════ GIFT LEAD (thay Hero + Gifts) ═══════════════ */}
+      {/* ═══════════════ ANNOUNCEMENT BAR ═══════════════ */}
+      <style>{`
+        @keyframes shimmer-slide {
+          0% { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+        .btn-shimmer {
+          background: linear-gradient(105deg, #facc15 0%, #fef9c3 45%, #facc15 55%, #f59e0b 100%);
+          background-size: 250% auto;
+          animation: shimmer-slide 2.2s linear infinite;
+        }
+        @keyframes nav-cta-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0.5); }
+          50% { box-shadow: 0 0 0 6px rgba(249,115,22,0); }
+        }
+        .nav-cta-pulse { animation: nav-cta-glow 2s ease-in-out infinite; }
+      `}</style>
+      {/* ═══════════ STICKY HEADER (announcement + nav) ═══════════ */}
+      <div className="sticky top-0 z-30">
+        {/* Announcement bar */}
+        <div className="bg-gray-950 border-b border-gray-800/60">
+          <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
+            <div className="flex-1 hidden lg:block" />
+            <div className="flex items-center gap-4 sm:gap-6 flex-1 justify-center">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xl flex-none select-none">🔥</span>
+                <p className="text-white font-extrabold uppercase tracking-wide leading-tight text-sm sm:text-base md:text-lg truncate">
+                  TRỌN BỘ KÍNH CẮT THEO ĐỘ —&nbsp;<span className="text-yellow-400">CHỈ TỪ 152.000Đ</span>
+                </p>
+              </div>
+              <div className="flex flex-col items-center gap-0.5 flex-none">
+                <span className="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">Ưu đãi kết thúc sau:</span>
+                <div className="flex items-center gap-1">
+                  {[
+                    { v: timeLeft.hours, label: 'Giờ' },
+                    { v: timeLeft.minutes, label: 'Phút' },
+                    { v: timeLeft.seconds, label: 'Giây' },
+                  ].map(({ v, label }, i, arr) => (
+                    <span key={label} className="flex items-center">
+                      <span className="flex flex-col items-center bg-red-600 rounded-md px-2 sm:px-3 py-1 min-w-[38px] sm:min-w-[48px]">
+                        <span className="text-white text-base sm:text-xl font-extrabold tabular-nums leading-tight">{String(v).padStart(2, '0')}</span>
+                        <span className="text-red-200 text-[8px] sm:text-[9px] leading-tight">{label}</span>
+                      </span>
+                      {i < arr.length - 1 && <span className="text-gray-500 font-bold text-lg px-0.5 -mt-2">:</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <button onClick={() => scrollTo('shop')}
+                className="btn-shimmer flex-none text-gray-900 font-extrabold text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg shadow-md hover:scale-105 active:scale-95 transition-transform whitespace-nowrap">
+                Đặt Hàng Ngay →
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* Nav */}
+        <nav className="bg-gray-900 border-b border-gray-800">
+          <div className="max-w-6xl mx-auto px-3 sm:px-4 h-12 sm:h-13 flex items-center justify-between gap-2">
+            <a href="/" className="font-extrabold text-base sm:text-xl tracking-tight flex-shrink-0 flex items-baseline">
+              <span className="text-white">SONi</span>
+              <span className={cn('ml-1', accent.text)}>Cắt Kính</span>
+            </a>
+            {content.navAnchors && content.navAnchors.length > 0 && (
+              <div className="hidden sm:flex items-center gap-5 overflow-x-auto no-scrollbar text-sm font-medium text-gray-400">
+                {content.navAnchors.map(a => (
+                  <button key={a.targetId} onClick={() => scrollTo(a.targetId)}
+                    className="hover:text-white transition-colors whitespace-nowrap">
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <a href="https://zalo.me/0869308231" target="_blank" rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-full font-semibold text-gray-400 border border-gray-700 text-xs sm:text-sm hover:border-orange-400 hover:text-orange-400 transition-colors hidden sm:inline-flex items-center gap-1.5 flex-shrink-0">
+              💬 Zalo
+            </a>
+          </div>
+        </nav>
+      </div>
+
+      {/* ═══════════════ HERO LỢI ÍCH (luôn hiển thị) ═══════════════ */}
+      {content.heroNew && (
+        <section className="relative overflow-hidden bg-gray-900">
+          <div className="absolute w-[600px] h-[600px] rounded-full bg-orange-500 opacity-10 -top-40 -right-20 blur-3xl pointer-events-none" />
+          <div className="absolute w-[400px] h-[400px] rounded-full bg-orange-400 opacity-5 bottom-0 -left-20 blur-3xl pointer-events-none" />
+          <div className="relative max-w-6xl mx-auto px-4 py-10 sm:py-14 md:py-20">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-center">
+              {/* Text */}
+              <div className="space-y-4 sm:space-y-5">
+                {content.heroNew.eyebrow && (
+                  <p className={cn('text-xs sm:text-sm font-bold tracking-widest uppercase', accent.text)}>
+                    {content.heroNew.eyebrow}
+                  </p>
+                )}
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white uppercase" style={{ lineHeight: '1.6' }}>
+                  {content.heroNew.h1Before}
+                  <em className={cn('not-italic', accent.text)}>{content.heroNew.h1Em}</em>
+                  {content.heroNew.h1After}
+                </h1>
+                <p className="text-sm sm:text-lg text-gray-300 leading-relaxed max-w-lg">
+                  {content.heroNew.subtitle}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <button onClick={() => scrollTo('shop')}
+                    className={cn('cta-pulse px-6 py-4 rounded-2xl font-extrabold text-white shadow-lg transition active:scale-95 text-sm sm:text-base', accent.bg, accent.bgHover)}>
+                    {content.heroNew.ctaText} →
+                  </button>
+                </div>
+                {content.heroNew.badges && content.heroNew.badges.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1 border-t border-gray-700 mt-1">
+                    {content.heroNew.badges.map((b, i) => (
+                      <span key={i} className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-300">
+                        <span className={cn('font-extrabold', accent.text)}>✓</span>{b}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {content.heroNew.friction && (
+                  <p className="text-xs sm:text-sm text-gray-400 font-medium">
+                    {content.heroNew.friction.split('·').map((part, i, arr) => (
+                      <span key={i}>{part.trim()}{i < arr.length - 1 && <span className={cn('mx-2 font-bold', accent.text)}>·</span>}</span>
+                    ))}
+                  </p>
+                )}
+              </div>
+              {/* Ảnh slideshow */}
+              <div className="order-first lg:order-last">
+                <div className="aspect-[4/5] max-h-[55vh] lg:max-h-none rounded-2xl sm:rounded-3xl overflow-hidden bg-brand-light shadow-xl mx-auto max-w-sm lg:max-w-none relative">
+                  {slideImages.map((src, i) => (
+                    <Image key={src} src={src} alt={product.name} width={800} height={1000}
+                      className="w-full h-full object-cover absolute inset-0 transition-opacity duration-700"
+                      style={{ opacity: i === heroSlide ? 1 : 0 }}
+                      priority={i === 0} />
+                  ))}
+                  {/* Dot indicators */}
+                  {slideImages.length > 1 && (
+                    <div className="absolute bottom-14 left-0 right-0 flex justify-center gap-1.5 z-10">
+                      {slideImages.map((_, i) => (
+                        <button key={i} onClick={() => setHeroSlide(i)}
+                          className={cn('w-1.5 h-1.5 rounded-full transition-all duration-300', i === heroSlide ? 'bg-white w-4' : 'bg-white/50')} />
+                      ))}
+                    </div>
+                  )}
+                  {content.heroNew?.rating && (
+                    <div className="absolute left-3 right-3 bottom-3 bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3">
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <div className="flex items-center gap-1 mb-0.5">
+                          {[1,2,3,4,5].map(s => (
+                            <svg key={s} className="w-4 h-4 text-yellow-400 flex-none" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                          ))}
+                          <span className="text-sm font-extrabold text-gray-900 ml-1">4.9/5</span>
+                        </div>
+                        <p className="text-xs text-gray-500 font-medium truncate">từ 1.286 khách đã mua</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════ GIFT LEAD ═══════════════ */}
       {content.giftLead && (
         <GiftLeadSection giftLead={content.giftLead} accent={accent} slug={content.slug} />
       )}
 
-      {/* ═══════════════ 1. HERO ═══════════════ */}
-      {!content.giftLead && <section className="relative overflow-hidden">
+      {/* ═══════════════ 1. HERO CŨ (chỉ hiện khi không có heroNew lẫn giftLead) ═══════════════ */}
+      {!content.heroNew && !content.giftLead && <section className="relative overflow-hidden">
         <div className={cn('absolute inset-0 opacity-50', accent.bgSoft)} />
         <div className="relative max-w-6xl mx-auto px-4 py-8 sm:py-10 md:py-16">
           {/* Mobile: ảnh trước, text sau */}
@@ -583,7 +783,7 @@ export default function LandingPageView({ content, product }: Props) {
           {/* Mobile: stack dọc, Desktop: 3 cột */}
           <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
             {content.gifts.items.map((g, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden shadow-md sm:shadow-lg border border-brand-border bg-white flex flex-col">
+              <div key={i} className="rounded-2xl overflow-hidden border border-brand-border bg-white flex flex-col shadow-md sm:shadow-lg transition-colors duration-200 hover:border-orange-400">
                 <div className={cn('h-12 sm:h-16 relative flex items-center justify-center', accent.bgSoft)}>
                   {g.image ? (
                     <Image src={g.image} alt={g.name} fill className="object-contain p-2" sizes="(max-width: 768px) 100vw, 33vw" />
@@ -677,8 +877,145 @@ export default function LandingPageView({ content, product }: Props) {
         </div>
       </section>
 
+      {/* ═══════════════ BẠN NGHĨ / THỰC TẾ ═══════════════ */}
+      {content.objections && (
+        <section className="py-10 sm:py-14 md:py-20 bg-gray-900 relative overflow-hidden">
+          <div className="absolute w-[500px] h-[500px] rounded-full bg-orange-500 opacity-5 -bottom-40 -right-20 blur-3xl pointer-events-none" />
+          <div className="max-w-4xl mx-auto px-4 relative">
+            <FadeUp>
+              <div className="text-center mb-8 sm:mb-10">
+                {content.objections.eyebrow && (
+                  <p className={cn('text-xs font-bold tracking-widest uppercase mb-2', accent.text)}>{content.objections.eyebrow}</p>
+                )}
+                <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3 leading-tight text-white">
+                  {content.objections.title}
+                </h2>
+                {content.objections.subtitle && (
+                  <p className="text-sm sm:text-lg text-gray-400">{content.objections.subtitle}</p>
+                )}
+              </div>
+            </FadeUp>
+            <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
+              {content.objections.items.map((item, i) => (
+                <FadeUp key={i} delay={i * 0.08}>
+                  <div className="bg-gray-800 border border-gray-700 rounded-2xl p-4 sm:p-6 space-y-3 transition-all duration-200 hover:border-orange-500 hover:bg-gray-750 hover:shadow-lg hover:shadow-orange-950/30">
+                    <div className="flex gap-3 items-start text-sm sm:text-base text-gray-400 pb-3 border-b border-dashed border-gray-700">
+                      <span className="flex-none text-[10px] font-extrabold tracking-widest uppercase bg-gray-700 border border-gray-600 rounded-full px-2 py-1 text-gray-400 mt-0.5">Bạn nghĩ</span>
+                      <p className="leading-relaxed italic">"{item.you}"</p>
+                    </div>
+                    <div className="flex gap-3 items-start text-sm sm:text-base text-gray-200">
+                      <span className={cn('flex-none text-[10px] font-extrabold tracking-widest uppercase rounded-full px-2 py-1 text-white mt-0.5', accent.bg)}>Thực tế</span>
+                      <p className="leading-relaxed">{parseHighlight(item.reality, accent.text)}</p>
+                    </div>
+                  </div>
+                </FadeUp>
+              ))}
+            </div>
+            {content.process4Steps?.ctaText && (
+              <FadeUp delay={0.3}>
+                <div className="text-center mt-8 sm:mt-10">
+                  <button onClick={() => scrollTo('shop')}
+                    className={cn('cta-pulse px-7 py-4 rounded-2xl font-extrabold text-white shadow-lg transition text-sm sm:text-base', accent.bg, accent.bgHover)}>
+                    {content.process4Steps.ctaText} →
+                  </button>
+                </div>
+              </FadeUp>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════ QUY TRÌNH 4 BƯỚC ═══════════════ */}
+      {content.process4Steps && (
+        <section className={cn('py-10 sm:py-14 md:py-20 border-t border-brand-border', accent.bgSoft)}>
+          <div className="max-w-6xl mx-auto px-4">
+            <FadeUp>
+              <div className="text-center mb-8 sm:mb-10">
+                {content.process4Steps.eyebrow && (
+                  <p className={cn('text-xs font-bold tracking-widest uppercase mb-2', accent.text)}>{content.process4Steps.eyebrow}</p>
+                )}
+                <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3 leading-tight">
+                  {content.process4Steps.title}
+                </h2>
+                {content.process4Steps.subtitle && (
+                  <p className="text-sm sm:text-lg text-brand-muted">{content.process4Steps.subtitle}</p>
+                )}
+              </div>
+            </FadeUp>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {content.process4Steps.steps.map((step, i) => (
+                <FadeUp key={step.n} delay={i * 0.1}>
+                  <div className="bg-white border border-brand-border rounded-2xl p-5 sm:p-6 shadow-sm relative h-full transition-all duration-200 hover:border-orange-400 hover:bg-orange-50 hover:shadow-md">
+                    <div className={cn('w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-white text-base mb-4', accent.bg)}>
+                      {step.n}
+                    </div>
+                    <h3 className="font-extrabold text-base sm:text-lg mb-2">{step.title}</h3>
+                    <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">{step.desc}</p>
+                    {i < (content.process4Steps?.steps.length ?? 0) - 1 && (
+                      <span className={cn('hidden lg:block absolute top-9 -right-3 font-extrabold text-xl z-10', accent.text)}>→</span>
+                    )}
+                  </div>
+                </FadeUp>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ═══════════════ SHOP ═══════════════ */}
       <ShopCarousel accent={accent} />
+
+      {/* ═══════════════ SO SÁNH SONi VS TIỆM ═══════════════ */}
+      {content.comparison && (
+        <section className={cn('py-10 sm:py-14 md:py-20 border-t border-brand-border', accent.bgSoft)}>
+          <div className="max-w-4xl mx-auto px-4">
+            <FadeUp>
+              <div className="text-center mb-8 sm:mb-10">
+                {content.comparison.eyebrow && (
+                  <p className={cn('text-xs font-bold tracking-widest uppercase mb-2', accent.text)}>{content.comparison.eyebrow}</p>
+                )}
+                <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3 leading-tight">
+                  {content.comparison.title}
+                </h2>
+                {content.comparison.subtitle && (
+                  <p className="text-sm sm:text-lg text-brand-muted">{content.comparison.subtitle}</p>
+                )}
+              </div>
+            </FadeUp>
+            <FadeUp delay={0.1}>
+              <div className="rounded-2xl overflow-hidden border border-brand-border shadow-md bg-white">
+                {/* Header row */}
+                <div className="grid grid-cols-[1.4fr_1fr_1fr]">
+                  <div className="p-3 sm:p-4 text-xs font-bold text-brand-muted bg-brand-light border-b border-brand-border" />
+                  <div className={cn('p-3 sm:p-4 text-sm sm:text-base font-extrabold text-white border-x-2 border-t-2 border-orange-400', accent.bg)}>
+                    SONi Online
+                  </div>
+                  <div className="p-3 sm:p-4 text-sm sm:text-base font-bold text-brand-muted bg-brand-light border-b border-brand-border">Tiệm truyền thống</div>
+                </div>
+                {content.comparison.rows.map((row, i, arr) => {
+                  const isLast = i === arr.length - 1
+                  return (
+                    <div key={i} className={cn('grid grid-cols-[1.4fr_1fr_1fr] transition-colors duration-150 hover:bg-orange-50/60', !isLast ? 'border-b border-brand-border' : '')}>
+                      <div className={cn('p-3 sm:p-4 text-xs sm:text-sm font-semibold text-brand-black', i % 2 === 1 ? 'bg-brand-light/40' : 'bg-white')}>{row.label}</div>
+                      <div className={cn('p-3 sm:p-4 text-xs sm:text-sm font-semibold border-x-2 border-orange-400', accent.bgSoft, isLast ? 'border-b-2 rounded-b' : '')}>
+                        <span className="mr-1.5 font-bold text-green-600">{row.soniOk !== false ? '✓' : '✗'}</span>
+                        {row.soni}
+                      </div>
+                      <div className={cn('p-3 sm:p-4 text-xs sm:text-sm text-brand-muted', i % 2 === 1 ? 'bg-brand-light/40' : 'bg-white')}>
+                        <span className={cn('mr-1.5 font-bold', row.shopOk ? 'text-green-600' : 'text-red-400')}>{row.shopOk ? '✓' : '✗'}</span>
+                        {row.shop}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {content.comparison.note && (
+                <p className="text-center text-xs sm:text-sm text-brand-muted mt-4">{content.comparison.note}</p>
+              )}
+            </FadeUp>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════ 4. SOCIAL PROOF ═══════════════ */}
       <section id="team" className="py-10 sm:py-14 md:py-20 bg-white">
@@ -841,29 +1178,34 @@ export default function LandingPageView({ content, product }: Props) {
       </section>}
 
       {/* ═══════════════ 7. GUARANTEES ═══════════════ */}
-      <section id="guarantees" className={cn('py-10 sm:py-14 md:py-20', accent.bgSoft)}>
-        <div className="max-w-5xl mx-auto px-4">
+      <section id="guarantees" className="py-10 sm:py-14 md:py-20 bg-gray-900 relative overflow-hidden">
+        <div className="absolute w-[500px] h-[500px] rounded-full bg-orange-500 opacity-5 -top-40 -left-20 blur-3xl pointer-events-none" />
+        <div className="max-w-4xl mx-auto px-4 relative">
           <FadeUp>
-            <div className="text-center mb-8 sm:mb-10">
-              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 sm:mb-3">{content.guarantees.title}</h2>
-              {content.guarantees.subtitle && (
-                <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{content.guarantees.subtitle}</p>
-              )}
-            </div>
-          </FadeUp>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
-            {content.guarantees.items.map((g, i) => (
-              <FadeUp key={i} delay={i * 0.1}>
-                <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0">
-                  <div className="text-2xl sm:text-3xl sm:mb-2 flex-shrink-0">{g.icon}</div>
-                  <div>
-                    <h3 className="font-extrabold text-sm sm:text-lg sm:mb-2 leading-snug">{g.title}</h3>
-                    {g.desc && <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">{g.desc}</p>}
+            <div className="rounded-2xl sm:rounded-3xl p-6 sm:p-10 border border-orange-500/40 bg-gray-800">
+              <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 items-center sm:items-start">
+                {/* Seal */}
+                <div className={cn('flex-none w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 flex flex-col items-center justify-center text-center shadow-lg', accent.border)}>
+                  <span className={cn('font-extrabold text-2xl sm:text-3xl leading-none', accent.text)}>100%</span>
+                  <span className={cn('text-[9px] sm:text-[10px] font-extrabold tracking-widest mt-0.5', accent.text)}>AN TÂM</span>
+                </div>
+                {/* Content */}
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold mb-2 sm:mb-3 leading-tight text-white">{content.guarantees.title}</h2>
+                  {content.guarantees.subtitle && (
+                    <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-4 sm:mb-5">{content.guarantees.subtitle}</p>
+                  )}
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-3">
+                    {content.guarantees.items.map((g, i) => (
+                      <span key={i} className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-gray-700 rounded-full px-3 py-2 border border-gray-600 shadow-sm">
+                        <span className={cn('font-extrabold', accent.text)}>✓</span>{g.title}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              </FadeUp>
-            ))}
-          </div>
+              </div>
+            </div>
+          </FadeUp>
         </div>
       </section>
 
@@ -915,15 +1257,16 @@ export default function LandingPageView({ content, product }: Props) {
       </section>
 
       {/* ═══════════════ 9. FINAL CTA ═══════════════ */}
-      <section id="final-cta" className={cn('py-12 sm:py-16 md:py-24 text-white bg-gradient-to-br', accent.gradient)}>
-        <FadeUp className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-3 sm:mb-5 leading-tight">{content.finalCta.title}</h2>
-          <p className="text-sm sm:text-lg mb-6 sm:mb-8 opacity-95 leading-relaxed">{content.finalCta.subtitle}</p>
+      <section id="final-cta" className="py-12 sm:py-16 md:py-24 bg-gray-900 relative overflow-hidden">
+        <div className="absolute w-[600px] h-[600px] rounded-full bg-orange-500 opacity-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
+        <FadeUp className="max-w-3xl mx-auto px-4 text-center relative">
+          <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold mb-3 sm:mb-5 leading-tight text-white">{content.finalCta.title}</h2>
+          <p className="text-sm sm:text-lg mb-6 sm:mb-8 text-gray-300 leading-relaxed">{content.finalCta.subtitle}</p>
           <button onClick={() => scrollTo(content.giftLead ? 'shop' : 'pricing')}
-            className="bg-white text-brand-black font-extrabold text-sm sm:text-lg px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl shadow-2xl hover:scale-105 transition">
+            className={cn('cta-pulse font-extrabold text-sm sm:text-lg px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl shadow-2xl hover:scale-105 transition text-white', accent.bg, accent.bgHover)}>
             {content.giftLead ? '🛍️ Xem Shop Gọng Kính' : content.finalCta.ctaText}
           </button>
-          <p className="text-[10px] sm:text-xs opacity-90 mt-3 sm:mt-4">🛡️ {content.finalCta.microcopy}</p>
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4">🛡️ {content.finalCta.microcopy}</p>
         </FadeUp>
       </section>
 
@@ -944,11 +1287,14 @@ export default function LandingPageView({ content, product }: Props) {
 
       {/* ═══════════════ STICKY BOTTOM CTA (MOBILE) ═══════════════ */}
       {showStickyCta && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/95 backdrop-blur border-t border-brand-border shadow-2xl p-2.5 pb-safe">
-          <button onClick={() => scrollTo(content.giftLead ? 'shop' : 'pricing')}
-            className={cn('cta-pulse w-full font-extrabold py-3.5 rounded-xl text-white shadow-lg active:scale-95 transition flex items-center justify-center gap-2 text-sm', accent.bg, accent.bgHover)}>
-            <span>{content.giftLead ? '🛍️ Xem Shop — Đang Giảm Giá' : 'Mua Ngay — Xem Bảng Giá'}</span>
-            <span className="text-base">→</span>
+        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/96 backdrop-blur border-t border-brand-border shadow-2xl px-3 py-2.5 pb-[calc(10px+env(safe-area-inset-bottom))] flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="font-extrabold text-sm text-brand-black leading-tight">Cắt kính online</p>
+            <p className="text-xs text-brand-muted truncate">chuẩn độ · giao tận nhà</p>
+          </div>
+          <button onClick={() => scrollTo('shop')}
+            className={cn('flex-none cta-pulse font-extrabold py-3 px-5 rounded-xl text-white shadow-lg active:scale-95 transition text-sm', accent.bg, accent.bgHover)}>
+            Đặt kính ngay
           </button>
         </div>
       )}

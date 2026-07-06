@@ -42,6 +42,20 @@ export interface LandingPageContent {
   // Anchor menu trên top nav
   navAnchors?: { label: string; targetId: LpTargetId }[]
 
+  // SECTION — Hero lợi ích (luôn hiển thị trên cùng, kể cả khi có giftLead)
+  heroNew?: {
+    eyebrow?: string
+    h1Before?: string
+    h1Em: string
+    h1After?: string
+    subtitle: string
+    ctaText: string
+    friction?: string
+    rating?: string
+    badges?: string[]
+    heroImages?: string[]  // danh sách ảnh slideshow, nếu không set thì dùng heroImage
+  }
+
   // SECTION — Gift Lead (thay thế Hero + Gifts khi dùng LP thu lead)
   giftLead?: {
     title: string
@@ -157,6 +171,32 @@ export interface LandingPageContent {
       preset?: LandingPagePreset
     }[]
     footnote?: string
+  }
+
+  // SECTION — Bạn nghĩ / Thực tế (objection handling)
+  objections?: {
+    eyebrow?: string
+    title: string
+    subtitle?: string
+    items: { you: string; reality: string }[]
+  }
+
+  // SECTION — Quy trình 4 bước
+  process4Steps?: {
+    eyebrow?: string
+    title: string
+    subtitle?: string
+    steps: { n: number; title: string; desc: string }[]
+    ctaText?: string
+  }
+
+  // SECTION — So sánh SONi vs tiệm
+  comparison?: {
+    eyebrow?: string
+    title: string
+    subtitle?: string
+    rows: { label: string; soni: string; shop: string; soniOk?: boolean; shopOk?: boolean }[]
+    note?: string
   }
 
   // SECTION 7 — Cam kết SONi (ngắn, brevity rule)

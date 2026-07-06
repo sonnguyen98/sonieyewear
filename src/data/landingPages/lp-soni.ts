@@ -10,6 +10,9 @@ import {
   DEFAULT_SOCIAL_PROOF_SUBTITLE,
   DEFAULT_SOCIAL_PROOF_RATING,
   DEFAULT_SOCIAL_PROOF_TAGLINE,
+  DEFAULT_OBJECTIONS,
+  DEFAULT_PROCESS,
+  DEFAULT_COMPARISON,
   pickProofGallery,
 } from './shared-defaults'
 
@@ -19,13 +22,34 @@ const lp: LandingPageContent = {
   metaTitle: 'SONi — Cắt Kính Online | Gọng Kính Chính Hãng, Giao Tận Nhà',
   metaDescription: 'SONi Cắt Kính Online — Gọng kính chính hãng, cắt tròng theo số độ, giao tận nhà toàn quốc. Đổi trả 7 ngày, bảo hành 1 năm.',
   accent: 'orange',
-  heroImage: '/images/landing-pages/bulsajo/hero.png',
+  heroImage: '/images/landing-pages/soni/hero-1.jpg',
 
   navAnchors: [
     { label: 'Quà Tặng', targetId: 'gifts' },
     { label: 'Xem Shop', targetId: 'shop' },
     { label: 'Câu Hỏi Thường Gặp', targetId: 'faq' },
   ],
+
+  // ───────── HERO LỢI ÍCH (luôn hiển thị trên cùng) ─────────
+  heroNew: {
+    eyebrow: 'Cắt kính online • Khúc xạ viên 10 năm',
+    h1Before: 'Không cần ra tiệm vẫn có chiếc kính ',
+    h1Em: 'vừa mặt, vừa mắt',
+    h1After: '.',
+    subtitle: 'Chọn gọng hợp khuôn mặt, cắt đúng đơn kính của riêng bạn với gọng và tròng 100% chính hãng. Sai độ làm lại miễn phí • Đổi trả 30 ngày • Bảo hành 1 năm.',
+    ctaText: 'Chọn Gọng Phù Hợp',
+    rating: '⭐⭐⭐⭐⭐ 4.9/5 từ 1.286 khách',
+    badges: ['Freeship', 'Giao 2–4 ngày', 'Cắt đúng đơn kính'],
+    heroImages: [
+      '/images/landing-pages/soni/hero-1.jpg',
+      '/images/landing-pages/soni/hero-2.jpg',
+      '/images/landing-pages/soni/hero-3.jpg',
+      '/images/landing-pages/soni/hero-4.jpg',
+      '/images/landing-pages/soni/hero-5.jpg',
+      '/images/landing-pages/soni/hero-6.jpg',
+      '/images/landing-pages/soni/hero-7.jpg',
+    ],
+  },
 
   // ───────── GIFT LEAD (thay Hero + Gifts) ─────────
   giftLead: {
@@ -203,6 +227,11 @@ const lp: LandingPageContent = {
       },
     ],
   },
+
+  // ───────── CÁC SECTION MỚI TỪ DEMO ─────────
+  objections: DEFAULT_OBJECTIONS,
+  process4Steps: DEFAULT_PROCESS,
+  comparison: DEFAULT_COMPARISON,
 
   // ───────── 7–9. DÙNG CHUNG ─────────
   guarantees: DEFAULT_GUARANTEES,
