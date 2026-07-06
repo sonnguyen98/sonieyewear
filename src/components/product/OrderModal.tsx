@@ -651,16 +651,6 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   const [paymentConfirmed, setPaymentConfirmed] = useState(false)
   const [rxNotice, setRxNotice] = useState<{ examDate: string } | null>(null)
 
-  // Tính toán thanh toán — dùng trong review step và confirm button
-  const isDepositPmt = form.payment.startsWith('deposit')
-  const payAmountNow = isDepositPmt ? Math.round(discountedTotal * 0.2) : discountedTotal
-  const codRemainder = isDepositPmt ? discountedTotal - payAmountNow : 0
-  const reviewPayLabel = form.payment === 'cod' ? 'COD – Thu hộ khi giao'
-    : (form.payment === 'deposit-bank' || form.payment === 'deposit') ? 'Đặt cọc 20% – Chuyển khoản MB'
-    : form.payment === 'deposit-momo' ? 'Đặt cọc 20% – MoMo'
-    : form.payment === 'full-bank' ? 'Toàn bộ – Chuyển khoản MB'
-    : form.payment === 'full-momo' ? 'Toàn bộ – MoMo'
-    : form.payment
 
   // Khi khách nhập SĐT hợp lệ → tự tra số độ gần nhất từ Sổ Theo Dõi Độ
   useEffect(() => {
@@ -698,6 +688,17 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   const totalPrice = basePrice + lensOriginal
   const discountedTotal = discountedBase + lensPrice
   const savedAmount = totalPrice - discountedTotal
+
+  // Tính toán thanh toán — phụ thuộc discountedTotal nên đặt sau nó
+  const isDepositPmt = form.payment.startsWith('deposit')
+  const payAmountNow = isDepositPmt ? Math.round(discountedTotal * 0.2) : discountedTotal
+  const codRemainder = isDepositPmt ? discountedTotal - payAmountNow : 0
+  const reviewPayLabel = form.payment === 'cod' ? 'COD – Thu hộ khi giao'
+    : (form.payment === 'deposit-bank' || form.payment === 'deposit') ? 'Đặt cọc 20% – Chuyển khoản MB'
+    : form.payment === 'deposit-momo' ? 'Đặt cọc 20% – MoMo'
+    : form.payment === 'full-bank' ? 'Toàn bộ – Chuyển khoản MB'
+    : form.payment === 'full-momo' ? 'Toàn bộ – MoMo'
+    : form.payment
 
   function goToCheckout(lens: LensOption | null) {
     setSelectedLens(lens)
