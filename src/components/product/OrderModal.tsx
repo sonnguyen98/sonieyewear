@@ -861,9 +861,48 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
     step === 'checkout' ? 'Thông Tin Đặt Hàng' :
     step === 'summary' ? 'Xác Nhận Đơn Hàng' : 'Đặt Hàng Thành Công'
 
+  // Back navigation — dùng chung cho header button và browser back gesture
+  const handleBackStepRef = useRef<() => void>(() => {})
+  handleBackStepRef.current = () => {
+    if (step === 'success') return
+    if (step === 'summary') { setStep('checkout'); return }
+    if (step === 'checkout') {
+      if (!selectedLens) { setStep('main'); return }
+      if (selectedLens.id.startsWith('da')) { setStep('da-trong'); return }
+      if (selectedCategory && selectedCategory.variants.length > 1) { setStep('don-trong-detail'); return }
+      setStep('don-trong'); return
+    }
+    if (step === 'don-trong-detail') { setStep('don-trong'); return }
+    if (step === 'don-trong' || step === 'da-trong') { setStep('main'); return }
+    // step === 'main' → đóng modal
+    onClose()
+  }
+
+  // Bắt nút Back của trình duyệt (swipe back trên iOS, nút back Android)
+  // → điều hướng trong modal thay vì thoát trang
+  useEffect(() => {
+    history.pushState({ soniModal: true }, '')
+    const handler = () => {
+      history.pushState({ soniModal: true }, '') // giữ nguyên URL
+      handleBackStepRef.current()
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [])
+
+  // Đóng modal — hỏi xác nhận nếu khách đang điền form
+  const handleClose = () => {
+    const hasData = !!(form.name || form.phone || form.address)
+    const isDirtyStep = step === 'checkout' || step === 'summary'
+    if (isDirtyStep && hasData) {
+      if (!window.confirm('Thông tin đã nhập sẽ bị mất. Bạn có chắc muốn thoát không?')) return
+    }
+    onClose()
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={step === 'success' ? onClose : undefined} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={step === 'success' ? onClose : handleClose} />
 
       <div ref={modalRef} className="relative w-full sm:w-[500px] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto overscroll-contain">
 
@@ -871,19 +910,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         <div className="sticky top-0 bg-white border-b border-brand-border px-5 py-4 flex items-center gap-3 z-10 rounded-t-3xl">
           {(step === 'don-trong' || step === 'don-trong-detail' || step === 'da-trong' || step === 'checkout' || step === 'summary') && (
             <button
-              onClick={() => {
-                if (step === 'summary') { setStep('checkout'); return }
-                if (step === 'checkout') {
-                  if (!selectedLens) { setStep('main'); return }
-                  if (selectedLens.id.startsWith('da')) { setStep('da-trong'); return }
-                  if (selectedCategory && selectedCategory.variants.length > 1) { setStep('don-trong-detail'); return }
-                  setStep('don-trong')
-                } else if (step === 'don-trong-detail') {
-                  setStep('don-trong')
-                } else {
-                  setStep('main')
-                }
-              }}
+              onClick={() => handleBackStepRef.current()}
               className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -901,7 +928,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
             </div>
           </div>
           {step !== 'success' && (
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0">
+            <button onClick={handleClose} className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
