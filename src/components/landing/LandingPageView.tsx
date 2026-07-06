@@ -546,42 +546,40 @@ export default function LandingPageView({ content, product }: Props) {
       <div className="sticky top-0 z-30">
         {/* Announcement bar */}
         <div className="bg-gray-950 border-b border-gray-800/60">
-          <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
-            <div className="flex-1 hidden lg:block" />
-            <div className="flex items-center gap-4 sm:gap-6 flex-1 justify-center">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-xl flex-none select-none">🔥</span>
-                <p className="text-white font-extrabold uppercase tracking-wide leading-tight text-sm sm:text-base md:text-lg">
-                  <span className="hidden sm:inline">TRỌN BỘ KÍNH CẮT THEO ĐỘ —&nbsp;</span>
-                  <span className="sm:hidden">Cắt kính online —&nbsp;</span>
-                  <span className="text-yellow-400">CHỈ TỪ 152.000Đ</span>
-                </p>
-              </div>
-              <div className="flex flex-col items-center gap-0.5 flex-none">
-                <span className="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">Ưu đãi kết thúc sau:</span>
-                <div className="flex items-center gap-1">
-                  {[
-                    { v: timeLeft.hours, label: 'Giờ' },
-                    { v: timeLeft.minutes, label: 'Phút' },
-                    { v: timeLeft.seconds, label: 'Giây' },
-                  ].map(({ v, label }, i, arr) => (
-                    <span key={label} className="flex items-center">
-                      <span className="flex flex-col items-center bg-red-600 rounded-md px-2 sm:px-3 py-1 min-w-[38px] sm:min-w-[48px]">
-                        <span className="text-white text-base sm:text-xl font-extrabold tabular-nums leading-tight">{String(v).padStart(2, '0')}</span>
-                        <span className="text-red-200 text-[8px] sm:text-[9px] leading-tight">{label}</span>
-                      </span>
-                      {i < arr.length - 1 && <span className="text-gray-500 font-bold text-lg px-0.5 -mt-2">:</span>}
+          <div className="max-w-6xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center gap-3 sm:gap-5">
+            {/* Promo text — flex-1 takes remaining space, truncate prevents wrap */}
+            <div className="flex-1 min-w-0 flex items-center gap-2">
+              <span className="text-xl flex-none select-none">🔥</span>
+              <p className="text-white font-extrabold uppercase tracking-wide leading-tight text-sm sm:text-base md:text-lg truncate">
+                <span className="hidden sm:inline">TRỌN BỘ KÍNH CẮT THEO ĐỘ —&nbsp;</span>
+                <span className="sm:hidden">Cắt kính —&nbsp;</span>
+                <span className="text-yellow-400">CHỈ TỪ 152.000Đ</span>
+              </p>
+            </div>
+            {/* Countdown — fixed width */}
+            <div className="flex flex-col items-center gap-0.5 flex-none">
+              <span className="hidden sm:block text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">Ưu đãi kết thúc sau:</span>
+              <div className="flex items-center gap-1">
+                {[
+                  { v: timeLeft.hours, label: 'Giờ' },
+                  { v: timeLeft.minutes, label: 'Phút' },
+                  { v: timeLeft.seconds, label: 'Giây' },
+                ].map(({ v, label }, i, arr) => (
+                  <span key={label} className="flex items-center">
+                    <span className="flex flex-col items-center bg-red-600 rounded-md px-2 sm:px-3 py-1 min-w-[38px] sm:min-w-[48px]">
+                      <span className="text-white text-base sm:text-xl font-extrabold tabular-nums leading-tight">{String(v).padStart(2, '0')}</span>
+                      <span className="text-red-200 text-[8px] sm:text-[9px] leading-tight">{label}</span>
                     </span>
-                  ))}
-                </div>
+                    {i < arr.length - 1 && <span className="text-gray-500 font-bold text-lg px-0.5 -mt-2">:</span>}
+                  </span>
+                ))}
               </div>
             </div>
-            <div className="hidden sm:flex flex-1 justify-end">
-              <button onClick={() => scrollTo('shop')}
-                className="btn-shimmer flex-none text-gray-900 font-extrabold text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg shadow-md hover:scale-105 active:scale-95 transition-transform whitespace-nowrap">
-                Đặt Hàng Ngay →
-              </button>
-            </div>
+            {/* CTA — hidden on mobile */}
+            <button onClick={() => scrollTo('shop')}
+              className="hidden sm:block btn-shimmer flex-none text-gray-900 font-extrabold text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg shadow-md hover:scale-105 active:scale-95 transition-transform whitespace-nowrap">
+              Đặt Hàng Ngay →
+            </button>
           </div>
         </div>
         {/* Nav */}
