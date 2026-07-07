@@ -241,9 +241,9 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
               <div key={p.id}
                 className="flex-shrink-0 w-[60vw] sm:w-56 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group flex flex-col">
                 <button onClick={() => setQuickView(p)} className="text-left">
-                  <div className="aspect-square bg-gray-50 relative overflow-hidden">
+                  <div className="aspect-[3/4] bg-gray-50 relative overflow-hidden">
                     {thumb && (
-                      <Image src={thumb} alt={p.name} fill className="object-contain p-3 group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 42vw, 192px" />
+                      <Image src={thumb} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 60vw, 224px" />
                     )}
                     <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">
                       -{pDiscount}%

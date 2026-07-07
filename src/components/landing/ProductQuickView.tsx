@@ -100,9 +100,9 @@ export default function ProductQuickView({ product, onClose }: ProductQuickViewP
         <div className="flex-1 overflow-y-auto">
           {/* Hero image + price overlay */}
           <div className="relative">
-            <div className="aspect-square bg-gray-50 relative">
+            <div className="aspect-[3/4] bg-gray-50 relative overflow-hidden">
               {mainImage && (
-                <Image src={mainImage} alt={product.name} fill className="object-contain p-4" sizes="(max-width: 512px) 100vw, 512px" />
+                <Image src={mainImage} alt={product.name} fill className="object-cover" sizes="(max-width: 512px) 100vw, 512px" />
               )}
             </div>
             {/* Price badge */}
@@ -132,9 +132,9 @@ export default function ProductQuickView({ product, onClose }: ProductQuickViewP
                       selectedColorIdx === i ? 'border-red-500' : 'border-gray-100 hover:border-gray-300',
                       !c.inStock && 'opacity-40'
                     )}>
-                    <div className="aspect-square bg-gray-50 rounded-lg relative overflow-hidden mb-1.5">
+                    <div className="aspect-[3/4] bg-gray-50 rounded-lg relative overflow-hidden mb-1.5">
                       {c.imageUrl && (
-                        <Image src={c.imageUrl} alt={c.name} fill className="object-contain p-1" sizes="120px" />
+                        <Image src={c.imageUrl} alt={c.name} fill className="object-cover" sizes="120px" />
                       )}
                     </div>
                     <p className="text-[11px] font-semibold text-center text-brand-black truncate">{c.name}</p>
