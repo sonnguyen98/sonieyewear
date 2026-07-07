@@ -235,20 +235,33 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
 
   async function handleUpload(file: File) {
     setUploading(true)
-    const id = 'new-' + Date.now()
-    const fd = new FormData(); fd.append('file', file); fd.append('productId', id)
-    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-    const { url } = await r.json()
-    setImages(p => [...p, url]); setUploading(false)
+    try {
+      const id = 'new-' + Date.now()
+      const fd = new FormData(); fd.append('file', file); fd.append('productId', id)
+      const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error ?? 'Tải ảnh thất bại')
+      setImages(p => [...p, data.url])
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Tải ảnh thất bại')
+    } finally {
+      setUploading(false)
+    }
   }
 
   async function handleColorUpload(file: File, colorIdx: number) {
     setUploadingColor(colorIdx)
-    const fd = new FormData(); fd.append('file', file); fd.append('productId', `new-color-${colorIdx}-${Date.now()}`)
-    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-    const { url } = await r.json()
-    setColorImages(prev => ({ ...prev, [colorIdx]: [...(prev[colorIdx] ?? []), url] }))
-    setUploadingColor(null)
+    try {
+      const fd = new FormData(); fd.append('file', file); fd.append('productId', `new-color-${colorIdx}-${Date.now()}`)
+      const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error ?? 'Tải ảnh thất bại')
+      setColorImages(prev => ({ ...prev, [colorIdx]: [...(prev[colorIdx] ?? []), data.url] }))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Tải ảnh thất bại')
+    } finally {
+      setUploadingColor(null)
+    }
   }
 
   async function handleSave() {
@@ -783,13 +796,19 @@ function LensEditModal({ item, saving, onSave, onClose }: {
 
   async function handleUpload(file: File) {
     setUploading(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('folder', 'lens')
-    const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
-    const { url } = await r.json()
-    setForm(f => ({ ...f, image: url }))
-    setUploading(false)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'lens')
+      const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error ?? 'Tải ảnh thất bại')
+      setForm(f => ({ ...f, image: data.url }))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Tải ảnh thất bại')
+    } finally {
+      setUploading(false)
+    }
   }
 
   function handleSave() {
@@ -1220,31 +1239,43 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
   // Upload ảnh đại diện (thumbnail)
   async function handleUploadThumbnail(file: File) {
     setUploadingThumb(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('folder', 'blog')
-    const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
-    const { url } = await r.json()
-    setForm(x => ({ ...x, image: url }))
-    setUploadingThumb(false)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'blog')
+      const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error ?? 'Tải ảnh thất bại')
+      setForm(x => ({ ...x, image: data.url }))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Tải ảnh thất bại')
+    } finally {
+      setUploadingThumb(false)
+    }
   }
 
   // Upload ảnh → vào hàng đợi (chưa chèn vào nội dung)
   async function handleUploadToQueue(files: FileList) {
     setUploadingImg(true)
-    const urls: string[] = []
-    for (const file of Array.from(files)) {
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('folder', 'blog')
-      const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
-      const { url } = await r.json()
-      urls.push(url)
+    try {
+      const urls: string[] = []
+      for (const file of Array.from(files)) {
+        const fd = new FormData()
+        fd.append('file', file)
+        fd.append('folder', 'blog')
+        const r = await fetch('/api/admin/upload-content', { method: 'POST', body: fd })
+        const data = await r.json()
+        if (!r.ok) throw new Error(data.error ?? 'Tải ảnh thất bại')
+        urls.push(data.url)
+      }
+      setImgQueue(prev => [...prev, ...urls])
+      // Tự đặt thumbnail nếu chưa có
+      setForm(x => x.image ? x : { ...x, image: urls[0] ?? x.image })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Tải ảnh thất bại')
+    } finally {
+      setUploadingImg(false)
     }
-    setImgQueue(prev => [...prev, ...urls])
-    // Tự đặt thumbnail nếu chưa có
-    setForm(x => x.image ? x : { ...x, image: urls[0] ?? x.image })
-    setUploadingImg(false)
   }
 
   // Khi Lưu: thay ![1] → ảnh số 1, ![2] → ảnh số 2, v.v.
@@ -1429,19 +1460,32 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
 
   async function handleUpload(file: File) {
     setUploading(true)
-    const fd = new FormData(); fd.append('file', file); fd.append('productId', product.id)
-    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-    const { url } = await r.json()
-    setImages(p => [...p, url]); setUploading(false)
+    try {
+      const fd = new FormData(); fd.append('file', file); fd.append('productId', product.id)
+      const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error ?? 'Tải ảnh thất bại')
+      setImages(p => [...p, data.url])
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Tải ảnh thất bại')
+    } finally {
+      setUploading(false)
+    }
   }
 
   async function handleColorUpload(file: File, variantId: string) {
     setUploadingColor(variantId)
-    const fd = new FormData(); fd.append('file', file); fd.append('productId', `${product.id}-${variantId}`)
-    const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-    const { url } = await r.json()
-    setColorImages(prev => ({ ...prev, [variantId]: [...(prev[variantId] ?? []), url] }))
-    setUploadingColor(null)
+    try {
+      const fd = new FormData(); fd.append('file', file); fd.append('productId', `${product.id}-${variantId}`)
+      const r = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error ?? 'Tải ảnh thất bại')
+      setColorImages(prev => ({ ...prev, [variantId]: [...(prev[variantId] ?? []), data.url] }))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Tải ảnh thất bại')
+    } finally {
+      setUploadingColor(null)
+    }
   }
 
   async function handleSave() {

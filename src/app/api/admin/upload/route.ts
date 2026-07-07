@@ -20,6 +20,11 @@ export async function POST(req: NextRequest) {
   const rawExt = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
   const ext = ALLOWED_EXTS.includes(rawExt) ? rawExt : 'jpg'
 
-  const result = await saveImage(file, `products${productId ? '/' + productId : ''}`, ext)
-  return NextResponse.json(result)
+  try {
+    const result = await saveImage(file, `products${productId ? '/' + productId : ''}`, ext)
+    return NextResponse.json(result)
+  } catch (e: any) {
+    console.error('Upload saveImage error:', e)
+    return NextResponse.json({ error: e?.message ?? 'Lưu ảnh thất bại' }, { status: 500 })
+  }
 }

@@ -11,7 +11,10 @@ export interface UploadResult { url: string }
 export async function saveImage(
   file: File, prefix: string, ext: string
 ): Promise<UploadResult> {
-  const filename = `${prefix}-${Date.now()}.${ext}`
+  // Tên file chỉ dùng segment cuối của prefix — tránh lặp lại cả đường dẫn con
+  // (vd prefix "products/new-123" → base "new-123"), nếu không sẽ ghi sai thư mục lồng.
+  const base = prefix.split('/').pop() || prefix
+  const filename = `${base}-${Date.now()}.${ext}`
   const bytes = await file.arrayBuffer()
   const buffer = Buffer.from(bytes)
 
