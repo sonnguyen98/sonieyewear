@@ -138,6 +138,8 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
   const [quickView, setQuickView] = useState<any | null>(null)
   const [search, setSearch] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const presetRef = useRef(false)
+  const scrolledRef = useRef(false)
 
   useEffect(() => {
     fetch('/api/products')
@@ -145,6 +147,24 @@ function ShopCarousel({ accent }: { accent: AccentMap }) {
       .then(data => { if (Array.isArray(data)) setAllProducts(data) })
       .catch(() => {})
   }, [])
+
+  // Đọc mã sản phẩm từ URL (?sku=S2 hoặc ?q=S2) để lọc sẵn khi khách bấm link ads
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const preset = params.get('sku') || params.get('q')
+    if (preset) {
+      presetRef.current = true
+      setSearch(preset)
+    }
+  }, [])
+
+  // Sau khi sản phẩm tải xong, tự cuộn xuống khu shop nếu link có sẵn mã lọc
+  useEffect(() => {
+    if (presetRef.current && allProducts.length > 0 && !scrolledRef.current) {
+      scrolledRef.current = true
+      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [allProducts])
 
   const q = search.toLowerCase().trim()
   const products = q
