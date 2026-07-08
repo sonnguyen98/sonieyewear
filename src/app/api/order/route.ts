@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
         await createAffiliateCommission({
           orderCode: body.orderCode,
           customerName: body.name,
+          customerPhone: body.phone,
           affiliateCode: body.affiliateCode,
           orderAmount: body.orderAmount,
           paymentType: body.paymentType ?? 'cod',

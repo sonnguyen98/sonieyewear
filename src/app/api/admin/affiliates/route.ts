@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/adminAuth'
 import {
   getAllAffiliates, getAllCommissions, getAllWithdrawals,
-  approveCommissionById, markWithdrawalPaid, toggleAffiliateStatus,
+  approveCommissionById, approveAllPendingCommissions, markWithdrawalPaid, toggleAffiliateStatus,
   createAffiliateCommission,
 } from '@/lib/affiliateStore'
 
@@ -33,6 +33,11 @@ export async function PUT(req: NextRequest) {
     const result = await approveCommissionById(payload.commissionId)
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.error === 'Không tìm thấy' ? 404 : 400 })
     return NextResponse.json({ success: true })
+  }
+
+  if (action === 'approve-all-commissions') {
+    const result = await approveAllPendingCommissions()
+    return NextResponse.json({ success: true, count: result.count })
   }
 
   if (action === 'mark-paid') {

@@ -1866,6 +1866,14 @@ function AffiliateSection() {
         {tab === 'commissions' && (
           <div className="space-y-2">
             {commissions.length === 0 && <p className="text-gray-400 text-sm text-center py-8">Chưa có hoa hồng nào</p>}
+            {pendingCm.length > 0 && (
+              <button
+                onClick={() => { if (confirm(`Duyệt tất cả ${pendingCm.length} hoa hồng đang chờ?\n\nCHỈ duyệt khi các đơn COD đã giao thành công & khách đã trả tiền.`)) doAction({ action: 'approve-all-commissions' }, 'batch') }}
+                disabled={acting === 'batch'}
+                className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl disabled:opacity-50">
+                {acting === 'batch' ? 'Đang duyệt...' : `✓ Duyệt tất cả ${pendingCm.length} hoa hồng đang chờ`}
+              </button>
+            )}
             {commissions.map(c => (
               <div key={c.id} className={`bg-white rounded-xl border p-3 flex items-center gap-3 ${c.status === 'pending' ? 'border-amber-200' : 'border-gray-200'}`}>
                 <div className="flex-1 min-w-0">

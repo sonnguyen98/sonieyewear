@@ -185,6 +185,9 @@ export default function AffiliatePage() {
           </button>
         </div>
 
+        {/* Tạo link cho từng sản phẩm / trang cụ thể */}
+        <DeepLinkTool code={affiliate.code} />
+
         {/* Số dư */}
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -255,7 +258,58 @@ export default function AffiliatePage() {
             </div>
           </div>
         )}
+
+        <p className="text-center text-xs text-gray-400 pt-2">
+          <a href="/affiliate/dieu-khoan" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 underline">Điều khoản chương trình</a>
+        </p>
       </div>
+    </div>
+  )
+}
+
+// ── Deep-link Tool ────────────────────────────────────────────────────────────
+function DeepLinkTool({ code }: { code: string }) {
+  const [url, setUrl] = useState('')
+  const [out, setOut] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  function make(target?: string) {
+    const raw = (target ?? url).trim()
+    if (!raw) { setOut(''); return }
+    try {
+      const u = new URL(raw, HOST)
+      u.searchParams.set('ref', code)
+      setOut(u.toString())
+    } catch { setOut('') }
+  }
+
+  const presets = [
+    { label: 'Trang chủ', path: '/' },
+    { label: 'Shop Gọng Kính', path: '/gong-kinh' },
+  ]
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 p-4">
+      <p className="font-bold text-sm text-gray-900 mb-1">🔗 Tạo link cho sản phẩm/trang cụ thể</p>
+      <p className="text-xs text-gray-500 mb-3">Dán link bất kỳ của SONi (sản phẩm, trang ưu đãi…), hệ thống tự gắn mã giới thiệu của bạn.</p>
+      <div className="flex gap-2 mb-2 flex-wrap">
+        {presets.map(p => (
+          <button key={p.path} type="button" onClick={() => { setUrl(HOST + p.path); make(HOST + p.path) }}
+            className="text-xs px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 font-semibold text-gray-700 transition-colors">{p.label}</button>
+        ))}
+      </div>
+      <input value={url} onChange={e => setUrl(e.target.value)} onBlur={() => make()}
+        placeholder="Dán link, vd: https://kinhmatsoni.com/lp/soni?sku=S2"
+        className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 mb-2 outline-none focus:border-amber-400" />
+      <button type="button" onClick={() => make()}
+        className="w-full py-2 bg-gray-900 text-white font-bold rounded-xl text-sm transition-all active:scale-95">Tạo link giới thiệu</button>
+      {out && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-2">
+          <p className="font-mono text-xs break-all text-gray-800 mb-2">{out}</p>
+          <button type="button" onClick={() => { navigator.clipboard.writeText(out); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+            className="w-full py-1.5 bg-amber-500 text-white font-bold rounded-lg text-xs transition-all active:scale-95">{copied ? '✓ Đã copy!' : '📋 Copy link này'}</button>
+        </div>
+      )}
     </div>
   )
 }
@@ -265,6 +319,8 @@ function AuthForm({ mode, onBack, onSuccess }: { mode: 'register' | 'login'; onB
   const [form, setForm] = useState({ name: '', phone: '', password: '', bankName: '', bankAccount: '', bankOwner: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [view, setView] = useState<'auth' | 'reset'>('auth')
+  const [notice, setNotice] = useState('')
   const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [k]: e.target.value }))
 
   async function handleSubmit() {
@@ -277,22 +333,44 @@ function AuthForm({ mode, onBack, onSuccess }: { mode: 'register' | 'login'; onB
     onSuccess(d.affiliate.code, form.phone)
   }
 
+  async function handleReset() {
+    setLoading(true); setError('')
+    const r = await fetch('/api/affiliate/reset-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: form.phone, bankAccount: form.bankAccount, newPassword: form.password }),
+    })
+    const d = await r.json()
+    setLoading(false)
+    if (!r.ok) { setError(d.error ?? 'Có lỗi xảy ra'); return }
+    setView('auth'); setNotice('✅ Đã đặt lại mật khẩu. Đăng nhập bằng mật khẩu mới.')
+    setForm(p => ({ ...p, bankAccount: '', password: '' }))
+  }
+
   const inp = 'w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-900 transition-colors'
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
         <button onClick={onBack} className="text-xs text-gray-400 hover:text-gray-700 mb-4">← Quay lại</button>
-        <h2 className="text-xl font-black text-gray-900 mb-1">{mode === 'register' ? 'Đăng ký Affiliate' : 'Đăng nhập'}</h2>
-        <p className="text-xs text-gray-400 mb-5">{mode === 'register' ? 'Tạo tài khoản để nhận link và theo dõi hoa hồng' : 'Đăng nhập để xem tài khoản của bạn'}</p>
+        <h2 className="text-xl font-black text-gray-900 mb-1">{view === 'reset' ? 'Đặt lại mật khẩu' : mode === 'register' ? 'Đăng ký Affiliate' : 'Đăng nhập'}</h2>
+        <p className="text-xs text-gray-400 mb-5">{view === 'reset' ? 'Xác minh bằng thông tin đã đăng ký' : mode === 'register' ? 'Tạo tài khoản để nhận link và theo dõi hoa hồng' : 'Đăng nhập để xem tài khoản của bạn'}</p>
 
-        <div className="space-y-3">
-          {mode === 'register' && <input placeholder="Họ và tên *" value={form.name} onChange={f('name')} className={inp} />}
-          <input placeholder="Số điện thoại *" value={form.phone} onChange={f('phone')} className={inp} type="tel" />
-          <input placeholder="Mật khẩu *" value={form.password} onChange={f('password')} className={inp} type="password" />
+        {notice && <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2 mb-3">{notice}</p>}
 
-          {mode === 'register' && (
-            <>
+        {view === 'reset' ? (
+          <div className="space-y-3">
+            <p className="text-xs text-gray-500 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">Nhập SĐT và số tài khoản ngân hàng bạn đã đăng ký để xác minh, rồi đặt mật khẩu mới.</p>
+            <input placeholder="Số điện thoại đã đăng ký *" value={form.phone} onChange={f('phone')} className={inp} type="tel" />
+            <input placeholder="Số tài khoản ngân hàng đã đăng ký *" value={form.bankAccount} onChange={f('bankAccount')} className={inp} />
+            <input placeholder="Mật khẩu mới (tối thiểu 6 ký tự) *" value={form.password} onChange={f('password')} className={inp} type="password" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {mode === 'register' && <input placeholder="Họ và tên *" value={form.name} onChange={f('name')} className={inp} />}
+            <input placeholder="Số điện thoại *" value={form.phone} onChange={f('phone')} className={inp} type="tel" />
+            <input placeholder="Mật khẩu *" value={form.password} onChange={f('password')} className={inp} type="password" />
+
+            {mode === 'register' && (
               <div className="border-t border-gray-100 pt-3">
                 <p className="text-xs font-semibold text-gray-500 mb-2">Thông tin ngân hàng (để nhận tiền)</p>
                 <div className="space-y-2">
@@ -301,16 +379,29 @@ function AuthForm({ mode, onBack, onSuccess }: { mode: 'register' | 'login'; onB
                   <input placeholder="Tên chủ tài khoản *" value={form.bankOwner} onChange={f('bankOwner')} className={inp} />
                 </div>
               </div>
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {error && <p className="text-xs text-red-500 mt-3">{error}</p>}
 
-        <button onClick={handleSubmit} disabled={loading}
+        <button onClick={view === 'reset' ? handleReset : handleSubmit} disabled={loading}
           className="w-full mt-4 py-3 bg-amber-500 hover:bg-amber-400 text-gray-900 font-black rounded-2xl transition-all disabled:opacity-50 active:scale-95">
-          {loading ? 'Đang xử lý...' : mode === 'register' ? 'Đăng ký ngay' : 'Đăng nhập'}
+          {loading ? 'Đang xử lý...' : view === 'reset' ? 'Đặt lại mật khẩu' : mode === 'register' ? 'Đăng ký ngay' : 'Đăng nhập'}
         </button>
+
+        {mode === 'login' && view === 'auth' && (
+          <p className="text-center text-xs text-gray-400 mt-4">
+            <button onClick={() => { setError(''); setNotice(''); setView('reset') }}
+              className="text-amber-600 font-semibold hover:underline">Quên mật khẩu?</button>
+          </p>
+        )}
+        {view === 'reset' && (
+          <p className="text-center text-xs text-gray-400 mt-4">
+            <button onClick={() => { setError(''); setView('auth') }}
+              className="text-amber-600 font-semibold hover:underline">← Quay lại đăng nhập</button>
+          </p>
+        )}
 
         {mode === 'register' && (
           <p className="text-center text-xs text-gray-400 mt-4">

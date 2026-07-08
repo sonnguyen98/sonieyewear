@@ -140,6 +140,27 @@ async function upgradePassword(affiliateId: string, password: string): Promise<v
   })
 }
 
+// Đặt lại mật khẩu — xác minh danh tính bằng số tài khoản NH đã đăng ký (chưa có SMS OTP)
+export async function resetPasswordByBank(
+  phone: string, bankAccount: string, newPassword: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!newPassword || newPassword.length < 6) {
+    return { ok: false, error: 'Mật khẩu mới tối thiểu 6 ký tự' }
+  }
+  return withLock('aff:write', async () => {
+    const list = await getAllAffiliates()
+    const idx = list.findIndex(a => a.phone === phone)
+    const acc = (s: string) => (s || '').replace(/\s/g, '')
+    // Cùng một thông báo cho "SĐT sai" và "STK sai" → tránh dò tài khoản
+    if (idx === -1 || acc(list[idx].bankAccount) !== acc(bankAccount)) {
+      return { ok: false, error: 'SĐT hoặc số tài khoản không khớp với thông tin đã đăng ký' }
+    }
+    list[idx] = { ...list[idx], passwordHash: scryptHash(newPassword) }
+    await kvSet(KV_KEYS.affiliates, 'affiliates.json', list)
+    return { ok: true }
+  })
+}
+
 // ── Register ────────────────────────────────────────────────────────────────
 function genCode(existing: string[]): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -183,9 +204,17 @@ export async function registerAffiliate(input: RegisterInput): Promise<{ ok: tru
 export interface CreateCommissionInput {
   orderCode: string
   customerName: string
+  customerPhone?: string
   affiliateCode: string
   orderAmount: number
   paymentType: 'prepaid' | 'cod'
+}
+
+// So khớp SĐT bỏ qua khoảng trắng / mã vùng (+84 ↔ 0) — dùng 9 số cuối
+function samePhone(a: string, b: string): boolean {
+  const digits = (s: string) => (s || '').replace(/\D/g, '').slice(-9)
+  const da = digits(a)
+  return da.length === 9 && da === digits(b)
 }
 
 export async function createAffiliateCommission(
@@ -195,6 +224,11 @@ export async function createAffiliateCommission(
     const affiliates = await getAllAffiliates()
     const affIdx = affiliates.findIndex(a => a.code === input.affiliateCode && a.status === 'active')
     if (affIdx === -1) return { ok: false, error: 'Affiliate không tồn tại' }
+
+    // Chặn tự giới thiệu: CTV tự mua qua link của chính mình → không tính hoa hồng
+    if (input.customerPhone && samePhone(affiliates[affIdx].phone, input.customerPhone)) {
+      return { ok: true, skipped: 'self-referral' }
+    }
 
     const commissions = await getAllCommissions()
     if (commissions.some(c => c.orderCode === input.orderCode)) {
@@ -253,6 +287,21 @@ export async function approveCommissionById(commissionId: string): Promise<{ ok:
     const changed = await approveCommissionInternal(commissions, idx)
     if (!changed) return { ok: false, error: 'Đã duyệt rồi' }
     return { ok: true }
+  })
+}
+
+// Duyệt hàng loạt mọi hoa hồng đang "pending" (dùng khi các đơn COD đã giao xong)
+export async function approveAllPendingCommissions(): Promise<{ ok: boolean; count: number }> {
+  return withLock('aff:write', async () => {
+    const commissions = await getAllCommissions()
+    let count = 0
+    for (let i = 0; i < commissions.length; i++) {
+      if (commissions[i].status === 'pending') {
+        const changed = await approveCommissionInternal(commissions, i)
+        if (changed) count++
+      }
+    }
+    return { ok: true, count }
   })
 }
 
