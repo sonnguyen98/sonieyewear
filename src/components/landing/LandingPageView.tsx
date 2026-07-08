@@ -577,9 +577,7 @@ export default function LandingPageView({ content, product }: Props) {
             <div className="flex-1 min-w-0 flex items-center gap-2">
               <span className="text-xl flex-none select-none">🔥</span>
               <p className="text-white font-extrabold uppercase tracking-wide leading-tight text-[11px] sm:text-base md:text-lg truncate">
-                <span className="hidden sm:inline">TRỌN BỘ KÍNH CẮT THEO ĐỘ —&nbsp;</span>
-                <span className="sm:hidden">Cắt Kính —&nbsp;</span>
-                <span className="text-yellow-400">CHỈ TỪ 152.000Đ</span>
+                SHOP ĐANG <span className="text-yellow-400">GIẢM GIÁ</span>
               </p>
             </div>
             {/* Countdown — fixed width */}
