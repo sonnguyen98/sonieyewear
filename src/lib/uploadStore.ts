@@ -2,7 +2,9 @@ import { put } from '@vercel/blob'
 import fs from 'fs'
 import path from 'path'
 
-const USE_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN
+// Trên Vercel filesystem chỉ đọc (ghi sẽ ENOENT) → luôn dùng Blob.
+// put() tự đọc BLOB_READ_WRITE_TOKEN từ env. Local (không có VERCEL) mới ghi ổ đĩa.
+const USE_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL === '1'
 
 export interface UploadResult { url: string }
 
