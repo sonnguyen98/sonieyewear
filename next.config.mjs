@@ -30,6 +30,7 @@ const nextConfig = {
               "connect-src 'self' https://maximum-ram-95934.upstash.io https://cdn.jsdelivr.net https://script.google.com https://*.googleusercontent.com https://generativelanguage.googleapis.com",
               "media-src 'self' blob:",
               "worker-src 'self' blob:",
+              "frame-src 'self' https://www.google.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

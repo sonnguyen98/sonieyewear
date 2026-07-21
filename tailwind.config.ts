@@ -47,6 +47,10 @@ const config: Config = {
           '0%, 100%': { boxShadow: '0 0 0 0 rgba(13,13,13,0.3)' },
           '50%':      { boxShadow: '0 0 0 10px rgba(13,13,13,0)' },
         },
+        pulseGold: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(212,168,83,0.55)' },
+          '50%':      { boxShadow: '0 0 0 14px rgba(212,168,83,0)' },
+        },
         shimmer: {
           '0%':   { backgroundPosition: '-400px 0' },
           '100%': { backgroundPosition: '400px 0' },
@@ -57,6 +61,7 @@ const config: Config = {
         'fade-in':    'fadeIn 0.3s ease-out',
         'pulse-zalo': 'pulseZalo 2s infinite',
         'pulse-chat': 'pulseChat 2s infinite',
+        'pulse-gold': 'pulseGold 2.2s infinite',
         shimmer:      'shimmer 1.4s infinite linear',
       },
     },
