@@ -118,6 +118,51 @@ export default function QuangMinhLandingPage({ store }: Props) {
   const phoneDisplay = store.phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3')
   const mapEmbedSrc = `https://www.google.com/maps?q=${encodeURIComponent(`${store.name}, ${store.address}`)}&output=embed`
 
+  const heroContent = (
+    <>
+      <div className="animate-fade-in inline-flex items-start gap-2.5 rounded-2xl border border-brand-gold/50 bg-brand-gold/10 px-4 py-3 mb-4">
+        <span className="relative flex h-2.5 w-2.5 shrink-0 mt-1.5">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75 animate-ping" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-gold" />
+        </span>
+        <span className="bg-gradient-to-r from-brand-gold via-white to-brand-gold bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer text-lg sm:text-2xl font-extrabold tracking-wide uppercase leading-snug">
+          Cửa hàng kính mắt
+          <br />
+          khu công nghiệp Quang Minh · Hà Nội
+        </span>
+      </div>
+      <h1 className="animate-slide-up text-2xl sm:text-display-lg font-extrabold text-white leading-tight">
+        {store.name}
+      </h1>
+      <p className="animate-slide-up mt-3 text-white/90 text-sm sm:text-lg">
+        Đo mắt độ chính xác cao · Cắt kính lấy ngay · Sửa kính, thay gọng - thay tròng
+      </p>
+      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+        <a
+          href={store.mapShareUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="animate-pulse-gold flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-brand-gold to-[#B8863F] text-brand-black font-bold px-7 py-4 text-base sm:text-lg shadow-lg shadow-black/30 hover:brightness-110 active:scale-95 transition"
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+          Chỉ Đường Tới Cửa Hàng
+        </a>
+        <a
+          href={telHref}
+          className="flex items-center justify-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/60 text-white font-semibold px-5 py-3 text-sm hover:bg-white/20 active:scale-95 transition"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a1.5 1.5 0 001.5-1.5v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5a1.5 1.5 0 00-1.5 1.5v2.25z" />
+          </svg>
+          Gọi {phoneDisplay}
+        </a>
+      </div>
+    </>
+  )
+
   return (
     <div className="min-h-screen bg-white text-brand-black font-sans pb-24 lg:pb-0">
       {/* Hero */}
@@ -125,55 +170,22 @@ export default function QuangMinhLandingPage({ store }: Props) {
         <PhotoSlot
           src="/images/landing-pages/kinh-mat-quang-minh/mat-tien.jpg"
           alt="Mặt tiền Kính Mắt Viện Hàn"
-          className="aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/9] w-full object-top"
+          className="aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] w-full object-center sm:object-top"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/5" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/35 via-transparent to-transparent" />
-        <div className="absolute inset-0 flex flex-col justify-end px-4 pb-8 sm:px-8 sm:pb-14">
+        {/* Overlay chữ chỉ áp dụng từ sm trở lên — ảnh rộng đủ chỗ để chữ không che mất mặt tiền */}
+        <div className="hidden sm:block absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/5" />
+        <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-black/35 via-transparent to-transparent" />
+        <div className="hidden sm:flex absolute inset-0 flex-col justify-end px-8 pb-14">
           <div className="max-w-2xl mx-auto w-full">
-            <div className="rounded-2xl bg-black/25 backdrop-blur-md border border-white/10 px-5 py-6 sm:px-8 sm:py-8">
-              <div className="animate-fade-in inline-flex items-start gap-2.5 rounded-2xl border border-brand-gold/50 bg-brand-gold/10 px-4 py-3 mb-4">
-                <span className="relative flex h-2.5 w-2.5 shrink-0 mt-1.5">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75 animate-ping" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-gold" />
-                </span>
-                <span className="bg-gradient-to-r from-brand-gold via-white to-brand-gold bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer text-lg sm:text-2xl font-extrabold tracking-wide uppercase leading-snug">
-                  Cửa hàng kính mắt
-                  <br />
-                  khu công nghiệp Quang Minh · Hà Nội
-                </span>
-              </div>
-              <h1 className="animate-slide-up text-2xl sm:text-display-lg font-extrabold text-white leading-tight">
-                {store.name}
-              </h1>
-              <p className="animate-slide-up mt-3 text-white/90 text-sm sm:text-lg">
-                Đo mắt độ chính xác cao · Cắt kính lấy ngay · Sửa kính, thay gọng - thay tròng
-              </p>
-              <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                <a
-                  href={store.mapShareUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="animate-pulse-gold flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-brand-gold to-[#B8863F] text-brand-black font-bold px-7 py-4 text-base sm:text-lg shadow-lg shadow-black/30 hover:brightness-110 active:scale-95 transition"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                  </svg>
-                  Chỉ Đường Tới Cửa Hàng
-                </a>
-                <a
-                  href={telHref}
-                  className="flex items-center justify-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/60 text-white font-semibold px-5 py-3 text-sm hover:bg-white/20 active:scale-95 transition"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a1.5 1.5 0 001.5-1.5v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5a1.5 1.5 0 00-1.5 1.5v2.25z" />
-                  </svg>
-                  Gọi {phoneDisplay}
-                </a>
-              </div>
+            <div className="rounded-2xl bg-black/25 backdrop-blur-md border border-white/10 px-8 py-8">
+              {heroContent}
             </div>
           </div>
+        </div>
+
+        {/* Mobile: ảnh hiển thị trọn vẹn, nội dung xuống dưới thành khối riêng không che ảnh */}
+        <div className="sm:hidden px-4 pt-6 pb-8">
+          <div className="max-w-2xl mx-auto w-full">{heroContent}</div>
         </div>
       </section>
 
