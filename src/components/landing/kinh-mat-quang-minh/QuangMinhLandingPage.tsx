@@ -132,19 +132,21 @@ export default function QuangMinhLandingPage({ store }: Props) {
         <div className="absolute inset-0 flex flex-col justify-end px-4 pb-8 sm:px-8 sm:pb-14">
           <div className="max-w-2xl mx-auto w-full">
             <div className="rounded-2xl bg-black/25 backdrop-blur-md border border-white/10 px-5 py-6 sm:px-8 sm:py-8">
-              <div className="animate-fade-in inline-flex items-center gap-2 rounded-full border border-brand-gold/50 bg-brand-gold/10 px-4 py-1.5 mb-4">
-                <span className="relative flex h-2 w-2 shrink-0">
+              <div className="animate-fade-in inline-flex items-start gap-2.5 rounded-2xl border border-brand-gold/50 bg-brand-gold/10 px-4 py-3 mb-4">
+                <span className="relative flex h-2.5 w-2.5 shrink-0 mt-1.5">
                   <span className="absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75 animate-ping" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-gold" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-gold" />
                 </span>
-                <span className="bg-gradient-to-r from-brand-gold via-white to-brand-gold bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer text-xs sm:text-sm font-bold tracking-wide uppercase">
-                  Cửa hàng kính mắt khu công nghiệp Quang Minh · Hà Nội
+                <span className="bg-gradient-to-r from-brand-gold via-white to-brand-gold bg-[length:200%_100%] bg-clip-text text-transparent animate-shimmer text-lg sm:text-2xl font-extrabold tracking-wide uppercase leading-snug">
+                  Cửa hàng kính mắt
+                  <br />
+                  khu công nghiệp Quang Minh · Hà Nội
                 </span>
               </div>
-              <h1 className="animate-slide-up text-3xl sm:text-display-lg font-extrabold text-white leading-tight">
+              <h1 className="animate-slide-up text-2xl sm:text-display-lg font-extrabold text-white leading-tight">
                 {store.name}
               </h1>
-              <p className="animate-slide-up mt-3 text-white/90 text-base sm:text-lg">
+              <p className="animate-slide-up mt-3 text-white/90 text-sm sm:text-lg">
                 Đo mắt độ chính xác cao · Cắt kính lấy ngay · Sửa kính, thay gọng - thay tròng
               </p>
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
