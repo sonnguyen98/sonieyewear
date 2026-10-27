@@ -68,6 +68,20 @@ export default function CatalogContent({ initialProducts }: { initialProducts: P
         <span className="text-brand-black font-medium">{VI.catalog.title}</span>
       </nav>
 
+      {/* Banner gói đang chọn */}
+      {tierGate !== 'all' && (
+        <div className="mb-3 bg-brand-black text-white rounded-2xl px-4 py-2.5 flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-xs sm:text-sm font-semibold">
+            Bạn đang chọn gói <span className="text-amber-300">{TIER_GATE_OPTIONS.find(o => o.value === tierGate)?.sub}</span> – {new Intl.NumberFormat('vi-VN').format(tierGate)}đ
+            {' · '}Chọn 1 gọng tặng (tối đa {new Intl.NumberFormat('vi-VN').format(tierGate)}đ)
+            {tierGate >= 650000 && <>{' · '}🚚 Free ship</>}
+          </p>
+          <button onClick={() => setTierGate('all')} className="text-[11px] text-gray-300 hover:text-white underline underline-offset-2 flex-shrink-0">
+            Đổi gói
+          </button>
+        </div>
+      )}
+
       {/* Chọn mức tròng trước khi xem gọng */}
       <div className="mb-4 bg-brand-light rounded-2xl p-3">
         <p className="text-xs font-semibold text-brand-black mb-2">Bạn muốn cắt tròng mức nào?</p>
@@ -152,6 +166,7 @@ export default function CatalogContent({ initialProducts }: { initialProducts: P
             total={initialProducts.length}
             facePhoto={facePhoto}
             faceLandmarks={faceLandmarks}
+            tierGate={tierGate}
           />
         </div>
       </div>

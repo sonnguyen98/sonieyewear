@@ -19,7 +19,6 @@ const NAV_LINKS = [
 const MORE_LINKS = [
   { href: '/chinh-sach', label: 'Chính Sách Bảo Hành' },
   { href: '/soni-share', label: 'SONi Share' },
-  { href: '/he-thong',   label: 'Hệ Thống Cửa Hàng' },
 ]
 
 const ALL_LINKS = [...NAV_LINKS, ...MORE_LINKS]

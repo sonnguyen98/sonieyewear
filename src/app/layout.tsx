@@ -19,7 +19,7 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'SONi — Cắt Kính Online | Đo Mắt, Thử Kính, Giao Tận Nhà',
+    default: 'SONi — Cắt Kính Online | Thử Kính AR, Giao Tận Nhà',
     template: '%s | SONi — Cắt Kính Online',
   },
   description:

@@ -14,9 +14,10 @@ import { useStock } from '@/hooks/useStock'
 interface ProductCardProps {
   product: Product
   showZaloCTA?: boolean
+  tierGate?: 350000 | 650000 | 900000 | 'all'
 }
 
-export default function ProductCard({ product, showZaloCTA = true }: ProductCardProps) {
+export default function ProductCard({ product, showZaloCTA = true, tierGate }: ProductCardProps) {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0)
   const [imgError, setImgError] = useState(false)
   const { getVariantStock, isProductAvailable } = useStock()
@@ -46,9 +47,14 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
     openZalo(msg)
   }
 
+  const hasTier = typeof tierGate === 'number'
+  const detailHref = isAvailable
+    ? (hasTier ? `/gong-kinh/${product.id}?tier=${tierGate}` : `/gong-kinh/${product.id}`)
+    : '#'
+
   return (
     <Link
-      href={isAvailable ? `/gong-kinh/${product.id}` : '#'}
+      href={detailHref}
       onClick={e => { if (!isAvailable) e.preventDefault() }}
       className={`group block ${!isAvailable ? 'cursor-not-allowed' : ''}`}
     >
@@ -163,7 +169,7 @@ export default function ProductCard({ product, showZaloCTA = true }: ProductCard
                 {/* Hiệu ứng pulse phía sau button */}
                 <div className="absolute inset-0 rounded-xl bg-brand-zalo opacity-40 animate-ping" style={{ animationDuration: '1.8s' }}/>
                 <div className="relative bg-brand-zalo hover:bg-blue-700 active:scale-95 text-white text-xs font-bold py-2 rounded-xl text-center transition-all shadow-md hover:shadow-blue-300/60 hover:shadow-lg">
-                  Đặt Hàng Ngay
+                  {hasTier ? 'Chọn Gọng Này – Tặng' : 'Đặt Hàng Ngay'}
                 </div>
               </div>
             ) : (

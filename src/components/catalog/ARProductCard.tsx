@@ -11,9 +11,10 @@ interface ARProductCardProps {
   product: Product
   facePhoto: string
   faceLandmarks: FaceLandmarkPoint[]
+  tierGate?: 350000 | 650000 | 900000 | 'all'
 }
 
-export default function ARProductCard({ product, facePhoto, faceLandmarks }: ARProductCardProps) {
+export default function ARProductCard({ product, facePhoto, faceLandmarks, tierGate }: ARProductCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [rendered, setRendered] = useState(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -90,8 +91,10 @@ export default function ARProductCard({ product, facePhoto, faceLandmarks }: ARP
 
   const discountedPrice = Math.round(product.basePrice * (1 - (product.discountPercent ?? 0) / 100))
 
+  const detailHref = typeof tierGate === 'number' ? `/gong-kinh/${product.id}?tier=${tierGate}` : `/gong-kinh/${product.id}`
+
   return (
-    <Link href={`/gong-kinh/${product.id}`}
+    <Link href={detailHref}
       className="group bg-white rounded-2xl overflow-hidden border border-brand-border hover:shadow-lg transition-all block">
       {/* Canvas với ảnh mặt + kính */}
       <div className="relative aspect-[4/3] bg-gray-900 overflow-hidden">

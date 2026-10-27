@@ -15,7 +15,7 @@ export default function Footer() {
               <Image src="/images/logo.png" alt="SONi Eyewear" width={140} height={56} className="h-12 w-auto object-contain"/>
             </div>
             <p className="text-gray-500 text-sm leading-relaxed">
-              <span className="font-bold text-gray-700">SONi — Cắt Kính Online.</span> Đo độ tại nhà, thử kính bằng AR, giao kính đã cắt tận tay. Không cần ra tiệm.
+              <span className="font-bold text-gray-700">SONi — Cắt Kính Online.</span> Thử kính bằng AR, tư vấn gọng phù hợp khuôn mặt bằng AI, giao kính đã cắt tận tay. Không cần ra tiệm.
             </p>
           </div>
 
@@ -53,7 +53,6 @@ export default function Footer() {
                   Nhắn Zalo ngay
                 </button>
               </li>
-              <li><Link href="/he-thong" className="hover:text-gray-900 transition-colors">Hệ Thống Cửa Hàng</Link></li>
               <li><Link href="/soni-share" className="hover:text-gray-900 transition-colors">SONi Share</Link></li>
               <li><Link href="/affiliate" className="hover:text-amber-600 text-amber-500 font-semibold transition-colors">💰 Kiếm Tiền Affiliate</Link></li>
             </ul>
@@ -61,7 +60,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-200 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <p>© 2025 SONi Kính. Bảo lưu mọi quyền.</p>
+          <p>© 2026 SONi Kính. Bảo lưu mọi quyền.</p>
           <div className="flex gap-4">
             <Link href="/chinh-sach" className="hover:text-gray-700">Chính sách bảo hành</Link>
             <span>Điều khoản sử dụng</span>

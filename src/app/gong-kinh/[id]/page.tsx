@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { getProductBySlug, getProductById, getRelatedProducts, MERGED_PRODUCTS } from '@/data/products'
 import ImageGallery from '@/components/product/ImageGallery'
@@ -21,8 +21,13 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
+const TIER_LABELS: Record<number, string> = { 350000: 'Tròng 1.61', 650000: 'Tròng 1.67', 900000: 'Tròng 1.71' }
+
 export default function ProductDetailPage({ params }: PageProps) {
   const { id } = use(params)
+  const searchParams = useSearchParams()
+  const tierParam = searchParams.get('tier')
+  const tier = tierParam === '350000' || tierParam === '650000' || tierParam === '900000' ? Number(tierParam) as 350000 | 650000 | 900000 : null
   // Ưu tiên lookup bằng ID (unique), fallback sang slug (backward compat)
   const staticProduct = getProductById(id) ?? getProductBySlug(id)
 
@@ -87,7 +92,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const isLowStock = totalQty > 0 && totalQty <= 5
   const selectedColorInStock = getVariantStock(selectedColor.id, selectedColor.inStock).inStock
 
-  const discountPct = product!.discountPercent ?? 20
+  const discountPct = product!.discountPercent ?? 0
   const discountedPrice = Math.round(product!.basePrice * (1 - discountPct / 100))
 
   return (
@@ -132,11 +137,24 @@ export default function ProductDetailPage({ params }: PageProps) {
           {/* Price */}
           <div className="flex items-center gap-3">
             <span className="text-2xl sm:text-3xl font-black text-brand-black">{formatVND(discountedPrice)}</span>
-            <span className="text-base sm:text-lg text-gray-400 line-through">{formatVND(product.basePrice)}</span>
             {discountPct > 0 && (
-              <span className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 py-0.5 rounded-full">-{discountPct}%</span>
+              <>
+                <span className="text-base sm:text-lg text-gray-400 line-through">{formatVND(product.basePrice)}</span>
+                <span className="bg-red-500 text-white text-xs sm:text-sm font-bold px-2 py-0.5 rounded-full">-{discountPct}%</span>
+              </>
             )}
           </div>
+
+          {/* Banner gói tròng đang chọn */}
+          {tier && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 flex items-center gap-2">
+              <span className="text-xl flex-shrink-0">🎁</span>
+              <p className="text-sm text-green-800">
+                Gọng này được <strong>TẶNG KÈM miễn phí</strong> khi chọn gói <strong>{TIER_LABELS[tier]} – {formatVND(tier)}</strong>
+                {tier >= 650000 && <> · 🚚 Free ship</>}
+              </p>
+            </div>
+          )}
 
           {/* Color picker — chọn màu đổi ảnh gallery */}
           <div className="space-y-1.5">
@@ -190,33 +208,37 @@ export default function ProductDetailPage({ params }: PageProps) {
           </div>
 
           {/* ── URGENCY CTA ── */}
-          <div className="rounded-2xl border-2 border-red-500 overflow-hidden">
-            {/* Timer bar */}
-            <div className="bg-red-600 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-3">
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-white flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
-                <span className="text-white text-xs font-bold">
-                  <span className="text-yellow-300">Giảm thêm {discountPct}%</span> cho đơn hàng trong:
-                </span>
-              </div>
-              <CountdownTimer />
-            </div>
+          <div className={`rounded-2xl overflow-hidden ${tier ? 'border border-brand-border' : 'border-2 border-red-500'}`}>
+            {!tier && (
+              <>
+                {/* Timer bar */}
+                <div className="bg-red-600 px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-white flex-shrink-0 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-white text-xs font-bold">
+                      {discountPct > 0 ? <><span className="text-yellow-300">Giảm thêm {discountPct}%</span> cho đơn hàng trong:</> : 'Đặt hàng trong:'}
+                    </span>
+                  </div>
+                  <CountdownTimer />
+                </div>
 
-            {/* Social proof */}
-            <div className="bg-red-50 px-4 py-2 flex items-center gap-2 border-b border-red-100">
-              <span className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </span>
-              <span className="text-xs text-red-700 font-medium">
-                🔥 <strong>23 người</strong> đang xem sản phẩm này
-              </span>
-            </div>
+                {/* Social proof */}
+                <div className="bg-red-50 px-4 py-2 flex items-center gap-2 border-b border-red-100">
+                  <span className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </span>
+                  <span className="text-xs text-red-700 font-medium">
+                    🔥 <strong>23 người</strong> đang xem sản phẩm này
+                  </span>
+                </div>
+              </>
+            )}
 
             {/* CTA button */}
             <div className="p-4 bg-white">
@@ -242,7 +264,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                Đặt Hàng Ngay {discountPct > 0 ? `(Giảm ${discountPct}%)` : ''}
+                {tier ? 'Chọn Gọng Này – Tặng' : `Đặt Hàng Ngay${discountPct > 0 ? ` (Giảm ${discountPct}%)` : ''}`}
               </button>
               {isAvailable && selectedColorInStock && (
                 <button
@@ -326,7 +348,8 @@ export default function ProductDetailPage({ params }: PageProps) {
 
       {/* Order Modal */}
       {modalOpen && (
-        <OrderModal product={product} selectedColorId={selectedColorId} onClose={() => setModalOpen(false)} />
+        <OrderModal product={product} selectedColorId={selectedColorId} onClose={() => setModalOpen(false)}
+          preset={tier ? { type: 'package', tier } : undefined} />
       )}
     </div>
   )

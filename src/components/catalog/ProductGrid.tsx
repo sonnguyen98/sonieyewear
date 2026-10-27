@@ -15,10 +15,11 @@ interface ProductGridProps {
   total?: number
   facePhoto?: string | null
   faceLandmarks?: FaceLandmarkPoint[] | null
+  tierGate?: 350000 | 650000 | 900000 | 'all'
 }
 
 export default function ProductGrid({
-  products, mode, loading, total, facePhoto, faceLandmarks
+  products, mode, loading, total, facePhoto, faceLandmarks, tierGate
 }: ProductGridProps) {
   if (loading) {
     return (
@@ -83,9 +84,10 @@ export default function ProductGrid({
               product={product}
               facePhoto={facePhoto}
               faceLandmarks={faceLandmarks}
+              tierGate={tierGate}
             />
           ) : (
-            <ProductCard key={product.id} product={product}/>
+            <ProductCard key={product.id} product={product} tierGate={tierGate}/>
           )
         )}
       </div>

@@ -24,6 +24,14 @@ const FAQS = [
     q: 'Tôi không biết số PD của mình thì sao?',
     a: 'Không sao — bạn có thể bỏ trống ô PD khi đặt hàng. SONi sẽ hướng dẫn bạn đo tại nhà hoặc xác nhận qua Zalo trước khi cắt. Không ai bị ép đoán.',
   },
+  {
+    q: 'Tôi chưa có số độ thì sao?',
+    a: 'Bạn cần đến bệnh viện mắt, phòng khám chuyên khoa hoặc cửa hàng kính uy tín để đo độ trước. Có số độ rồi, bạn có thể lưu lại vào Sổ Theo Dõi Độ của SONi để dùng cho lần đặt này và các lần sau.',
+  },
+  {
+    q: 'Gọng tặng có phải hàng kém không?',
+    a: 'Không. Gọng tặng được chọn tự do từ đúng danh mục gọng niêm yết trong mức giá gói bạn chọn — cùng chất lượng, cùng bảo hành 12 tháng như mọi gọng khác tại SONi, không phải hàng tồn hay hàng loại riêng.',
+  },
 ]
 
 export default function FaqBlock() {
