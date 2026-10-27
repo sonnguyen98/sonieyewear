@@ -1,5 +1,6 @@
 import PromoStrip from '@/components/home/PromoStrip'
 import HeroBanner from '@/components/home/HeroBanner'
+import PricingTiers from '@/components/home/PricingTiers'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import FeaturedProducts from '@/components/home/FeaturedProducts'
 import FaqBlock from '@/components/home/FaqBlock'
@@ -11,6 +12,7 @@ export default function HomePage() {
     <>
       <PromoStrip />
       <HeroBanner />
+      <PricingTiers />
       <CategoryGrid />
       <FeaturedProducts />
       <FaqBlock />

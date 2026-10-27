@@ -3,12 +3,13 @@
 // Personas → Pricing → Cam kết → FAQ → Final CTA + Sticky bottom CTA mobile.
 
 // Khi khách bấm "Đặt hàng" từ thẻ giá, OrderModal mở thẳng đến bước phù hợp với gói đó.
-// - 'no-lens'      → bỏ qua chọn tròng, đi thẳng bước điền thông tin thanh toán
-// - 'lens-list'    → vào màn hình chọn nhóm tròng (đầy đủ Trắng/Xanh/Đổi màu/Phân cực/Mỏng)
-// - 'lens-category'→ đi vào danh sách variants của một nhóm tròng cụ thể (vd: 'blue', 'mong')
-// - 'da-trong'     → đi vào màn chọn đa tròng
+// - 'no-lens'  → bỏ qua chọn tròng, đi thẳng bước điền thông tin thanh toán (gói "Chỉ gọng")
+// - 'package'  → chọn thẳng 1 trong 3 mức trọn bộ (350k/650k/900k), đi thẳng bước điền thông tin
+// Các preset cũ ('lens-list' | 'lens-category' | 'lens-variants' | 'da-trong') thuộc mô hình cũ
+// (đã bỏ) — OrderModal fallback về bước chọn mức khi gặp preset này, không còn jump chính xác.
 export type LandingPagePreset =
   | { type: 'no-lens' }
+  | { type: 'package'; tier: 350000 | 650000 | 900000 }
   | { type: 'lens-list' }
   | { type: 'lens-category'; categoryId: string }
   | { type: 'lens-variants'; variantIds: string[]; title?: string }

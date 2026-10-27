@@ -88,7 +88,7 @@ export default function ARProductCard({ product, facePhoto, faceLandmarks }: ARP
     setRendered(true)
   }
 
-  const discountedPrice = Math.round(product.basePrice * (1 - (product.discountPercent ?? 20) / 100))
+  const discountedPrice = Math.round(product.basePrice * (1 - (product.discountPercent ?? 0) / 100))
 
   return (
     <Link href={`/gong-kinh/${product.id}`}
@@ -116,8 +116,12 @@ export default function ARProductCard({ product, facePhoto, faceLandmarks }: ARP
         <p className="text-xs font-semibold text-brand-black line-clamp-1">{product.name}</p>
         <div className="flex items-center gap-1.5 mt-1">
           <span className="text-xs font-bold text-brand-black">{formatVND(discountedPrice)}</span>
-          <span className="text-[9px] text-gray-400 line-through">{formatVND(product.basePrice)}</span>
-          {(product.discountPercent ?? 20) > 0 && <span className="text-[8px] bg-red-500 text-white font-bold px-1 py-0.5 rounded-full">-{product.discountPercent ?? 20}%</span>}
+          {(product.discountPercent ?? 0) > 0 && (
+            <>
+              <span className="text-[9px] text-gray-400 line-through">{formatVND(product.basePrice)}</span>
+              <span className="text-[8px] bg-red-500 text-white font-bold px-1 py-0.5 rounded-full">-{product.discountPercent}%</span>
+            </>
+          )}
         </div>
         {/* Color swatches */}
         <div className="flex gap-1 mt-1.5">

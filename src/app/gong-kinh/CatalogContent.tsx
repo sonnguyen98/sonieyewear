@@ -13,17 +13,32 @@ import type { FaceLandmarkPoint } from '@/types/ar'
 import type { Product } from '@/types/product'
 import Link from 'next/link'
 
+type TierGate = 350000 | 650000 | 900000 | 'all'
+
+const TIER_GATE_OPTIONS: { value: TierGate; label: string; sub: string }[] = [
+  { value: 350000, label: '350k', sub: 'Tròng 1.61' },
+  { value: 650000, label: '650k', sub: 'Tròng 1.67' },
+  { value: 900000, label: '900k', sub: 'Tròng 1.71' },
+  { value: 'all', label: 'Chỉ Xem Gọng', sub: 'Toàn bộ gọng' },
+]
+
 export default function CatalogContent({ initialProducts }: { initialProducts: Product[] }) {
   const searchParams = useSearchParams()
   const [viewMode, setViewMode] = useState<'static' | 'ar'>('static')
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [facePhoto, setFacePhoto] = useState<string | null>(null)
   const [faceLandmarks, setFaceLandmarks] = useState<FaceLandmarkPoint[] | null>(null)
+  // Lọc gọng theo mức tròng — chỉ là filter để lướt xem, không khoá chọn gói lúc đặt hàng.
+  const [tierGate, setTierGate] = useState<TierGate>('all')
 
   useEffect(() => {
     if (searchParams.get('mode') === 'ar') setViewMode('ar')
     setFacePhoto(getFacePhoto())
     setFaceLandmarks(getFaceLandmarks() as FaceLandmarkPoint[] | null)
+    const tierParam = searchParams.get('tier')
+    if (tierParam === '350000' || tierParam === '650000' || tierParam === '900000') {
+      setTierGate(Number(tierParam) as TierGate)
+    }
   }, [])
 
   useEffect(() => {
@@ -34,10 +49,16 @@ export default function CatalogContent({ initialProducts }: { initialProducts: P
   }, [viewMode])
 
   const {
-    filters, filteredProducts, activeFilterCount,
+    filters, filteredProducts: baseFilteredProducts, activeFilterCount,
     toggleFrameType, toggleFrameShape, toggleMaterial,
     toggleGender, setSortBy, setPriceRange, resetFilters,
   } = useProductFilters(initialProducts)
+
+  // Gói 900k & Chỉ Xem Gọng: hiện toàn bộ, không giới hạn giá.
+  // Gói 350k/650k: chỉ hiện gọng niêm yết <= giá mức đó (đúng trường hợp xấu nhất đã tính margin).
+  const filteredProducts = tierGate === 'all'
+    ? baseFilteredProducts
+    : baseFilteredProducts.filter(p => p.basePrice <= tierGate)
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
@@ -46,6 +67,27 @@ export default function CatalogContent({ initialProducts }: { initialProducts: P
         <span className="mx-1.5">/</span>
         <span className="text-brand-black font-medium">{VI.catalog.title}</span>
       </nav>
+
+      {/* Chọn mức tròng trước khi xem gọng */}
+      <div className="mb-4 bg-brand-light rounded-2xl p-3">
+        <p className="text-xs font-semibold text-brand-black mb-2">Bạn muốn cắt tròng mức nào?</p>
+        <div className="flex gap-2 overflow-x-auto pb-0.5">
+          {TIER_GATE_OPTIONS.map(opt => (
+            <button key={opt.value} onClick={() => setTierGate(opt.value)}
+              className={`flex-shrink-0 px-3.5 py-2 rounded-xl border-2 text-left transition-all ${
+                tierGate === opt.value ? 'border-brand-black bg-white' : 'border-transparent bg-white/60 hover:border-gray-300'
+              }`}>
+              <p className="text-sm font-bold text-brand-black leading-tight">{opt.label}</p>
+              <p className="text-[10px] text-brand-muted">{opt.sub}</p>
+            </button>
+          ))}
+        </div>
+        {tierGate !== 'all' && (
+          <p className="text-[11px] text-brand-muted mt-2">
+            Đang hiện gọng niêm yết ≤ {new Intl.NumberFormat('vi-VN').format(tierGate)}đ — tặng kèm miễn phí khi chọn gói tròng tương ứng. Bạn vẫn chọn được gói khác lúc đặt hàng.
+          </p>
+        )}
+      </div>
 
       <div className="flex gap-6">
         <aside className="hidden md:block w-60 flex-shrink-0">

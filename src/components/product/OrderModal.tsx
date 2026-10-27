@@ -16,38 +16,18 @@ interface OrderModalProps {
   preset?: LandingPagePreset
 }
 
-type Step = 'main' | 'don-trong' | 'don-trong-detail' | 'da-trong' | 'checkout' | 'summary' | 'success'
+type Step = 'main' | 'checkout' | 'summary' | 'success'
 
 interface LensOption {
   id: string
   name: string
   desc: string
   price: number
+  tierValue?: 350000 | 650000 | 900000
   originalPrice?: number
   icon: string
   badge?: string
   features: string[]
-}
-
-interface LensVariant {
-  id: string
-  name: string
-  price: number
-  originalPrice?: number
-  badge?: string
-  image?: string
-  features: string[]
-  suitableFor: string
-  recommended?: boolean
-}
-
-interface LensCategoryGroup {
-  id: string
-  name: string
-  icon: string
-  desc: string
-  badge?: string
-  variants: LensVariant[]
 }
 
 interface EyeRx {
@@ -72,90 +52,22 @@ interface CheckoutForm {
   rxImageName: string
 }
 
-const DON_TRONG_CATEGORIES: LensCategoryGroup[] = [
-  {
-    id: 'trang',
-    name: 'Tròng Trắng',
-    icon: '⬜',
-    desc: 'Tròng trong suốt, chống UV400 — lựa chọn phổ thông',
-    variants: [
-      { id: 'trang-156', name: 'CR-39 1.56 Tiêu Chuẩn', price: 300000, badge: 'Tiết kiệm', features: ['Chống UV400', 'Phủ chống trầy', 'Chỉ số 1.56'], suitableFor: '0 – 4 độ' },
-      { id: 'trang-160', name: 'Hi-Index 1.60', price: 450000, features: ['Chống UV400', 'Mỏng hơn 15%', 'Phủ chống trầy'], suitableFor: '4 – 8 độ', recommended: true },
-    ],
-  },
-  {
-    id: 'blue',
-    name: 'Chống Ánh Sáng Xanh',
-    icon: '🔵',
-    desc: 'Lọc HEV Blue Light, giảm mỏi mắt khi dùng màn hình',
-    badge: 'Phổ biến',
-    variants: [
-      { id: 'blue-156', name: 'CR-39 1.56', price: 550000, badge: 'Phổ biến', features: ['Lọc HEV Blue Light', 'Chống UV400', 'Giảm mỏi mắt'], suitableFor: '0 – 4 độ', recommended: true },
-      { id: 'blue-160', name: 'Hi-Index 1.60', price: 750000, features: ['Lọc HEV Blue Light', 'Mỏng hơn 15%', 'Chống UV400'], suitableFor: '4 – 8 độ' },
-      { id: 'blue-167', name: '1.67 Siêu Mỏng', price: 950000, badge: 'Mỏng nhất', features: ['Lọc HEV Blue Light', 'Siêu mỏng nhẹ', 'Chống UV400', 'Phủ AR'], suitableFor: 'Trên 6 độ' },
-    ],
-  },
-  {
-    id: 'doi-mau',
-    name: 'Tự Đổi Màu',
-    icon: '🌗',
-    desc: 'Trong nhà trong suốt, tự tối khi ra nắng trong 30 giây',
-    badge: 'Độc đáo',
-    variants: [
-      { id: 'doi-mau-156', name: 'CR-39 1.56', price: 850000, features: ['Đổi màu tự động', 'Chống UV400', 'Bảo vệ 100% tia UV'], suitableFor: '0 – 4 độ', recommended: true },
-      { id: 'doi-mau-160', name: 'Hi-Index 1.60', price: 1100000, features: ['Đổi màu tự động', 'Mỏng hơn', 'Chống UV400'], suitableFor: '4 – 8 độ' },
-    ],
-  },
-  {
-    id: 'phan-cuc',
-    name: 'Tròng Phân Cực',
-    icon: '🕶️',
-    desc: 'Chống chói tối ưu khi lái xe và hoạt động ngoài trời',
-    variants: [
-      { id: 'phan-cuc-std', name: 'Polarized Tiêu Chuẩn', price: 650000, features: ['Chống chói 100%', 'Tăng độ tương phản', 'Chống UV400'], suitableFor: 'Kính râm / lái xe', recommended: true },
-    ],
-  },
-  {
-    id: 'mong',
-    name: 'Tròng Mỏng Hi-Index',
-    icon: '💎',
-    desc: 'Siêu mỏng nhẹ, thẩm mỹ cao — dành cho độ cận lớn',
-    variants: [
-      { id: 'mong-167', name: '1.67 Mỏng', price: 750000, features: ['Chỉ số 1.67', 'Mỏng hơn 30%', 'Chống UV400'], suitableFor: '4 – 8 độ', recommended: true },
-      { id: 'mong-174', name: '1.74 Siêu Mỏng', price: 1100000, badge: 'Mỏng nhất', features: ['Chỉ số 1.74', 'Mỏng nhất hiện nay', 'Chống UV400', 'Phủ AR'], suitableFor: 'Trên 8 độ' },
-    ],
-  },
+// 3 mức trọn bộ cố định (tròng + tặng gọng) — thay cho toàn bộ hệ nhóm/variant cũ.
+// Tính năng (features) để trống, điền sau; giá/tên có thể override qua /api/lens-products (admin).
+const DEFAULT_TIERS: LensOption[] = [
+  { id: 'goi-350', tierValue: 350000, name: 'Tròng Chiết Suất 1.61', desc: 'Gói trọn bộ 350k', price: 350000, icon: '⬜', features: [] },
+  { id: 'goi-650', tierValue: 650000, name: 'Tròng Chiết Suất 1.67', desc: 'Gói trọn bộ 650k', price: 650000, icon: '🔵', badge: 'Phổ biến nhất', features: [] },
+  { id: 'goi-900', tierValue: 900000, name: 'Tròng Chiết Suất 1.71', desc: 'Gói trọn bộ 900k', price: 900000, icon: '💎', features: [] },
 ]
 
-const DA_TRONG: LensOption[] = [
-  {
-    id: 'da-trong-cb',
-    name: 'Đa Tròng Cơ Bản',
-    desc: 'Nhìn gần, trung, xa trong cùng một tròng',
-    price: 1500000,
-    icon: '👁️',
-    features: ['3 vùng nhìn', 'Không đường phân cách', 'Cần thích nghi 1–2 tuần'],
-  },
-  {
-    id: 'da-trong-blue',
-    name: 'Đa Tròng Chống Sáng Xanh',
-    desc: 'Đa tròng tích hợp lọc ánh sáng xanh',
-    price: 1800000,
-    icon: '🔵',
-    badge: 'Đề xuất',
-    features: ['3 vùng nhìn', 'Lọc HEV Blue Light', 'Chống UV400'],
-  },
-  {
-    id: 'da-trong-mong',
-    name: 'Đa Tròng Mỏng Cao Cấp',
-    desc: 'Siêu mỏng, thẩm mỹ cao, cho độ lớn',
-    price: 2200000,
-    icon: '💎',
-    features: ['Chỉ số 1.67', 'Siêu mỏng', 'Chống UV400', 'Phủ AR'],
-  },
-]
+const RX_SURCHARGE = 100000 // phụ phí độ cao: cận > -6.00 diop hoặc loạn > -2.00 diop
+const FREE_SHIP_THRESHOLD = 650000 // free ship từ 650k (gói 650k & 900k)
 
-const DEFAULT_DISCOUNT = 0.20
+function isHighRx(rx: EyeRxLocal): boolean {
+  const sph = parseFloat(rx.sph) || 0
+  const cyl = parseFloat(rx.cyl) || 0
+  return sph < -6.0 || cyl < -2.0
+}
 
 // ── Prescription dropdown options ─────────────────────────────────────────────
 function buildSPH(): string[] {
@@ -176,7 +88,6 @@ function buildCYL(): string[] {
 const SPH_OPTIONS = buildSPH()
 const CYL_OPTIONS = buildCYL()
 const AXIS_OPTIONS = Array.from({ length: 180 }, (_, i) => String(i + 1))
-const ADD_OPTIONS = ['1.00','1.25','1.50','1.75','2.00','2.25','2.50','2.75','3.00','3.25','3.50']
 // PD: 54–74mm bước 0.5 — khoảng cách đồng tử
 const PD_OPTIONS = Array.from({ length: 41 }, (_, i) => (54 + i * 0.5).toFixed(1) + ' mm')
 
@@ -247,19 +158,6 @@ function RxRow({ label, sub, rx, onChange }: { label: string; sub: string; rx: E
       </select>
     </div>
   )
-}
-
-const DON_GROUP_ORDER = ['trang', 'blue', 'mong', 'doi-mau', 'phan-cuc']
-
-const GROUP_META: Record<string, { name: string; icon: string; desc: string; badge?: string }> = {
-  trang:    { name: 'Tròng Trắng',           icon: '⬜', desc: 'Tròng trong suốt, chống UV400 — lựa chọn phổ thông' },
-  blue:     { name: 'Chống Ánh Sáng Xanh',   icon: '🔵', desc: 'Lọc HEV Blue Light, giảm mỏi mắt khi dùng màn hình', badge: 'Phổ biến' },
-  mong:     { name: 'Tròng Mỏng Hi-Index',    icon: '💎', desc: 'Siêu mỏng nhẹ, thẩm mỹ cao — dành cho độ cận lớn' },
-  'doi-mau':  { name: 'Tự Đổi Màu',          icon: '🌗', desc: 'Trong nhà trong suốt, tự tối khi ra nắng trong 30 giây', badge: 'Độc đáo' },
-  'phan-cuc': { name: 'Tròng Phân Cực',       icon: '🕶️', desc: 'Chống chói tối ưu khi lái xe và hoạt động ngoài trời' },
-  'da-cb':    { name: 'Đa Tròng Cơ Bản',      icon: '👁️', desc: 'Nhìn gần, trung, xa trong cùng một tròng' },
-  'da-blue':  { name: 'Đa Tròng Chống Ánh Xanh', icon: '🔵', desc: 'Đa tròng tích hợp lọc ánh sáng xanh', badge: 'Đề xuất' },
-  'da-mong':  { name: 'Đa Tròng Mỏng Cao Cấp',   icon: '💎', desc: 'Siêu mỏng, thẩm mỹ cao, cho độ lớn' },
 }
 
 const PAYMENT_METHODS = [
@@ -381,10 +279,7 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
           <div className="border-t border-brand-border pt-2 space-y-1">
             <div className="flex justify-between">
               <span className="text-brand-muted">Tổng đơn hàng</span>
-              <div className="text-right">
-                <span className="font-semibold">{formatVND(discountedTotal)}</span>
-                <span className="text-xs text-gray-400 line-through ml-1">{formatVND(totalPrice)}</span>
-              </div>
+              <span className="font-semibold">{formatVND(discountedTotal)}</span>
             </div>
             {isDeposit ? (
               <>
@@ -522,14 +417,6 @@ function PaymentStep({ form, orderCode, discountedTotal, totalPrice, selectedLen
   )
 }
 
-function LensIcon({ icon }: { icon: string }) {
-  return (
-    <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0 border border-gray-200">
-      {icon}
-    </div>
-  )
-}
-
 export default function OrderModal({ product, selectedColorId, onClose, preset }: OrderModalProps) {
   const selectedColor = product.colorVariants.find(v => v.id === selectedColorId) ?? product.colorVariants[0]
   const [step, setStep] = useState<Step>('main')
@@ -540,16 +427,14 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
     }
   }, [step])
   const [selectedLens, setSelectedLens] = useState<LensOption | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<LensCategoryGroup | null>(null)
-  const [donTrongCats, setDonTrongCats] = useState<LensCategoryGroup[]>(DON_TRONG_CATEGORIES)
-  const [daTrong, setDaTrong] = useState<LensOption[]>(DA_TRONG)
+  const [tiers, setTiers] = useState<LensOption[]>(DEFAULT_TIERS)
   const [presetApplied, setPresetApplied] = useState(false)
   const [lensDataLoaded, setLensDataLoaded] = useState(false)
   const emptyEye: EyeRx = DEFAULT_EYE
   const presetRef = useRef(preset)
   presetRef.current = preset
 
-  // Preset no-lens: apply ngay, không cần chờ data
+  // Preset no-lens: apply ngay, không cần chờ data (gói "Chỉ gọng")
   useEffect(() => {
     if (preset?.type === 'no-lens' && !presetApplied) {
       setSelectedLens(null)
@@ -561,78 +446,46 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   useEffect(() => {
     fetch('/api/lens-products')
       .then(r => r.json())
-      .then((items: { id: string; name: string; desc: string; price: number; badge: string; image?: string; features: string[]; category?: string; categoryGroup?: string; suitableFor?: string; recommended?: boolean; free?: boolean; discountPercent?: number }[]) => {
-        if (!Array.isArray(items) || items.length === 0) return
+      .then((items: { id: string; name: string; desc?: string; price: number; tierValue?: number; badge?: string; image?: string; features?: string[] }[]) => {
+        if (!Array.isArray(items)) return
 
-        // Đơn tròng: nhóm theo categoryGroup
-        const donItems = items.filter(i => (i.category ?? 'don-trong') === 'don-trong')
-        const groupMap: Record<string, LensVariant[]> = {}
-        donItems.forEach(item => {
-          const g = item.categoryGroup ?? 'trang'
-          if (!groupMap[g]) groupMap[g] = []
-          const lensDiscount = item.discountPercent ?? 0
-          const discountedLensPrice = item.free ? 0 : (lensDiscount > 0 ? Math.round(item.price * (1 - lensDiscount / 100)) : item.price)
-          const showOriginal = item.free || lensDiscount > 0
-          groupMap[g].push({ id: item.id, name: item.name, price: discountedLensPrice, originalPrice: showOriginal ? item.price : undefined, badge: item.free ? 'Tặng FREE' : (item.badge || undefined), image: item.image || undefined, features: item.features, suitableFor: item.suitableFor ?? '', recommended: item.recommended ?? false })
-        })
-        const cats: LensCategoryGroup[] = DON_GROUP_ORDER
-          .filter(g => (groupMap[g]?.length ?? 0) > 0)
-          .map(g => ({ id: g, ...(GROUP_META[g] ?? { name: g, icon: '🔵', desc: '' }), variants: groupMap[g] }))
-        const finalCats = cats.length > 0 ? cats : DON_TRONG_CATEGORIES
-        if (cats.length > 0) setDonTrongCats(cats)
-
-        // Đa tròng: flat list
-        const daItems = items.filter(i => i.category === 'da-trong')
-        if (daItems.length > 0) {
-          setDaTrong(daItems.map(i => ({ id: i.id, name: i.name, desc: i.desc, price: i.price, icon: GROUP_META[i.categoryGroup ?? '']?.icon ?? '👁️', badge: i.badge || undefined, features: i.features })))
+        // Chỉ nhận dữ liệu đúng 3 mức mới (có tierValue khớp) — nếu KV còn dữ liệu cũ (mô hình trước),
+        // bỏ qua và dùng mặc định cứng để không hiển thị sai cấu trúc.
+        const valid = items.filter(i => i.tierValue === 350000 || i.tierValue === 650000 || i.tierValue === 900000)
+        let finalTiers = DEFAULT_TIERS
+        if (valid.length > 0) {
+          finalTiers = DEFAULT_TIERS.map(def => {
+            const match = valid.find(i => i.tierValue === def.tierValue)
+            if (!match) return def
+            return {
+              ...def,
+              id: match.id,
+              name: match.name,
+              desc: match.desc ?? def.desc,
+              price: match.price,
+              badge: match.badge || def.badge,
+              features: match.features?.length ? match.features : def.features,
+            }
+          })
+          setTiers(finalTiers)
         }
 
         // Apply preset ngay sau khi data sẵn sàng
         const p = presetRef.current
         if (!p || p.type === 'no-lens') return
 
-        if (p.type === 'da-trong') {
-          setStep('da-trong')
-          setPresetApplied(true)
-          return
-        }
-        if (p.type === 'lens-list') {
-          setStep('don-trong')
-          setPresetApplied(true)
-          return
-        }
-        if (p.type === 'lens-variants') {
-          const allVariants = finalCats.flatMap(c => c.variants)
-          const matched = p.variantIds
-            .map(vid => allVariants.find(v => v.id === vid))
-            .filter((v): v is LensVariant => !!v)
-          if (matched.length > 0) {
-            setSelectedCategory({
-              id: '__lp-variants',
-              name: p.title ?? 'Chọn tròng kính',
-              icon: '🔵',
-              desc: '',
-              variants: matched,
-            })
-            setStep('don-trong-detail')
+        if (p.type === 'package') {
+          const tier = finalTiers.find(t => t.tierValue === p.tier)
+          if (tier) {
+            setSelectedLens(tier)
+            setStep('checkout')
             setPresetApplied(true)
           }
           return
         }
-        if (p.type === 'lens-category') {
-          const cat = finalCats.find(c => c.id === p.categoryId)
-          if (cat) {
-            setSelectedCategory(cat)
-            if (cat.variants.length === 1) {
-              const v = cat.variants[0]
-              setSelectedLens({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, originalPrice: v.originalPrice, icon: cat.icon, badge: v.badge, features: v.features })
-              setStep('checkout')
-            } else {
-              setStep('don-trong-detail')
-            }
-            setPresetApplied(true)
-          }
-        }
+        // Preset mô hình cũ (lens-list / lens-category / lens-variants / da-trong) đã bỏ —
+        // fallback về màn chọn mức để không crash các LP chưa cập nhật.
+        setPresetApplied(true)
       })
       .catch(() => {})
       .finally(() => setLensDataLoaded(true))
@@ -680,14 +533,18 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
     return () => clearTimeout(timer)
   }, [form.phone])
 
-  const discount = (product.discountPercent ?? 20) / 100
+  // Gói "Chỉ gọng": bán đúng giá niêm yết, không giảm %.
+  // Gói trọn bộ (có tròng): giá = đúng giá của mức đã chọn, gọng tặng kèm (không cộng thêm giá gọng).
+  const isFrameOnly = !selectedLens
   const basePrice = product.basePrice
-  const discountedBase = Math.round(basePrice * (1 - discount))
-  const lensPrice = selectedLens?.price ?? 0
-  const lensOriginal = selectedLens?.originalPrice ?? lensPrice
-  const totalPrice = basePrice + lensOriginal
-  const discountedTotal = discountedBase + lensPrice
-  const savedAmount = totalPrice - discountedTotal
+  const rxSurcharge = selectedLens ? (isHighRx(form.rxRight) || isHighRx(form.rxLeft) ? RX_SURCHARGE : 0) : 0
+  const tierBasePrice = isFrameOnly ? basePrice : (selectedLens?.price ?? 0)
+  const totalPrice = tierBasePrice
+  const discountedTotal = tierBasePrice + rxSurcharge
+  const giftFrameValue = isFrameOnly ? 0 : basePrice // gọng tặng kèm — trị giá hiển thị
+  const freeShip = !isFrameOnly && (selectedLens?.tierValue ?? 0) >= FREE_SHIP_THRESHOLD
+  const lensPrice = tierBasePrice
+  const lensOriginal = tierBasePrice
 
   // Tính toán thanh toán — phụ thuộc discountedTotal nên đặt sau nó
   const isDepositPmt = form.payment.startsWith('deposit')
@@ -704,29 +561,6 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
     setSelectedLens(lens)
     setForm(f => ({ ...f, payment: '' }))
     setStep('checkout')
-  }
-
-  function handleSelectCategory(cat: LensCategoryGroup) {
-    setSelectedCategory(cat)
-    if (cat.variants.length === 1) {
-      const v = cat.variants[0]
-      goToCheckout({ id: v.id, name: cat.name, desc: v.suitableFor, price: v.price, originalPrice: v.originalPrice, icon: cat.icon, badge: v.badge, features: v.features })
-    } else {
-      setStep('don-trong-detail')
-    }
-  }
-
-  function handleSelectVariant(variant: LensVariant) {
-    goToCheckout({
-      id: variant.id,
-      name: selectedCategory!.variants.length === 1 ? selectedCategory!.name : `${selectedCategory!.name} — ${variant.name}`,
-      desc: variant.suitableFor,
-      price: variant.price,
-      originalPrice: variant.originalPrice,
-      icon: selectedCategory!.icon,
-      badge: variant.badge,
-      features: variant.features,
-    })
   }
 
   function validate() {
@@ -818,9 +652,10 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
           colorHex: selectedColor.hex,
           variantId: selectedColor.id,
           lens: selectedLens?.name ?? 'Chỉ Gọng',
+          packageTier: selectedLens?.tierValue ?? null,
+          rxSurcharge,
+          giftFrameValue,
           total: formatVND(discountedTotal),
-          originalTotal: formatVND(totalPrice),
-          discount: `${product.discountPercent ?? 20}%`,
           payment: paymentLabel,
           payAmount,
           prescription: rxText,
@@ -855,10 +690,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   }
 
   const headerTitle =
-    step === 'main' ? 'Chọn Loại Tròng' :
-    step === 'don-trong' ? 'Mua Gọng + Lắp Tròng' :
-    step === 'don-trong-detail' ? (selectedCategory?.name ?? 'Chọn Tròng') :
-    step === 'da-trong' ? 'Hai Tròng / Đa Tròng' :
+    step === 'main' ? 'Chọn Gói Cắt Kính' :
     step === 'checkout' ? 'Thông Tin Đặt Hàng' :
     step === 'summary' ? 'Xác Nhận Đơn Hàng' : 'Đặt Hàng Thành Công'
 
@@ -867,14 +699,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
   handleBackStepRef.current = () => {
     if (step === 'success') return
     if (step === 'summary') { setStep('checkout'); return }
-    if (step === 'checkout') {
-      if (!selectedLens) { setStep('main'); return }
-      if (selectedLens.id.startsWith('da')) { setStep('da-trong'); return }
-      if (selectedCategory && selectedCategory.variants.length > 1) { setStep('don-trong-detail'); return }
-      setStep('don-trong'); return
-    }
-    if (step === 'don-trong-detail') { setStep('don-trong'); return }
-    if (step === 'don-trong' || step === 'da-trong') { setStep('main'); return }
+    if (step === 'checkout') { setStep('main'); return }
     // step === 'main' → đóng modal
     onClose()
   }
@@ -909,7 +734,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
 
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-brand-border px-5 py-4 flex items-center gap-3 z-10 rounded-t-3xl">
-          {(step === 'don-trong' || step === 'don-trong-detail' || step === 'da-trong' || step === 'checkout' || step === 'summary') && (
+          {(step === 'checkout' || step === 'summary') && (
             <button
               onClick={() => handleBackStepRef.current()}
               className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0"
@@ -938,295 +763,69 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
         </div>
 
         {/* Giá */}
-        {step !== 'success' && (
+        {step !== 'success' && step !== 'main' && (
           <div className="px-5 pt-4 pb-1 flex items-center justify-between border-b border-gray-50">
             <span className="text-xs text-brand-muted">
-              {selectedLens && step === 'checkout' ? `Gọng + ${selectedLens.name}` : 'Giá gọng'}
+              {isFrameOnly ? 'Chỉ gọng — giá niêm yết' : `Gọng tặng kèm + ${selectedLens!.name}`}
             </span>
-            <div className="flex items-baseline gap-2">
-              {step === 'checkout' ? (
-                <div className="text-right">
-                  <span className="font-black text-brand-black">{formatVND(discountedTotal)}</span>
-                  <span className="ml-1.5 text-xs text-gray-400 line-through">{formatVND(totalPrice)}</span>
-                </div>
-              ) : (
-                <>
-                  <span className="font-black text-brand-black">{formatVND(Math.round(basePrice * (1 - discount)))}</span>
-                  <span className="text-xs text-gray-400 line-through">{formatVND(basePrice)}</span>
-                </>
-              )}
+            <div className="text-right">
+              <span className="font-black text-brand-black">{formatVND(discountedTotal)}</span>
+              {rxSurcharge > 0 && <span className="ml-1.5 text-[10px] text-amber-600">(đã gồm phụ phí độ cao)</span>}
             </div>
           </div>
         )}
 
         <div className="px-5 pb-6 pt-4 space-y-3">
 
-          {/* ── BƯỚC 1: Chọn nhóm ── */}
+          {/* ── BƯỚC 1: Chọn gói ── */}
           {step === 'main' && (
             <>
               <div className="pb-1">
-                <p className="font-bold text-base text-brand-black">Chọn Loại Tròng</p>
-                <p className="text-xs text-brand-muted mt-0.5">Thêm tròng kính phù hợp nhu cầu của bạn</p>
+                <p className="font-bold text-base text-brand-black">Chọn Gói Cắt Kính</p>
+                <p className="text-xs text-brand-muted mt-0.5">Chọn tròng — gọng {product.name} được tặng kèm</p>
               </div>
 
-              {/* Chỉ mua gọng */}
-              <button onClick={() => goToCheckout(null)}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group">
-                <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0 border border-gray-200">🕶️</div>
-                <div className="flex-1 text-left">
-                  <p className="font-bold text-brand-black text-sm">Chỉ Mua Gọng</p>
-                  <p className="text-xs text-brand-muted mt-0.5">Mua gọng, tự lắp tròng sau</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="font-black text-brand-black text-sm">{formatVND(Math.round(basePrice * (1 - discount)))}</p>
-                  <p className="text-[10px] text-gray-400 line-through">{formatVND(basePrice)}</p>
-                  <svg className="w-4 h-4 text-brand-muted ml-auto mt-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-
-              {/* Mua Gọng + Lắp Tròng */}
-              <button onClick={() => setStep('don-trong')}
-                className="w-full flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group text-left">
-                <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100 mt-0.5">
-                  <svg viewBox="0 0 56 56" className="w-10 h-10">
-                    <ellipse cx="28" cy="28" rx="22" ry="14" fill="none" stroke="#60a5fa" strokeWidth="3"/>
-                    <ellipse cx="28" cy="28" rx="12" ry="7" fill="#bfdbfe"/>
-                    <circle cx="28" cy="28" r="4" fill="#3b82f6"/>
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-bold text-brand-black text-sm">Mua Gọng + Lắp Tròng</p>
-                    <svg className="w-4 h-4 text-brand-muted flex-shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <p className="text-xs text-brand-muted mt-0.5">5 loại tròng — từ {formatVND(99000)}</p>
-                  <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
-                    <p className="text-xs font-semibold text-gray-500">👤 Dành cho:</p>
-                    <p className="text-xs text-brand-muted leading-relaxed">Người cận, viễn hoặc loạn thị ở một khoảng cách — đọc sách, dùng máy tính hoặc nhìn xa.</p>
-                    <p className="text-xs font-semibold text-gray-500 pt-1">✨ Tính năng:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {['Chống UV400', 'Chống ánh sáng xanh', 'Tự đổi màu', 'Tròng mỏng Hi-Index', 'Phân cực chống chói'].map(f => (
-                        <span key={f} className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full border border-blue-100">{f}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </button>
-
-              {/* Đa Tròng */}
-              <button onClick={() => setStep('da-trong')}
-                className="w-full flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group text-left">
-                <div className="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0 border border-purple-100 mt-0.5">
-                  <svg viewBox="0 0 56 56" className="w-10 h-10">
-                    <ellipse cx="28" cy="22" rx="22" ry="11" fill="none" stroke="#a78bfa" strokeWidth="3"/>
-                    <ellipse cx="28" cy="34" rx="22" ry="11" fill="none" stroke="#c4b5fd" strokeWidth="2" strokeDasharray="4 2"/>
-                    <ellipse cx="28" cy="22" rx="10" ry="5" fill="#ddd6fe"/>
-                    <circle cx="28" cy="22" r="3" fill="#7c3aed"/>
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-bold text-brand-black text-sm">Hai Tròng / Đa Tròng</p>
-                    <svg className="w-4 h-4 text-brand-muted flex-shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  <p className="text-xs text-brand-muted mt-0.5">3 loại tròng — từ {formatVND(1500000)}</p>
-                  <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
-                    <p className="text-xs font-semibold text-gray-500">👤 Dành cho:</p>
-                    <p className="text-xs text-brand-muted leading-relaxed">Người trên 40 tuổi hoặc cần nhìn rõ cả gần lẫn xa mà không cần đổi kính.</p>
-                    <p className="text-xs font-semibold text-gray-500 pt-1">✨ Tính năng:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {['Nhìn gần + trung + xa', 'Không đường phân cách', 'Chống UV400', 'Tròng mỏng cao cấp', 'Chống ánh sáng xanh'].map(f => (
-                        <span key={f} className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full border border-purple-100">{f}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            </>
-          )}
-
-          {/* ── BƯỚC 2a: Chọn loại tròng (category) ── */}
-          {step === 'don-trong' && (
-            <div className="space-y-2.5">
-              <div className="pb-1">
-                <p className="font-bold text-base text-brand-black">Chọn Loại Tròng</p>
-                <p className="text-xs text-brand-muted mt-0.5">Chọn loại phù hợp, rồi chọn mức giá theo độ mắt</p>
-              </div>
-              {donTrongCats.map(cat => {
-                const hasFree = cat.variants.some(v => v.price === 0 && v.originalPrice)
-                const hasDiscount = !hasFree && cat.variants.some(v => v.originalPrice && v.originalPrice > v.price)
-                const minPrice = Math.min(...cat.variants.map(v => v.price))
-                const freeOriginalPrice = hasFree ? Math.min(...cat.variants.filter(v => v.price === 0 && v.originalPrice).map(v => v.originalPrice!)) : 0
-                const discountedVariant = hasDiscount ? cat.variants.find(v => v.originalPrice && v.originalPrice > v.price) : null
-                const lensDiscountPct = discountedVariant ? Math.round((1 - discountedVariant.price / discountedVariant.originalPrice!) * 100) : 0
+              {tiers.map(tier => {
+                const isPopular = tier.tierValue === 650000
+                const hasFreeShip = (tier.tierValue ?? 0) >= FREE_SHIP_THRESHOLD
                 return (
-                  <button key={cat.id} onClick={() => handleSelectCategory(cat)}
-                    className="w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group text-left">
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0 border border-gray-200">
-                      {cat.icon}
-                    </div>
+                  <button key={tier.id} onClick={() => goToCheckout(tier)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 bg-white transition-all active:scale-95 group text-left ${isPopular ? 'border-brand-black' : 'border-brand-border hover:border-brand-black'}`}>
+                    <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0 border border-gray-200">{tier.icon}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-sm text-brand-black">{cat.name}</span>
-                        {hasFree && (
-                          <span className="text-[10px] bg-green-500 text-white font-bold px-1.5 py-0.5 rounded-full">🎁 Tặng FREE</span>
-                        )}
-                        {hasDiscount && (
-                          <span className="text-[10px] bg-red-500 text-white font-bold px-1.5 py-0.5 rounded-full">-{lensDiscountPct}%</span>
-                        )}
-                        {cat.badge && !hasFree && !hasDiscount && (
-                          <span className="text-[10px] bg-brand-gold text-white font-bold px-1.5 py-0.5 rounded-full">{cat.badge}</span>
-                        )}
-                        {cat.variants.length > 1 && (
-                          <span className="text-[10px] text-brand-muted bg-gray-100 px-1.5 py-0.5 rounded-full">{cat.variants.length} loại</span>
-                        )}
+                        <p className="font-bold text-brand-black text-sm">{tier.name}</p>
+                        {isPopular && <span className="text-[10px] bg-brand-black text-white font-bold px-1.5 py-0.5 rounded-full">⭐ Phổ biến nhất</span>}
                       </div>
-                      <p className="text-xs text-brand-muted mt-0.5 leading-snug line-clamp-1">{cat.desc}</p>
+                      <p className="text-xs text-brand-muted mt-0.5">🎁 Tặng kèm gọng — trị giá {formatVND(basePrice)}</p>
+                      {hasFreeShip && <p className="text-[10px] text-green-600 font-semibold mt-0.5">🚚 Miễn phí vận chuyển</p>}
                     </div>
-                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-0.5">
-                      {hasFree ? (
-                        <>
-                          <span className="font-black text-sm text-green-600">Tặng FREE</span>
-                          <span className="text-[10px] text-gray-400 line-through">{formatVND(freeOriginalPrice)}</span>
-                        </>
-                      ) : hasDiscount && discountedVariant ? (
-                        <>
-                          <span className="text-[10px] text-brand-muted">từ</span>
-                          <span className="font-black text-sm text-red-500">+{formatVND(minPrice)}</span>
-                          <span className="text-[10px] text-gray-400 line-through">{formatVND(Math.min(...cat.variants.filter(v => v.originalPrice).map(v => v.originalPrice!)))}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-[10px] text-brand-muted">từ</span>
-                          <span className="font-black text-sm text-brand-black">+{formatVND(minPrice)}</span>
-                        </>
-                      )}
-                      <svg className="w-4 h-4 text-brand-muted group-hover:text-brand-black group-hover:translate-x-0.5 transition-all mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-black text-brand-black text-sm">{formatVND(tier.price)}</p>
+                      <svg className="w-4 h-4 text-brand-muted ml-auto mt-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
                   </button>
                 )
               })}
-            </div>
-          )}
 
-          {/* ── BƯỚC 2b: Chọn variant trong loại đã chọn ── */}
-          {step === 'don-trong-detail' && selectedCategory && (
-            <div className="space-y-3">
-              {/* Header loại tròng */}
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-brand-border">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-xl border border-gray-200 flex-shrink-0">
-                  {selectedCategory.icon}
+              {/* Chỉ mua gọng */}
+              <button onClick={() => goToCheckout(null)}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-brand-border hover:border-brand-black bg-white transition-all active:scale-95 group">
+                <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0 border border-gray-200">🕶️</div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-brand-black text-sm">Chỉ Mua Gọng</p>
+                  <p className="text-xs text-brand-muted mt-0.5">Giá niêm yết, tự lắp tròng sau • Đổi trả 7 ngày</p>
                 </div>
-                <div>
-                  <p className="font-bold text-sm text-brand-black">{selectedCategory.name}</p>
-                  <p className="text-xs text-brand-muted leading-snug">{selectedCategory.desc}</p>
+                <div className="text-right flex-shrink-0">
+                  <p className="font-black text-brand-black text-sm">{formatVND(basePrice)}</p>
+                  <svg className="w-4 h-4 text-brand-muted ml-auto mt-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
-              </div>
-
-              <p className="text-xs font-semibold text-brand-muted px-1">Chọn mức phù hợp với độ mắt của bạn:</p>
-
-              {[...selectedCategory.variants].sort((a, b) => b.price - a.price).map(variant => (
-                <button key={variant.id} onClick={() => handleSelectVariant(variant)}
-                  className={`w-full text-left p-4 rounded-2xl border-2 bg-white transition-all active:scale-95 group ${variant.recommended ? 'border-brand-black hover:border-black' : 'border-brand-border hover:border-gray-400'}`}>
-                  {variant.recommended && (
-                    <div className="flex justify-end mb-1.5">
-                      <span className="text-[10px] bg-brand-black text-white font-bold px-2 py-0.5 rounded-full">✓ Phổ biến nhất</span>
-                    </div>
-                  )}
-                  <div className="flex items-start gap-3">
-                    {variant.image && (
-                      <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
-                        <Image src={variant.image} alt={variant.name} width={96} height={96} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-sm text-brand-black">{variant.name}</span>
-                        {variant.badge && !variant.recommended && (
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${variant.badge === 'Tặng FREE' ? 'bg-green-500 text-white' : 'bg-blue-100 text-blue-700'}`}>{variant.badge === 'Tặng FREE' ? '🎁 Tặng FREE' : variant.badge}</span>
-                        )}
-                        {variant.originalPrice && variant.originalPrice !== variant.price && variant.price > 0 && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">-{Math.round((1 - variant.price / variant.originalPrice) * 100)}%</span>
-                        )}
-                      </div>
-                      {/* Phạm vi độ mắt */}
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                          👁 {variant.suitableFor}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {variant.features.map(f => (
-                          <span key={f} className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full border border-green-100">✓ {f}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-0.5">
-                      {variant.price === 0 && variant.originalPrice ? (
-                        <>
-                          <span className="font-black text-base text-green-600">Tặng FREE</span>
-                          <span className="text-xs text-gray-400 line-through">{formatVND(variant.originalPrice)}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="font-black text-base text-brand-black">+{formatVND(variant.price)}</span>
-                          {variant.originalPrice && variant.originalPrice !== variant.price && (
-                            <span className="text-[10px] text-gray-400 line-through">{formatVND(variant.originalPrice)}</span>
-                          )}
-                          <span className="text-xs text-red-500 font-semibold">= {formatVND(discountedBase + variant.price)}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* ── BƯỚC 2c: Đa tròng ── */}
-          {step === 'da-trong' && (
-            <div className="space-y-3">
-              <div className="pb-1">
-                <p className="font-bold text-base text-brand-black">Hai Tròng / Đa Tròng</p>
-                <p className="text-xs text-brand-muted mt-0.5">Chọn loại tròng bạn muốn lắp</p>
-              </div>
-              {daTrong.map(lens => (
-                <button key={lens.id} onClick={() => goToCheckout(lens)}
-                  className="w-full flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-border hover:border-brand-zalo bg-white transition-all active:scale-95 group text-left">
-                  <LensIcon icon={lens.icon} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm text-brand-black">{lens.name}</span>
-                      {lens.badge && (
-                        <span className="text-[10px] bg-brand-gold text-white font-bold px-1.5 py-0.5 rounded-full">{lens.badge}</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-brand-muted mt-0.5 leading-relaxed">{lens.desc}</p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {lens.features.map(f => (
-                        <span key={f} className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full border border-green-200">✓ {f}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
-                    <span className="font-black text-sm text-brand-black">+{formatVND(lens.price)}</span>
-                    <span className="text-[11px] text-red-500 font-semibold">= {formatVND(discountedBase + lens.price)}</span>
-                    <span className="text-[10px] text-gray-400 line-through">{formatVND(basePrice + lens.price)}</span>
-                    <svg className="w-4 h-4 text-brand-muted group-hover:text-brand-zalo group-hover:translate-x-0.5 transition-all mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
-              ))}
-            </div>
+              </button>
+            </>
           )}
 
           {/* ── BƯỚC 3: Checkout ── */}
@@ -1236,25 +835,33 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
               <div className="bg-brand-light rounded-2xl p-4 space-y-2">
                 <p className="text-xs font-bold text-brand-black uppercase tracking-wide">Tóm tắt đơn hàng</p>
                 <div className="flex justify-between text-sm">
-                  <span className="text-brand-muted">Gọng kính</span>
+                  <span className="text-brand-muted">Gọng kính{!isFrameOnly && ' (tặng kèm)'}</span>
                   <div className="text-right">
-                    <span className="font-semibold">{formatVND(discountedBase)}</span>
-                    {discount > 0 && <span className="text-[10px] text-gray-400 line-through ml-1.5">{formatVND(basePrice)}</span>}
+                    {isFrameOnly ? (
+                      <span className="font-semibold">{formatVND(basePrice)}</span>
+                    ) : (
+                      <>
+                        <span className="font-semibold text-green-600">Tặng FREE</span>
+                        <span className="text-[10px] text-gray-400 line-through ml-1.5">{formatVND(giftFrameValue)}</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 {selectedLens && (
                   <div className="flex justify-between text-sm">
                     <span className="text-brand-muted">{selectedLens.name}</span>
-                    <div className="text-right">
-                      <span className="font-semibold">{lensPrice === 0 ? <span className="text-green-600">FREE</span> : formatVND(lensPrice)}</span>
-                      {lensOriginal > lensPrice && <span className="text-[10px] text-gray-400 line-through ml-1.5">{formatVND(lensOriginal)}</span>}
-                    </div>
+                    <span className="font-semibold">{formatVND(lensPrice)}</span>
                   </div>
                 )}
-                {savedAmount > 0 && (
+                {rxSurcharge > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-amber-700">Phụ phí độ cao (cận &gt;-6.00 / loạn &gt;-2.00)</span>
+                    <span className="font-semibold text-amber-700">+{formatVND(rxSurcharge)}</span>
+                  </div>
+                )}
+                {freeShip && (
                   <div className="flex justify-between text-sm border-t border-brand-border pt-2">
-                    <span className="text-green-600 font-semibold">🎉 Bạn tiết kiệm</span>
-                    <span className="font-bold text-green-600">-{formatVND(savedAmount)}</span>
+                    <span className="text-green-600 font-semibold">🚚 Miễn phí vận chuyển</span>
                   </div>
                 )}
                 <div className="border-t border-brand-border pt-2 space-y-1">
@@ -1384,18 +991,6 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                           rx={form.rxLeft}
                           onChange={rx => setForm(f => ({ ...f, rxLeft: rx }))}
                         />
-
-                        {/* ADD cho đa tròng */}
-                        {selectedLens.id.startsWith('da') && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-brand-black w-16">ADD<br/><span className="text-[10px] text-brand-muted font-normal">(Thêm)</span></span>
-                            <select value={form.rxAdd} onChange={e => setForm(f => ({ ...f, rxAdd: e.target.value }))}
-                              className="border border-brand-border rounded-lg px-2 py-2 text-xs text-center outline-none focus:border-brand-black transition-colors w-36 bg-white">
-                              <option value="">-- Chọn ADD --</option>
-                              {ADD_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
-                            </select>
-                          </div>
-                        )}
 
                         {/* PD — khoảng cách đồng tử */}
                         <div className="flex items-center gap-3 pt-1">
@@ -1528,7 +1123,6 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                         id: 'deposit',
                         title: 'Thanh toán trước 20%',
                         amount: Math.round(discountedTotal * 0.2),
-                        originalAmount: discountedTotal,
                         sub: 'Thanh toán 20% giá trị đơn — trả 80% còn lại khi nhận hàng',
                         badge: 'Linh hoạt',
                         badgeColor: 'bg-blue-100 text-blue-700',
@@ -1543,7 +1137,6 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                         id: 'full',
                         title: 'Thanh toán toàn bộ',
                         amount: discountedTotal,
-                        originalAmount: totalPrice,
                         sub: 'Thanh toán 100% — ưu tiên xử lý đơn trước',
                         badge: 'Ưu tiên',
                         badgeColor: 'bg-green-100 text-green-700',
@@ -1569,8 +1162,6 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                             <p className="text-xs text-brand-muted mt-0.5">{opt.sub}</p>
                             <div className="flex items-baseline gap-2 mt-1.5">
                               <span className="text-base font-black text-red-600">{formatVND(opt.amount)}</span>
-                              <span className="text-xs text-gray-400 line-through">{formatVND(opt.originalAmount)}</span>
-                              <span className="text-xs text-green-600 font-semibold">(-20%)</span>
                             </div>
                           </div>
                           <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center mt-0.5 ${(form.payment === opt.id || form.payment.startsWith(opt.id + '-')) ? 'border-brand-black' : 'border-gray-300'}`}>
@@ -1616,7 +1207,9 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                 </svg>
                 Xem Lại Đơn Hàng →
               </button>
-              <p className="text-center text-xs text-brand-muted">🛡️ Đổi trả trong 7 ngày • Bảo hành 12 tháng</p>
+              <p className="text-center text-xs text-brand-muted">
+                {isFrameOnly ? '🛡️ Đổi trả miễn phí trong 7 ngày' : '🛡️ Bảo hành chính hãng 6 tháng'}
+              </p>
             </div>
           )}
 
@@ -1666,10 +1259,7 @@ export default function OrderModal({ product, selectedColorId, onClose, preset }
                   <div className="flex justify-between"><span className="text-brand-muted">Hình thức</span><span className="font-semibold text-right max-w-[55%]">{reviewPayLabel}</span></div>
                   <div className="flex justify-between">
                     <span className="text-brand-muted">Tổng đơn hàng</span>
-                    <div className="text-right">
-                      <span className="font-semibold">{formatVND(discountedTotal)}</span>
-                      <span className="text-xs text-gray-400 line-through ml-1.5">{formatVND(totalPrice)}</span>
-                    </div>
+                    <span className="font-semibold">{formatVND(discountedTotal)}</span>
                   </div>
                   {isDepositPmt ? (
                     <>

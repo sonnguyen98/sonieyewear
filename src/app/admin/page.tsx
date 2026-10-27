@@ -227,7 +227,7 @@ function NewProductModal({ onClose, onSaved }: { onClose: () => void; onSaved: (
   const [colorImages, setColorImages] = useState<Record<number, string[]>>({})
   const [colors, setColors] = useState([{ name: 'Đen', hex: '#1A1A1A', quantity: 10 }])
   const [form, setForm] = useState({
-    name: '', sku: '', brand: 'SONi', basePrice: '', originalPrice: '', discountPercent: '20',
+    name: '', sku: '', brand: 'SONi', basePrice: '', originalPrice: '', discountPercent: '0',
     description: '', features: '',
     type: 'full-rim', shape: 'round', material: 'metal', gender: 'unisex',
     isBestSeller: false, isNew: true,
@@ -1433,7 +1433,7 @@ function BlogEditModal({ post, saving, onSave, onClose }: {
 
 // ── PRODUCT EDIT MODAL ────────────────────────────────────────────────────────
 function ProductEditModal({ product, onClose, onSaved }: { product: Product; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState({ name: product.name, sku: (product as { sku?: string }).sku ?? '', basePrice: product.basePrice, originalPrice: product.originalPrice ?? '', discountPercent: product.discountPercent ?? 20, description: product.description, features: product.features.join('\n'), type: product.type, shape: product.shape, material: product.material, gender: product.gender, isBestSeller: product.isBestSeller ?? false, isNew: product.isNew ?? false })
+  const [form, setForm] = useState({ name: product.name, sku: (product as { sku?: string }).sku ?? '', basePrice: product.basePrice, originalPrice: product.originalPrice ?? '', discountPercent: product.discountPercent ?? 0, description: product.description, features: product.features.join('\n'), type: product.type, shape: product.shape, material: product.material, gender: product.gender, isBestSeller: product.isBestSeller ?? false, isNew: product.isNew ?? false })
   const [images, setImages] = useState<string[]>(product.images ?? [])
   const [colors, setColors] = useState(
     product.colorVariants.map(v => ({ id: v.id, name: v.name, hex: v.hex, isNew: false }))
