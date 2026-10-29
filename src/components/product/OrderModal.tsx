@@ -55,9 +55,31 @@ interface CheckoutForm {
 // 3 mức trọn bộ cố định (tròng + tặng gọng) — thay cho toàn bộ hệ nhóm/variant cũ.
 // Tính năng (features) để trống, điền sau; giá/tên có thể override qua /api/lens-products (admin).
 const DEFAULT_TIERS: LensOption[] = [
-  { id: 'goi-350', tierValue: 350000, name: 'Tròng Chiết Suất 1.61', desc: 'Gói trọn bộ 350k', price: 350000, icon: '⬜', features: [] },
-  { id: 'goi-650', tierValue: 650000, name: 'Tròng Chiết Suất 1.67', desc: 'Gói trọn bộ 650k', price: 650000, icon: '🔵', badge: 'Phổ biến nhất', features: [] },
-  { id: 'goi-900', tierValue: 900000, name: 'Tròng Chiết Suất 1.71', desc: 'Gói trọn bộ 900k', price: 900000, icon: '💎', features: [] },
+  { id: 'goi-350', tierValue: 350000, name: 'Tròng Chiết Suất 1.61', desc: 'Gói trọn bộ 350k', price: 350000, icon: '⬜', features: [
+    'Độ truyền sáng khoảng 94%: hình ảnh rõ nét, màu sắc tự nhiên',
+    'Lớp phủ hạn chế bám nước, bám bụi, dễ lau chùi khi sử dụng',
+    'Chất liệu MR-8: độ bền cao, chống vỡ tốt, ít biến dạng',
+    'Chống tĩnh điện, giảm bám bụi',
+    'Abbe đạt chuẩn: hình ảnh rõ, hạn chế viền màu ở mép tròng',
+    'Chống tia UV có hại',
+  ] },
+  { id: 'goi-650', tierValue: 650000, name: 'Tròng Chiết Suất 1.67', desc: 'Mỏng hơn, rõ hơn, bảo vệ mắt khỏi ánh sáng xanh', price: 650000, icon: '🔵', badge: 'Phổ biến nhất', features: [
+    'Tròng mỏng lắp lên kính đẹp',
+    'Độ truyền sáng khoảng 96%: hình ảnh sáng và rõ hơn gói 1.61',
+    'Lọc ánh sáng xanh: giảm ánh sáng xanh từ màn hình điện thoại và máy tính, phù hợp người làm việc nhiều với thiết bị',
+    'Chống tia UV có hại',
+    'Lớp phủ chống trầy cao cấp, chống phản quang đến khoảng 95%',
+    'Lớp phủ kỵ nước: hạn chế bám nước, bụi và vân tay, dễ vệ sinh',
+    'Chống tĩnh điện, Abbe đạt chuẩn',
+  ] },
+  { id: 'goi-900', tierValue: 900000, name: 'Tròng Chiết Suất 1.71', desc: 'Mỏng nhẹ nhất, rõ nét gần như mắt thường', price: 900000, icon: '💎', features: [
+    'Độ truyền sáng khoảng 98%: gần như mắt thường, hình ảnh rõ nét và tự nhiên nhất',
+    'Chiết suất cao nhất trong 3 gói: tròng mỏng và nhẹ nhất, hạn chế tối đa "đít chai" ở người độ cao',
+    'Abbe 37: hình ảnh sắc nét, hạn chế viền màu khi nhìn lệch tâm',
+    'Lớp phủ Nano: tăng độ bám dính và độ trơn của lớp phủ bề mặt, hạn chế trầy và chống chói tốt',
+    'Siêu kỵ nước: nước bay hơi nhanh, hạn chế bám bụi, bám vân tay, dễ lau chùi',
+    'Chống UV400',
+  ] },
 ]
 
 const RX_SURCHARGE = 100000 // phụ phí độ cao: cận > -6.00 diop hoặc loạn > -2.00 diop

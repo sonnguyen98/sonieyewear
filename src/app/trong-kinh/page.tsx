@@ -35,16 +35,20 @@ export default async function TrongKinhPage() {
                 </span>
               )}
               <h2 className="font-bold text-brand-black text-lg text-center mt-2">{t.name}</h2>
+              {t.desc && <p className="text-xs text-center text-brand-muted italic mt-0.5">&ldquo;{t.desc}&rdquo;</p>}
               <p className="text-3xl font-black text-brand-black text-center my-3">{fmt(t.price)}</p>
               <p className="text-xs text-center text-brand-muted mb-4">🎁 Tặng kèm gọng kính bạn chọn</p>
               {freeShip && <p className="text-xs text-center text-green-600 font-semibold mb-4">🚚 Miễn phí vận chuyển</p>}
 
               {(t.features?.length ?? 0) > 0 && (
-                <div className="flex flex-wrap gap-1.5 justify-center mb-4">
+                <ul className="space-y-1.5 mb-4">
                   {t.features!.map(f => (
-                    <span key={f} className="text-[11px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">✓ {f}</span>
+                    <li key={f} className="flex items-start gap-1.5 text-xs text-brand-muted leading-snug">
+                      <span className="text-green-600 flex-shrink-0 mt-0.5">✓</span>
+                      <span>{f}</span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
 
               <Link href={`/gong-kinh?tier=${t.tierValue}`}
