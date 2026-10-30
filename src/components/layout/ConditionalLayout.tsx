@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import Header from './Header'
 import Footer from './Footer'
 import MobileNav from './MobileNav'
+import WelcomePopup from './WelcomePopup'
 import ChatWidget from '@/components/chat/ChatWidget'
 import AffiliateTracker from '@/components/ui/AffiliateTracker'
 
@@ -12,6 +13,7 @@ import AffiliateTracker from '@/components/ui/AffiliateTracker'
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? ''
   const isBareRoute = pathname.startsWith('/lp/') || pathname.startsWith('/luu-do-kinh')
+  const isAdminRoute = pathname.startsWith('/admin')
 
   if (isBareRoute) {
     return (
@@ -29,6 +31,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <Footer />
       <MobileNav />
       <ChatWidget />
+      {!isAdminRoute && <WelcomePopup />}
       <Suspense fallback={null}><AffiliateTracker /></Suspense>
     </>
   )
