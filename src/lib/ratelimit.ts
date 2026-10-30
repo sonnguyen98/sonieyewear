@@ -24,7 +24,7 @@ export const limiters = {
   adminLogin:      build('admin-login', 5, 60),       // 5 lần / phút
   affiliateLogin:  build('affiliate-login', 5, 60),   // 5 lần / phút
   affiliateRegister: build('affiliate-reg', 3, 600),  // 3 lần / 10 phút
-  order:           build('order', 10, 3600),          // 10 đơn / giờ / IP
+  order:           build('order', 30, 3600),          // 30 đơn / giờ / IP (nới rộng để tránh chặn nhầm khách chung IP mạng 4G/wifi)
   paymentWebhook:  build('webhook', 60, 60),          // 60 webhook / phút (SePay) — chống flood
   affiliateWithdraw:   build('aff-wd', 5, 3600),        // 5 lệnh rút / giờ
   customerAccess:      build('cust-access', 10, 60),     // 10 lần / phút (vào Sổ Theo Dõi Độ bằng SĐT)
