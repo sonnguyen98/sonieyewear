@@ -68,7 +68,7 @@ export default function ProductCard({ product, showZaloCTA = true, tierGate }: P
                 src={displayImage}
                 alt={`${product.name} - ${selectedColor.name}`}
                 fill
-                className={`object-contain transition-all duration-500 ${
+                className={`object-cover transition-all duration-500 ${
                   hoverImage ? 'group-hover:opacity-0 group-hover:scale-105' : 'group-hover:scale-105'
                 }`}
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -80,7 +80,7 @@ export default function ProductCard({ product, showZaloCTA = true, tierGate }: P
                   src={hoverImage}
                   alt={`${product.name} - hover`}
                   fill
-                  className="object-contain opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500 absolute inset-0"
+                  className="object-cover opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500 absolute inset-0"
                   sizes="(max-width: 768px) 50vw, 33vw"
                 />
               )}
