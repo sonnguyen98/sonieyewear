@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const STORAGE_KEY = 'soni_welcome_seen'
-const AUTO_ADVANCE_MS = 6000
+const AUTO_ADVANCE_MS = 15000
+const TICK_MS = 100
 
 type Stage = 'none' | 'intro' | 'survey'
 
@@ -51,11 +52,19 @@ export default function WelcomePopup() {
     return () => clearTimeout(t)
   }, [])
 
+  // Đếm ngược tự chuyển bước — tạm dừng khi khách đang rê chuột/chạm vào popup để đọc.
+  const [elapsed, setElapsed] = useState(0)
+  const [paused, setPaused] = useState(false)
+
   useEffect(() => {
-    if (stage !== 'intro') return
-    const t = setTimeout(() => setStage('survey'), AUTO_ADVANCE_MS)
-    return () => clearTimeout(t)
-  }, [stage])
+    if (stage !== 'intro' || paused) return
+    const id = setInterval(() => setElapsed(e => e + TICK_MS), TICK_MS)
+    return () => clearInterval(id)
+  }, [stage, paused])
+
+  useEffect(() => {
+    if (stage === 'intro' && elapsed >= AUTO_ADVANCE_MS) setStage('survey')
+  }, [stage, elapsed])
 
   const closeAll = useCallback(() => {
     try { sessionStorage.setItem(STORAGE_KEY, '1') } catch {}
@@ -101,6 +110,9 @@ export default function WelcomePopup() {
                 aria-modal="true"
                 aria-label="Giới thiệu SONi"
                 onClick={e => e.stopPropagation()}
+                onMouseEnter={() => setPaused(true)}
+                onMouseLeave={() => setPaused(false)}
+                onTouchStart={() => setPaused(true)}
                 initial={{ opacity: 0, y: -60 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -30, transition: { duration: 0.18 } }}
@@ -151,11 +163,9 @@ export default function WelcomePopup() {
                 </div>
 
                 {/* Thanh đếm ngược tự chuyển bước */}
-                <motion.div
-                  className="absolute bottom-0 left-0 h-1 bg-brand-gold"
-                  initial={{ width: '100%' }}
-                  animate={{ width: '0%' }}
-                  transition={{ duration: AUTO_ADVANCE_MS / 1000, ease: 'linear' }}
+                <div
+                  className="absolute bottom-0 left-0 h-1 bg-brand-gold transition-[width] duration-100 ease-linear"
+                  style={{ width: `${Math.max(0, 100 - (elapsed / AUTO_ADVANCE_MS) * 100)}%` }}
                   aria-hidden
                 />
               </motion.div>
